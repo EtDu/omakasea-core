@@ -113,19 +113,36 @@ class Builder {
         });
     }
 
+    reqGenerate() {
+        CollectionDAO.get(this.auth).then((collection) => {
+            for (const uploadId of Object.keys(collection.uploads)) {
+                ArtifactDAO.getActive(uploadId).then((artifacts) => {
+                    this.pending += artifacts.length;
+                    const resource = collection.resources[uploadId];
+                    resource.uploadId = uploadId;
+                    Maker.generate(resource, artifacts, () => {
+                        this.finalize();
+                    });
+                });
+            }
+        });
+    }
+
     start() {
         if (this.auth.opcode === PROTOCOL.PREVIEW) {
             this.reqPreview();
         } else if (this.auth.opcode === PROTOCOL.REDRAW) {
             this.pending = 1;
             this.reqRedraw();
+        } else if (this.auth.opcode === PROTOCOL.GENERATE) {
+            this.reqGenerate();
         }
     }
 
     finalize() {
         this.pending--;
         console.log(this.pending);
-        if (this.pending === 0) {
+        if (this.pending <= 0) {
             console.log("DONE");
             this.exit(200);
         }

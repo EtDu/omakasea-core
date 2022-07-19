@@ -61,16 +61,20 @@ class ArtifactDAO {
     static getActive(uploadId) {
         return new Promise((resolve, reject) => {
             ArtifactDAO.search(uploadId, {
+                uploadId: 1,
                 uid: 1,
                 traits: 1,
                 rating: 1,
+                sequence: 1,
             }).then((results) => {
                 const artifacts = [];
                 for (const res of results) {
                     artifacts.push({
+                        uploadId: res.uploadId,
                         uid: res.uid,
                         rating: res.rating,
                         traits: res.traits,
+                        sequence: res.sequence,
                     });
                 }
 

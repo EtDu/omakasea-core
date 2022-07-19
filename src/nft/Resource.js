@@ -4,6 +4,50 @@ const sharp = require("sharp");
 const ROOT = process.env.UPLOAD_DIR;
 
 class Resource {
+    static find(trait, attr) {
+        for (const f of attr.files) {
+            if (trait.includes(f.file)) {
+                const pages = f.pages ? f.pages : 0;
+                return {
+                    name: `${attr.name}/${f.file}`,
+                    pages,
+                };
+            }
+        }
+    }
+
+    static getData(artifact, resource) {
+        const uid = artifact.uid;
+        let isGif = false;
+        let pages = 0;
+
+        const files = [];
+        if (artifact.traits.length === resource.pool.length) {
+            for (let i = 0; i < artifact.traits.length; i++) {
+                if (!isGif) {
+                    isGif = artifact.traits[i].includes("gif");
+                }
+
+                const file = Resource.find(
+                    artifact.traits[i],
+                    resource.pool[i]
+                );
+
+                pages = file.pages > pages ? file.pages : pages;
+                files.push(file.name);
+            }
+
+            const dimensions = { ...resource.dimensions };
+            if (pages > 0) {
+                dimensions.pages = pages;
+            }
+
+            return { uid, isGif, dimensions, files };
+        }
+
+        throw new Error("traits do not match resources");
+    }
+
     static getDimensions(data) {
         const meta = {
             width: data.width,
@@ -14,6 +58,7 @@ class Resource {
             meta.duration =
                 (data.delay.reduce((a, b) => a + b, 0) / data.delay.length) *
                 data.pages;
+            meta.pages = data.pages;
         }
         return meta;
     }
@@ -51,6 +96,7 @@ class Resource {
                         : 1;
                     if (meta.duration) {
                         file.duration = meta.duration;
+                        file.pages = meta.pages;
                     }
 
                     resolve({ file, width, height });
