@@ -1,12 +1,29 @@
-require("dotenv").config();
-
-const fs = require("fs");
-const Sharper = require("../util/Sharper");
-
-const FileSystem = require("../util/FileSystem");
+const Resource = require("./Resource");
+const Sharper = require("./Sharper");
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 const GENERATED_DIR = process.env.GENERATED_DIR;
+
+class Maker {
+    static generate(uploadId, resource, artifacts, callback) {
+        const __NEXT__ = () => {
+            Maker.generate(uploadId, resource, artifacts, callback);
+            callback();
+        };
+
+        if (artifacts.length > 0) {
+            const current = artifacts.pop();
+            const data = Resource.getData(current, resource);
+            Sharper.create(uploadId, data).then(() => {
+                __NEXT__();
+            });
+        }
+    }
+}
+
+module.exports = Maker;
+
+/*
 
 class Maker {
     constructor(collection) {
@@ -53,3 +70,5 @@ class Maker {
 }
 
 module.exports = Maker;
+
+*/
