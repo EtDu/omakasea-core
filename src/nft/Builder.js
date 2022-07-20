@@ -130,13 +130,12 @@ class Builder {
                 const resource = collection.resources[uploadId];
                 ArtifactDAO.search(uploadId).then((artifacts) => {
                     total += artifacts.length;
+                    this.pending += artifacts.length;
                     const spec = { outputDir, uploadId, resource };
                     Maker.generate(spec, artifacts, () => {
                         generated++;
                         console.log(`${generated} / ${total}`);
-                        if (generated === total) {
-                            MongoDB.disconnect();
-                        }
+                        this.finalize();
                     });
                 });
             }
