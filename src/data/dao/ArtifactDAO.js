@@ -20,7 +20,7 @@ class ArtifactDAO {
         });
     }
 
-    static search(uploadId, fields) {
+    static search(uploadId, fields = {}) {
         return __BaseDAO__.__search__(
             Artifact,
             { uploadId, isValid: true },

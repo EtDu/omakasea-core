@@ -3,10 +3,17 @@ const MongoDB = require("../data/MongoDB");
 const CollectionDAO = require("../data/dao/CollectionDAO");
 const ArtifactDAO = require("../data/dao/ArtifactDAO");
 
+const PROTOCOL = require("../data/Protocol");
+
+const FileSystem = require("../util/FileSystem");
+
 const Mixer = require("./Mixer");
 const Maker = require("./Maker");
-const PROTOCOL = require("../data/Protocol");
+
 const Resource = require("./Resource");
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR;
+const GENERATED_DIR = process.env.GENERATED_DIR;
 
 class Builder {
     constructor(auth) {
@@ -113,13 +120,23 @@ class Builder {
 
     reqGenerate() {
         CollectionDAO.get(this.auth).then((collection) => {
-            for (const uploadId of Object.keys(collection.uploads)) {
-                ArtifactDAO.getActive(uploadId).then((artifacts) => {
-                    this.pending += artifacts.length;
-                    const resource = collection.resources[uploadId];
-                    resource.uploadId = uploadId;
-                    Maker.generate(resource, artifacts, () => {
-                        this.finalize();
+            const uploadIds = Object.keys(collection.generated);
+            let total = 0;
+            let generated = 0;
+            for (const uploadId of uploadIds) {
+                const outputDir = FileSystem.createGenerateDir(
+                    `${GENERATED_DIR}/${uploadId}`
+                );
+                const resource = collection.resources[uploadId];
+                ArtifactDAO.search(uploadId).then((artifacts) => {
+                    total += artifacts.length;
+                    const spec = { outputDir, uploadId, resource };
+                    Maker.generate(spec, artifacts, () => {
+                        generated++;
+                        console.log(`${generated} / ${total}`);
+                        if (generated === total) {
+                            MongoDB.disconnect();
+                        }
                     });
                 });
             }
@@ -133,6 +150,7 @@ class Builder {
             this.pending = 1;
             this.reqRedraw();
         } else if (this.auth.opcode === PROTOCOL.GENERATE) {
+            console.log(process.env.UPLOAD_DIR);
             this.reqGenerate();
         }
     }

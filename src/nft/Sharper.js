@@ -1,8 +1,8 @@
 const fs = require("fs");
 const sharp = require("sharp");
 
-const UPLOAD_DIR = "../omakasea-backend-new/web/public/__tmp__/_uploads";
-const GENERATE_DIR = "./__exp__";
+const UPLOAD_DIR = process.env.UPLOAD_DIR;
+const GENERATE_DIR = process.env.GENERATE_DIR;
 
 class Sharper {
     static toAsset(path) {
@@ -33,25 +33,25 @@ class Sharper {
         });
     }
 
-    static create(uploadId, data) {
+    static create(spec, data) {
         return new Promise((resolve, reject) => {
             if (data.isGif) {
-                Sharper.createGif(uploadId, data).then(() => {
+                Sharper.createGif(spec, data).then(() => {
                     resolve();
                 });
             } else {
-                Sharper.createPng(uploadId, data).then(() => {
+                Sharper.createPng(spec, data).then(() => {
                     resolve();
                 });
             }
         });
     }
 
-    static createPng(uploadId, data) {
+    static createPng(spec, data) {
         return new Promise((resolve, reject) => {
-            Sharper.extract(uploadId, data).then((results) => {
+            Sharper.extract(spec.uploadId, data).then((results) => {
                 Sharper.normalize(data.dimensions, results).then((images) => {
-                    Sharper.writePng(data, images).then(() => {
+                    Sharper.writePng(spec, data, images).then(() => {
                         resolve();
                     });
                 });
@@ -59,11 +59,11 @@ class Sharper {
         });
     }
 
-    static createGif(uploadId, data) {
+    static createGif(spec, data) {
         return new Promise((resolve, reject) => {
-            Sharper.extract(uploadId, data).then((results) => {
+            Sharper.extract(spec.uploadId, data).then((results) => {
                 Sharper.normalize(data.dimensions, results).then((images) => {
-                    Sharper.writeGif(data, images).then(() => {
+                    Sharper.writeGif(spec, data, images).then(() => {
                         resolve();
                     });
                 });
@@ -114,9 +114,9 @@ class Sharper {
         });
     }
 
-    static writePng(data, images) {
+    static writePng(spec, data, images) {
         return new Promise((resolve, reject) => {
-            const imagePath = `${GENERATE_DIR}/${data.uid}.png`;
+            const imagePath = `${spec.outputDir}/${data.uid}.png`;
             const head = images.shift();
             sharp(head.input)
                 .composite(images)
@@ -127,9 +127,9 @@ class Sharper {
         });
     }
 
-    static writeGif(data, images) {
+    static writeGif(spec, data, images) {
         return new Promise((resolve, reject) => {
-            const imagePath = `${GENERATE_DIR}/${data.uid}.gif`;
+            const imagePath = `${spec.outputDir}/${data.uid}.gif`;
             const base = Sharper.baseGif(data.dimensions);
             sharp(base)
                 .composite(images)

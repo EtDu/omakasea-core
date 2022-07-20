@@ -6,12 +6,11 @@ const EXCLUDE = [".DS_Store"];
 class FileSystem {
     static createGenerateDir(parentDir) {
         FileSystem.createDir(parentDir);
-        fs.readdir(parentDir, (err, files) => {
-            const batch = `BATCH_${files.length + 1}`;
-            const generateDir = `${parentDir}/${batch}`;
-            FileSystem.createDir(generateDir);
-            return generateDir;
-        });
+        const files = fs.readdirSync(parentDir);
+        const batch = `BATCH_${files.length + 1}`;
+        const generateDir = `${parentDir}/${batch}`;
+        FileSystem.createDir(generateDir);
+        return generateDir;
     }
 
     static splitPath(target) {
