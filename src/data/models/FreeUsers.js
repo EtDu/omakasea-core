@@ -1,5 +1,3 @@
-require("dotenv").config;
-
 const mongoose = require("mongoose");
 const FreeUserSchema = require("../schemas/FreeUserSchema");
 

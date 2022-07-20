@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const Sender = require("../redis/Sender");
 const MongoDB = require("../data/MongoDB");
 const CollectionDAO = require("../data/dao/CollectionDAO");

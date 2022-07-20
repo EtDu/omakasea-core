@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const path = require("path");
 const sha1 = require("sha1");
 

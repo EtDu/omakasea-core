@@ -1,4 +1,3 @@
-require("dotenv").config();
 const Sender = require("../redis/Sender");
 
 class Broadcaster {
