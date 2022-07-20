@@ -33,7 +33,21 @@ class Sharper {
         });
     }
 
-    static makePng(uploadId, data) {
+    static create(uploadId, data) {
+        return new Promise((resolve, reject) => {
+            if (data.isGif) {
+                Sharper.createGif(uploadId, data).then(() => {
+                    resolve();
+                });
+            } else {
+                Sharper.createPng(uploadId, data).then(() => {
+                    resolve();
+                });
+            }
+        });
+    }
+
+    static createPng(uploadId, data) {
         return new Promise((resolve, reject) => {
             Sharper.extract(uploadId, data).then((results) => {
                 Sharper.normalize(data.dimensions, results).then((images) => {
@@ -45,7 +59,7 @@ class Sharper {
         });
     }
 
-    static makeGif(uploadId, data) {
+    static createGif(uploadId, data) {
         return new Promise((resolve, reject) => {
             Sharper.extract(uploadId, data).then((results) => {
                 Sharper.normalize(data.dimensions, results).then((images) => {
