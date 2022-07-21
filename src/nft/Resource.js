@@ -82,7 +82,7 @@ class Resource {
         return { file, count };
     }
 
-    static getMetadata(path, file, width, height) {
+    static getMetadata(path, freq, width = {}, height = {}) {
         return new Promise((resolve, reject) => {
             sharp(path)
                 .metadata()
@@ -95,11 +95,11 @@ class Resource {
                         ? height[meta.height] + 1
                         : 1;
                     if (meta.duration) {
-                        file.duration = meta.duration;
-                        file.pages = meta.pages;
+                        freq.duration = meta.duration;
+                        freq.pages = meta.pages;
                     }
 
-                    resolve({ file, width, height });
+                    resolve({ freq, width, height, data });
                 });
         });
     }
@@ -126,9 +126,9 @@ class Resource {
                     const f = Resource.getFrequency(file);
                     const path = `${ROOT}/${uploadId}/${name}/${f.file}`;
                     Resource.getMetadata(path, f, width, height).then(
-                        ({ file, width, height }) => {
-                            resource.files.push(file);
-                            resource.total += file.count;
+                        ({ freq, width, height }) => {
+                            resource.files.push(freq);
+                            resource.total += freq.count;
 
                             resourceCount++;
                             if (resourceCount === files[name].length) {
