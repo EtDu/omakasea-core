@@ -4,6 +4,11 @@ const path = require("path");
 const EXCLUDE = [".DS_Store"];
 
 class FileSystem {
+    static isGif(path) {
+        const ext = path.split(".").pop().toLowerCase();
+        return ext === "gif";
+    }
+
     static createGenerateDir(parentDir) {
         FileSystem.createDir(parentDir);
         const files = fs.readdirSync(parentDir);

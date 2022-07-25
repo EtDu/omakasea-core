@@ -1,13 +1,14 @@
 const fs = require("fs");
 const sharp = require("sharp");
 
+const FileSystem = require("../util/FileSystem");
+
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
-const GENERATE_DIR = process.env.GENERATE_DIR;
 
 class Sharper {
     static toAsset(path) {
         const input = fs.readFileSync(path);
-        const isGif = path.includes("gif");
+        const isGif = FileSystem.isGif(path);
         return {
             input,
             tile: isGif ? false : true,
@@ -147,7 +148,7 @@ class Sharper {
                 width: width,
                 height: height * pages,
                 channels: 4,
-                background: "#0000ff",
+                background: { r: 255, g: 255, b: 255, alpha: 0 },
             },
             animated: true,
             limitInputPixels: 2684026890,

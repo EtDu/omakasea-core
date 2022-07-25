@@ -1,7 +1,9 @@
 const path = require("path");
 const sharp = require("sharp");
 
-const ROOT = process.env.UPLOAD_DIR;
+const FileSystem = require("../util/FileSystem");
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
 class Resource {
     static find(trait, attr) {
@@ -25,7 +27,7 @@ class Resource {
         if (artifact.traits.length === resource.pool.length) {
             for (let i = 0; i < artifact.traits.length; i++) {
                 if (!isGif) {
-                    isGif = artifact.traits[i].includes("gif");
+                    isGif = FileSystem.isGif(artifact.traits[i]);
                 }
 
                 const file = Resource.find(
@@ -104,6 +106,45 @@ class Resource {
         });
     }
 
+    static inspect(uploadId, files) {
+        return new Promise((resolve, reject) => {
+            const width = {};
+            const height = {};
+
+            let extractionTotal = 0;
+
+            for (const name of Object.keys(files).sort()) {
+                extractionTotal += files[name].length;
+            }
+
+            const metadata = [];
+            for (const name of Object.keys(files).sort()) {
+                for (const file of files[name]) {
+                    const f = Resource.getFrequency(file);
+                    const path = `${UPLOAD_DIR}/${uploadId}/${name}/${f.file}`;
+                    Resource.getMetadata(path, f, width, height).then(
+                        (result) => {
+                            if (result.data.xmp) {
+                                result.data.xmp = true;
+                            }
+
+                            if (result.data.delay) {
+                                result.data.delay =
+                                    result.freq.duration / result.freq.pages;
+                            }
+
+                            metadata.push(result);
+
+                            if (metadata.length === extractionTotal) {
+                                resolve(metadata);
+                            }
+                        }
+                    );
+                }
+            }
+        });
+    }
+
     static create(uploadId, files) {
         return new Promise((resolve, reject) => {
             const width = {};
@@ -124,7 +165,7 @@ class Resource {
                 let resourceCount = 0;
                 for (const file of files[name]) {
                     const f = Resource.getFrequency(file);
-                    const path = `${ROOT}/${uploadId}/${name}/${f.file}`;
+                    const path = `${UPLOAD_DIR}/${uploadId}/${name}/${f.file}`;
                     Resource.getMetadata(path, f, width, height).then(
                         ({ freq, width, height }) => {
                             resource.files.push(freq);
