@@ -40,7 +40,8 @@
         "socket.io": "^4.5.1",
         "socket.io-client": "^4.5.1",
         "through2": "^4.0.2",
-        "truffle": "^5.4.26"
+        "truffle": "^5.4.26",
+        "uuid": "^8.3.2"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-ethers": "^2.0.0",

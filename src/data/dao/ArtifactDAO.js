@@ -4,6 +4,10 @@ const Artifact = require("../models/Artifact");
 const ArtifactSchema = require("../schemas/ArtifactSchema");
 
 class ArtifactDAO {
+    static getMany(uids, fields = {}) {
+        return __BaseDAO__.__search__(Artifact, uids, fields, { sequence: 1 });
+    }
+
     static get(uploadId, uid) {
         return new Promise((resolve, reject) => {
             const query = {
