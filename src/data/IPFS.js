@@ -64,8 +64,7 @@ class IPFS {
                     metadata[artifact.uid] = {
                         date: Date.now(),
                         collection,
-                        sequence: artifact.sequence,
-                        name: artifact.uid,
+                        name: `${collection} #${artifact.sequence}`,
                         image: undefined,
                         attributes,
                     };

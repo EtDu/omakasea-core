@@ -4,12 +4,15 @@ module.exports = {
     // session
     creatorAddress: String,
     isEditing: { type: Boolean, default: true },
-    hasMinted: { type: Boolean, default: false },
+    isUploaded: { type: Boolean, default: false },
 
     // generated-ID mappings
     uploads: { type: Object, default: {} },
     resources: { type: Object, default: {} },
     generated: { type: Object, default: {} },
+
+    // IPFS
+    cid: { type: String },
 
     // front-end
     collectionName: String,
