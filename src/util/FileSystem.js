@@ -4,8 +4,12 @@ const path = require("path");
 const EXCLUDE = [".DS_Store"];
 
 class FileSystem {
-    static isGif(path) {
-        const ext = path.split(".").pop().toLowerCase();
+    static getName(fPath) {
+        return fPath.split(path.sep).pop().split(".")[0];
+    }
+
+    static isGif(filePath) {
+        const ext = filePath.split(".").pop().toLowerCase();
         return ext === "gif";
     }
 
@@ -53,11 +57,24 @@ class FileSystem {
             if (fs.statSync(dir + path.sep + file).isDirectory()) {
                 files = FileSystem.getFiles(dir + path.sep + file, files);
             } else if (!EXCLUDE.includes(file)) {
-                files.push(path.join(dir, path.sep, file));
+                const fPath = path.join(dir, path.sep, file);
+                const fName = FileSystem.getName(fPath);
+                files.push({ fName, fPath });
             }
         });
 
         return files;
+    }
+
+    static getGenerated(uploadId) {
+        const fullPath = `${process.env.GENERATED_DIR}/${uploadId}`;
+        const list = fs.readdirSync(fullPath);
+        const latest = list
+            .filter((f) => !EXCLUDE.includes(f))
+            .sort()
+            .pop();
+        const baseDir = `${fullPath}/${latest}`;
+        return FileSystem.getFiles(baseDir);
     }
 }
 

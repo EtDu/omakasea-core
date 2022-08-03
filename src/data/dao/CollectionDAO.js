@@ -9,7 +9,7 @@ class CollectionDAO {
             const query = {
                 creatorAddress: auth.addr,
                 isEditing: true,
-                hasMinted: false,
+                isUploaded: false,
             };
             __BaseDAO__.__get__(Collection, query).then((document) => {
                 if (document !== null) {
@@ -26,7 +26,7 @@ class CollectionDAO {
             const query = {
                 creatorAddress: auth.addr,
                 isEditing: true,
-                hasMinted: false,
+                isUploaded: false,
             };
             __BaseDAO__.__get__(Collection, query).then((document) => {
                 if (document !== null) {
@@ -47,7 +47,7 @@ class CollectionDAO {
             const query = {
                 creatorAddress: auth.addr,
                 isEditing: true,
-                hasMinted: false,
+                isUploaded: false,
             };
             __BaseDAO__.__fetch__(Collection, query).then((document) => {
                 resolve(document);
@@ -106,7 +106,7 @@ class CollectionDAO {
 
     static endMint(doc) {
         doc.isEditing = false;
-        doc.hasMinted = true;
+        doc.isUploaded = true;
         return __BaseDAO__.__save__(doc);
     }
 }
