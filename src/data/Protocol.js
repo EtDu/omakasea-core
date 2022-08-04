@@ -1,5 +1,5 @@
 module.exports = {
-    PREVIEW: "pre",
-    REDRAW: "rdr",
-    GENERATE: "gen",
+  PREVIEW: "pre",
+  REDRAW: "rdr",
+  GENERATE: "gen",
 };
