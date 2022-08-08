@@ -1,8 +1,9 @@
 module.exports = {
-  uploadId: String,
-  sequence: { type: Number },
-  uid: { type: String },
-  rating: { type: Number },
-  traits: { type: Array },
-  isValid: { type: Boolean, default: true },
+    uploadId: String,
+    isValid: { type: Boolean, default: true },
+    uid: { type: String },
+    cid: { type: String },
+    traits: { type: Array },
+    rating: { type: Number },
+    sequence: { type: Number },
 };
