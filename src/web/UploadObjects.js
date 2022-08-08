@@ -90,6 +90,24 @@ class NFTClass {
 
         this.nftClass.attributes[attr] = attrs;
     }
+
+    moveAttribute(target, toIndex) {
+        if (to < this.nftClass.nameIndex.length) {
+            const nameIndex = [];
+            for (let i = 0; i < this.nftClass.nameIndex.length; i++) {
+                const current = this.nftClass.nameIndex[i];
+                if (current !== target) {
+                    nameIndex.push(current);
+                }
+
+                if (i === toIndex) {
+                    nameIndex.push(target);
+                }
+            }
+
+            this.nftClass.nameIndex = nameIndex;
+        }
+    }
 }
 
 class NFTCollection {
