@@ -31,7 +31,8 @@ class Builder {
         this.pending = uploads.length;
         for (const uploadId of uploads) {
           if (doc.generated[uploadId]) {
-            this.resPreview(uploadId);
+            const dimensions = doc.resources[uploadId].dimensions;
+            this.resPreview(uploadId, dimensions);
           } else {
             this.createPreview(uploadId, doc);
           }
@@ -62,12 +63,13 @@ class Builder {
     });
   }
 
-  resPreview(uploadId) {
+  resPreview(uploadId, dimensions) {
     ArtifactDAO.getActive(uploadId)
       .then((artifacts) => {
         const payload = { ...this.auth };
         payload.opcode = PROTOCOL.PREVIEW;
         payload.collection = {
+          dimensions,
           uploadId,
           specs: artifacts,
         };
@@ -104,7 +106,8 @@ class Builder {
           CollectionDAO.save(collection).then((col) => {
             ArtifactDAO.delete(artifact);
             ArtifactDAO.insertOne(updated).then(() => {
-              this.resPreview(uploadId);
+              const dimensions = col.resources[uploadId].dimensions;
+              this.resPreview(uploadId, dimensions);
             });
           });
         });
