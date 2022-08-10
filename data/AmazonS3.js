@@ -54,7 +54,7 @@ class AmazonS3 {
     });
   }
 
-  static deleteJSON(data) {
+  static __DELETE_JSON__(data) {
     return new Promise((resolve, reject) => {
       CONNECTION.deleteObject(data, (err, data) => {
         if (err) {
