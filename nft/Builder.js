@@ -100,17 +100,12 @@ class Builder {
     const [uploadId, uid] = target.split("/");
     ArtifactDAO.get(uploadId, uid).then((artifact) => {
       CollectionDAO.get(this.auth).then((collection) => {
-        const resource = Mixer.recycle(
-          collection.resources[uploadId],
-          artifact
-        );
-
-        Mixer.create(1, resource).then((generated) => {
+        Mixer.recycle(collection.resources[uploadId], artifact);
+        Mixer.create(1, collection.resources[uploadId]).then((generated) => {
           const updated = generated[0];
           updated.sequence = artifact.sequence;
           updated.uploadId = artifact.uploadId;
 
-          collection.resources[uploadId] = resource;
           collection.markModified("resources");
           CollectionDAO.save(collection).then((col) => {
             ArtifactDAO.delete(artifact);
