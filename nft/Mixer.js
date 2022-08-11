@@ -132,6 +132,7 @@ class Mixer {
         }
       }
     }
+    return resource;
   }
 
   static splitAsset(asset) {

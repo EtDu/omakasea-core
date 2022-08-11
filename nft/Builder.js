@@ -76,6 +76,8 @@ class Builder {
       uploadId,
       specs,
     };
+
+    payload.opcode = PROTOCOL.PREVIEW;
     return payload;
   }
 
@@ -98,25 +100,22 @@ class Builder {
     const [uploadId, uid] = target.split("/");
     ArtifactDAO.get(uploadId, uid).then((artifact) => {
       CollectionDAO.get(this.auth).then((collection) => {
-        const pool = Mixer.recycle(
-          collection.resources[uploadId].pool,
+        const resource = Mixer.recycle(
+          collection.resources[uploadId],
           artifact
         );
 
-        Mixer.create(1, pool).then((generated) => {
+        Mixer.create(1, resource).then((generated) => {
           const updated = generated[0];
-
           updated.sequence = artifact.sequence;
           updated.uploadId = artifact.uploadId;
 
-          collection.resources[uploadId].pool = pool;
+          collection.resources[uploadId] = resource;
           collection.markModified("resources");
-
           CollectionDAO.save(collection).then((col) => {
             ArtifactDAO.delete(artifact);
             ArtifactDAO.insertOne(updated).then(() => {
-              const dimensions = col.resources[uploadId].dimensions;
-              this.resPreview(uploadId, dimensions);
+              this.resPreview(uploadId);
             });
           });
         });
