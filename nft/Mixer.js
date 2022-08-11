@@ -33,6 +33,16 @@ class Mixer {
     return array;
   }
 
+  static isValid(resource) {
+    for (const name of resource.nameIndex) {
+      const attribute = resource.attributes[name];
+      if (attribute.total === 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static create(count, resource) {
     return new Promise((resolve, reject) => {
       let isValid = true;
@@ -42,7 +52,6 @@ class Mixer {
       for (let i = 0; i < count; i++) {
         if (isValid && retries < MAX_RETRIES) {
           const result = Mixer.spawn(resource);
-          isValid = result.isValid;
 
           const canCreate = !created.has(result.spec.uid) && isValid;
           if (canCreate && result.isAligned) {
@@ -55,6 +64,8 @@ class Mixer {
         } else {
           break;
         }
+
+        isValid = Mixer.isValid(resource);
       }
 
       resolve(specs);
@@ -64,27 +75,23 @@ class Mixer {
   static spawn(resource) {
     const duration = {};
     let traits = [];
-    let isValid = true;
     let rating = 0;
 
     for (const name of resource.nameIndex) {
       const attribute = resource.attributes[name];
-      if (attribute.total > 0) {
-        attribute.total -= 1;
+      attribute.total -= 1;
 
-        const trait = Mixer.getRandom(attribute.traits);
-        rating += trait.rarity;
-        traits.push({
-          attribute: name,
-          name: trait.name,
-          path: trait.path,
-        });
-        if (trait.duration !== undefined) {
-          const d = trait.duration;
-          duration[d] = duration[d] ? duration[d] + 1 : 1;
-        }
-      } else {
-        isValid = false;
+      const trait = Mixer.getRandom(attribute.traits);
+      rating += trait.rarity;
+      traits.push({
+        attribute: name,
+        name: trait.name,
+        path: trait.path,
+      });
+
+      if (trait.duration !== undefined) {
+        const d = trait.duration;
+        duration[d] = duration[d] ? duration[d] + 1 : 1;
       }
     }
 
@@ -98,7 +105,6 @@ class Mixer {
     };
 
     return {
-      isValid,
       isAligned,
       spec,
     };
