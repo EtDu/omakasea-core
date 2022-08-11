@@ -1,38 +1,8 @@
-const path = require("path");
-const sha1 = require("sha1");
-
-const Resource = require("./Resource");
+const md5 = require("blueimp-md5");
 
 const MAX_RETRIES = 10000;
 
-function getTrait(name, artifact) {
-  let found = undefined;
-  artifact.traits.forEach((trait) => {
-    if (trait.includes(name)) {
-      found = trait;
-    }
-  });
-  return found;
-}
-
 class Mixer {
-  static shuffle(array) {
-    let currentIndex = array.length,
-      randomIndex;
-
-    while (currentIndex != 0) {
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-
-      [array[currentIndex], array[randomIndex]] = [
-        array[randomIndex],
-        array[currentIndex],
-      ];
-    }
-
-    return array;
-  }
-
   static isValid(resource) {
     for (const name of resource.nameIndex) {
       const attribute = resource.attributes[name];
@@ -96,7 +66,7 @@ class Mixer {
     }
 
     const isAligned = !(Object.keys(duration).length > 1);
-    const uid = sha1(JSON.stringify(traits));
+    const uid = md5(JSON.stringify(traits));
 
     const spec = {
       uid,
@@ -139,17 +109,6 @@ class Mixer {
       }
     }
     return resource;
-  }
-
-  static splitAsset(asset) {
-    const toks = asset.split(path.sep);
-    const file = toks.pop();
-    const trait = toks.join(path.sep);
-
-    return {
-      trait,
-      file,
-    };
   }
 }
 
