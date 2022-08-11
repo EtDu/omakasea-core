@@ -76,12 +76,7 @@ class Resource {
     return Number(dimension);
   }
 
-  static getFrequency(file) {
-    const count = Number(file.split("#")[1].split(".")[0]);
-    return { file, count };
-  }
-
-  static getMetadata(path, freq, width = {}, height = {}) {
+  static getMetadata(path, trait, width = {}, height = {}) {
     return new Promise((resolve, reject) => {
       sharp(path)
         .metadata()
@@ -92,127 +87,57 @@ class Resource {
             ? height[meta.height] + 1
             : 1;
           if (meta.duration) {
-            freq.duration = meta.duration;
-            freq.pages = meta.pages;
+            trait.duration = meta.duration;
+            trait.pages = meta.pages;
           }
 
-          resolve({ freq, width, height, data });
+          resolve({ trait, width, height });
         });
     });
   }
 
-  static inspect(uploadId, files) {
-    return new Promise((resolve, reject) => {
-      const width = {};
-      const height = {};
-
-      let extractionTotal = 0;
-
-      for (const name of Object.keys(files).sort()) {
-        extractionTotal += files[name].length;
-      }
-
-      const metadata = [];
-      for (const name of Object.keys(files).sort()) {
-        for (const file of files[name]) {
-          const f = Resource.getFrequency(file);
-          const path = `${UPLOAD_DIR}/${uploadId}/${name}/${f.file}`;
-          Resource.getMetadata(path, f, width, height).then((result) => {
-            if (result.data.xmp) {
-              result.data.xmp = true;
-            }
-
-            if (result.data.delay) {
-              result.data.delay = result.freq.duration / result.freq.pages;
-            }
-
-            metadata.push(result);
-
-            if (metadata.length === extractionTotal) {
-              resolve(metadata);
-            }
-          });
-        }
-      }
-    });
+  static toIndex(nftClass) {
+    return {
+      nameIndex: nftClass.nameIndex,
+      attributes: nftClass.attributes,
+    };
   }
 
-  static create(uploadId, files) {
+  static create(uploadId, resource) {
     return new Promise((resolve, reject) => {
       const width = {};
       const height = {};
       const pool = [];
 
-      let extractionTotal = 0;
-      let extractionCount = 0;
+      let count = 0;
+      let total = 0;
+      for (const name of resource.nameIndex) {
+        const updated = [];
+        const current = resource.attributes[name];
+        total += current.traits.length;
 
-      for (const name of Object.keys(files).sort()) {
-        const resource = {
-          name,
-          total: 0,
-          files: [],
-        };
-
-        extractionTotal += files[name].length;
-        let resourceCount = 0;
-        for (const file of files[name]) {
-          const f = Resource.getFrequency(file);
-          const path = `${UPLOAD_DIR}/${uploadId}/${name}/${f.file}`;
-          Resource.getMetadata(path, f, width, height).then(
-            ({ freq, width, height }) => {
-              resource.files.push(freq);
-              resource.total += freq.count;
-
-              resourceCount++;
-              if (resourceCount === files[name].length) {
-                pool.push(resource);
+        for (const trait of current.traits) {
+          const path = `${UPLOAD_DIR}/${uploadId}/${trait.path}`;
+          Resource.getMetadata(path, trait, width, height).then(
+            ({ trait, width, height }) => {
+              updated.push(trait);
+              if (updated.length === current.length) {
+                resource.attributes[name] = updated;
               }
 
-              extractionCount++;
-              if (extractionCount === extractionTotal) {
-                pool.sort((a, b) => {
-                  if (a.name > b.name) {
-                    return 1;
-                  } else if (a.name < b.name) {
-                    return -1;
-                  }
-                  return 0;
-                });
-                resolve({
-                  dimensions: {
-                    width: Resource.normalize(width),
-                    height: Resource.normalize(height),
-                  },
-                  pool,
-                });
+              count++;
+              if (count === total) {
+                resource.dimensions = {
+                  width: Resource.normalize(width),
+                  height: Resource.normalize(height),
+                };
+                resolve(resource);
               }
             }
           );
         }
       }
     });
-  }
-
-  static getPathIndex(paths) {
-    const tmp = {};
-    for (const p of paths) {
-      const fp = p.split(path.sep);
-      const file = fp.pop();
-      const dir = fp.join(path.sep);
-      if (tmp[dir] === undefined) {
-        tmp[dir] = [];
-      }
-
-      tmp[dir].push(file);
-    }
-
-    const index = {};
-
-    for (const key of Object.keys(tmp).sort()) {
-      index[key] = tmp[key].sort();
-    }
-
-    return index;
   }
 }
 

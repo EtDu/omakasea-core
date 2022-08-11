@@ -55,9 +55,9 @@ class CollectionDAO {
   static saveUpload(auth, uploadId, data) {
     return new Promise((resolve, reject) => {
       CollectionDAO.fetch(auth).then((document) => {
-        const uploads = { ...document.uploads };
-        uploads[uploadId] = data;
-        document.uploads = uploads;
+        const resources = { ...document.resources };
+        resources[uploadId] = data;
+        document.resources = resources;
         __BaseDAO__.__save__(document).then(() => {
           resolve();
         });
@@ -69,10 +69,10 @@ class CollectionDAO {
     return __BaseDAO__.__save__(collection);
   }
 
-  static saveIndexes(auth, uploadId, resources) {
+  static saveIndexes(auth, uploadId, resource) {
     return new Promise((resolve, reject) => {
       CollectionDAO.fetch(auth).then((document) => {
-        document.resources[uploadId] = resources;
+        document.resources[uploadId] = resource;
         document.markModified("resources");
 
         document.generated[uploadId] = true;

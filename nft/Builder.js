@@ -27,9 +27,9 @@ class Builder {
   reqPreview() {
     CollectionDAO.get(this.auth)
       .then((doc) => {
-        const uploads = Object.keys(doc.uploads);
-        this.pending = uploads.length;
-        for (const uploadId of uploads) {
+        const resources = Object.keys(doc.resources);
+        this.pending = resources.length;
+        for (const uploadId of resources) {
           if (doc.generated[uploadId]) {
             const dimensions = doc.resources[uploadId].dimensions;
             this.resPreview(uploadId, dimensions);
@@ -45,15 +45,11 @@ class Builder {
   }
 
   createPreview(uploadId, doc) {
-    Resource.create(uploadId, doc.uploads[uploadId]).then((resources) => {
-      Mixer.create(2000, resources.pool).then((artifacts) => {
+    Resource.create(uploadId, doc.resources[uploadId]).then((resource) => {
+      Mixer.create(2000, resource).then((artifacts) => {
         ArtifactDAO.insertMany(uploadId, artifacts).then(() => {
-          CollectionDAO.saveIndexes(this.auth, uploadId, resources).then(() => {
-            const payload = { ...this.auth };
-            payload.collection = {
-              uploadId,
-              specs: artifacts,
-            };
+          CollectionDAO.saveIndexes(this.auth, uploadId, resource).then(() => {
+            const payload = this.prepPreview(uploadId, artifacts);
             this.sender.to(process.env.NFT_IMAGE, payload).then(() => {
               this.finalize();
             });
@@ -63,17 +59,30 @@ class Builder {
     });
   }
 
-  resPreview(uploadId, dimensions) {
+  prepPreview(uploadId, artifacts) {
+    const payload = { ...this.auth };
+    const specs = [];
+    for (const artifact of artifacts) {
+      const traits = [];
+      for (const trait of artifact.traits) {
+        traits.push(trait.path);
+      }
+      specs.push({
+        uid: artifact.uid,
+        traits,
+      });
+    }
+    payload.collection = {
+      uploadId,
+      specs,
+    };
+    return payload;
+  }
+
+  resPreview(uploadId) {
     ArtifactDAO.getActive(uploadId)
       .then((artifacts) => {
-        const payload = { ...this.auth };
-        payload.opcode = PROTOCOL.PREVIEW;
-        payload.collection = {
-          dimensions,
-          uploadId,
-          specs: artifacts,
-        };
-
+        const payload = this.prepPreview(uploadId, artifacts);
         this.sender.to(process.env.NFT_IMAGE, payload).then(() => {
           this.finalize();
         });

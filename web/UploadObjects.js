@@ -14,9 +14,9 @@ function uniqueAlphaNumericId(length = 24) {
 
 class NFTClass {
   constructor() {
-    const uploadID = uniqueAlphaNumericId();
+    const uploadId = uniqueAlphaNumericId();
     this.nftClass = {
-      uploadID,
+      uploadId,
       nameIndex: [],
       attributes: {},
     };

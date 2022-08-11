@@ -33,28 +33,22 @@ class Mixer {
     return array;
   }
 
-  static create(count, pool) {
+  static create(count, resource) {
     return new Promise((resolve, reject) => {
       let isValid = true;
       let retries = 0;
       let created = new Set();
       const specs = [];
-
       for (let i = 0; i < count; i++) {
         if (isValid && retries < MAX_RETRIES) {
-          const result = Mixer.spawn(pool);
-          const spec = result.spec;
+          const result = Mixer.spawn(resource);
           isValid = result.isValid;
 
-          const pagesAligned = !(Object.keys(spec.duration).length > 1);
-
-          const canCreate = !created.has(spec.uid) && isValid;
-
-          if (canCreate && pagesAligned) {
-            delete spec.duration;
-            specs.push(spec);
+          const canCreate = !created.has(result.spec.uid) && isValid;
+          if (canCreate && result.isAligned) {
+            specs.push(result.spec);
           } else if (isValid) {
-            pool = Mixer.recycle(pool, spec);
+            Mixer.recycle(resource, result.spec);
             retries++;
             i--;
           }
@@ -67,87 +61,77 @@ class Mixer {
     });
   }
 
-  static spawn(pool) {
-    let isValid = true;
+  static spawn(resource) {
     const duration = {};
     let traits = [];
-    for (const attribute of pool) {
+    let isValid = true;
+    let rating = 0;
+
+    for (const name of resource.nameIndex) {
+      const attribute = resource.attributes[name];
       if (attribute.total > 0) {
-        const records = attribute.files;
-        const file = Mixer.getRandom(records);
+        attribute.total -= 1;
 
-        let total = 0;
-        for (const f of records) {
-          total += f.count;
-        }
-
-        if (file.duration !== undefined) {
-          const d = file.duration;
+        const trait = Mixer.getRandom(attribute.traits);
+        rating += trait.rarity;
+        traits.push({
+          attribute: name,
+          name: trait.name,
+          path: trait.path,
+        });
+        if (trait.duration !== undefined) {
+          const d = trait.duration;
           duration[d] = duration[d] ? duration[d] + 1 : 1;
         }
-
-        attribute.total = total;
-        traits.push(`${attribute.name}/${file.file}`);
       } else {
         isValid = false;
       }
     }
 
-    traits = traits.sort();
+    const isAligned = !(Object.keys(duration).length > 1);
     const uid = sha1(JSON.stringify(traits));
-    const rating = traits.reduce(
-      (i, f) => i + Resource.getFrequency(f).count,
-      0
-    );
 
     const spec = {
-      duration,
       uid,
       rating,
       traits,
     };
 
-    return { spec, isValid };
+    return {
+      isValid,
+      isAligned,
+      spec,
+    };
   }
-  static getRandom(files) {
-    let file = undefined;
 
-    const pool = files.filter((f) => f.count > 0);
+  static getRandom(traits) {
+    let trait = undefined;
+
+    const pool = traits.filter((t) => t.rarity > 0);
     if (pool.length > 0) {
       const i = Math.floor(Math.random() * pool.length);
-      file = pool[i];
+      trait = pool[i];
 
-      for (const f of files) {
-        if (f.file === file.file) {
-          f.count -= 1;
+      for (const t of traits) {
+        if (t.name === trait.name) {
+          t.rarity -= 1;
         }
       }
     }
 
-    return file;
+    return trait;
   }
 
-  static recycle(pool, artifact) {
-    const updated = [];
-
-    for (let i = 0; i < pool.length; i++) {
-      const trait = { ...pool[i] };
-      const current = Mixer.splitAsset(getTrait(trait.name, artifact));
-
-      if (current.trait === trait.name) {
-        trait.total++;
-
-        for (const f of trait.files) {
-          if (f.file === current.file) {
-            f.count++;
-          }
+  static recycle(resource, spec) {
+    for (const sTrait of spec.traits) {
+      const attribute = resource.attributes[sTrait.attribute];
+      attribute.total++;
+      for (const aTrait of attribute.traits) {
+        if (sTrait.name === aTrait.name) {
+          aTrait.rarity++;
         }
-
-        updated.push(trait);
       }
     }
-
-    return updated;
   }
 
   static splitAsset(asset) {
