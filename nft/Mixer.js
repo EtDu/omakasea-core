@@ -83,7 +83,7 @@ class Mixer {
   static getRandom(traits) {
     let trait = undefined;
 
-    const pool = traits.filter((t) => t.rarity > 0);
+    const pool = traits.filter((t) => t.rarity.count > 0);
     if (pool.length > 0) {
       const i = Math.floor(Math.random() * pool.length);
       trait = pool[i];
