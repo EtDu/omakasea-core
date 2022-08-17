@@ -45,14 +45,14 @@ class Mixer {
   static spawn(resource) {
     const duration = {};
     let traits = [];
-    let rating = 0;
+    let score = 0;
 
     for (const name of resource.nameIndex) {
       const attribute = resource.attributes[name];
       attribute.total -= 1;
 
       const trait = Mixer.getRandom(attribute.traits);
-      rating += trait.rarity.total;
+      score += trait.rarity.total;
       traits.push({
         attribute: name,
         name: trait.name,
@@ -70,7 +70,7 @@ class Mixer {
 
     const spec = {
       uid,
-      rating,
+      score,
       traits,
     };
 

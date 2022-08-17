@@ -68,7 +68,7 @@ class ArtifactDAO {
         uploadId: 1,
         uid: 1,
         traits: 1,
-        rating: 1,
+        score: 1,
         sequence: 1,
       }).then((results) => {
         const artifacts = [];
@@ -76,7 +76,7 @@ class ArtifactDAO {
           artifacts.push({
             uploadId: res.uploadId,
             uid: res.uid,
-            rating: res.rating,
+            score: res.score,
             traits: res.traits,
             sequence: res.sequence,
           });

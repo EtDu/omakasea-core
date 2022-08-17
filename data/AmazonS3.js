@@ -1,11 +1,11 @@
 require("dotenv").config();
+const fs = require("fs");
 const AWS = require("aws-sdk");
-
 AWS.config.update({ region: "ap-southeast-1" });
 const CONNECTION = new AWS.S3({ apiVersion: "2006-03-01" });
 
 class AmazonS3 {
-  static getBuckets() {
+  static getAllBuckets() {
     return new Promise((resolve, reject) => {
       CONNECTION.listBuckets((err, node) => {
         if (err) {
@@ -17,9 +17,9 @@ class AmazonS3 {
     });
   }
 
-  static getObjects(name) {
+  static getObjects(bucket) {
     return new Promise((resolve, reject) => {
-      CONNECTION.listObjects({ Bucket: name }, (err, data) => {
+      CONNECTION.listObjects({ Bucket: bucket }, (err, data) => {
         if (err) {
           reject(err);
         } else {
@@ -29,9 +29,9 @@ class AmazonS3 {
     });
   }
 
-  static createBucket(name) {
+  static createBucket(bucket) {
     return new Promise((resolve, reject) => {
-      let params = { Bucket: name };
+      let params = { Bucket: bucket };
       CONNECTION.createBucket(params, (err, data) => {
         if (err) {
           console.log(err, err.stack);
@@ -42,9 +42,34 @@ class AmazonS3 {
     });
   }
 
-  static writeJSON(data) {
+  static uploadJSON(bucket, key, body) {
     return new Promise((resolve, reject) => {
-      CONNECTION.putObject(data, (err, data) => {
+      const content = JSON.stringify(body);
+      const json = {
+        Bucket: bucket,
+        Key: key,
+        Body: content,
+      };
+      CONNECTION.putObject(json, (err, data) => {
+        if (err) {
+          console.log(err, err.stack);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+  }
+
+  static uploadFile(bucket, path) {
+    return new Promise((resolve, reject) => {
+      const content = fs.readFileSync(path);
+      const file = {
+        Bucket: bucket,
+        Key: path,
+        Body: content,
+      };
+
+      CONNECTION.upload(file, (err, data) => {
         if (err) {
           console.log(err, err.stack);
         } else {

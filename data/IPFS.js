@@ -10,7 +10,7 @@ class IPFS {
     return new Promise((resolve, reject) => {
       const content = fs.readFileSync(fPath);
       const name = metadata.name;
-      ipfsClient.add({ path: name, content }).then((result) => {
+      ipfsClient.add({ path: name, content }, { pin: true }).then((result) => {
         metadata.image = `ipfs://${result.cid}`;
         const payload = {
           path: metadata.name,
@@ -25,7 +25,7 @@ class IPFS {
   static uploadMetadata(metadata) {
     return new Promise((resolve, reject) => {
       ipfsClient
-        .add(metadata, { wrapWithDirectory: true })
+        .add(metadata, { wrapWithDirectory: true, pin: true })
         .then((result) => {
           resolve(result);
         })
