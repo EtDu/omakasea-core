@@ -46,6 +46,7 @@ class Mixer {
     const duration = {};
     let traits = [];
     let score = 0;
+    let isGif = false;
 
     for (const name of resource.nameIndex) {
       const attribute = resource.attributes[name];
@@ -62,6 +63,7 @@ class Mixer {
       if (trait.duration !== undefined) {
         const d = trait.duration;
         duration[d] = duration[d] ? duration[d] + 1 : 1;
+        isGif = true;
       }
     }
 
@@ -72,6 +74,7 @@ class Mixer {
       uid,
       score,
       traits,
+      isGif,
     };
 
     return {

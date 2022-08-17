@@ -120,7 +120,13 @@ class Builder {
 
   reqGenerate() {
     CollectionDAO.get(this.auth).then((collection) => {
-      const uploadIds = Object.keys(collection.generated);
+      const uploadIds = [];
+      for (const uploadId of Object.keys(collection.generated)) {
+        if (collection.generated[uploadId]) {
+          uploadIds.push(uploadId);
+        }
+      }
+
       let total = 0;
       let generated = 0;
       for (const uploadId of uploadIds) {
@@ -131,8 +137,8 @@ class Builder {
         ArtifactDAO.search(uploadId).then((artifacts) => {
           total += artifacts.length;
           this.pending += artifacts.length;
-          const spec = { outputDir, uploadId, resource };
-          Maker.generate(spec, artifacts, () => {
+          const spec = { outputDir, uploadId };
+          Maker.generate(spec, resource, artifacts, () => {
             generated++;
             console.log(`${generated} / ${total}`);
             this.finalize();

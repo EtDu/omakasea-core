@@ -8,8 +8,8 @@ class FileSystem {
     return fPath.split(path.sep).pop().split(".")[0];
   }
 
-  static isGif(filePath) {
-    const ext = filePath.split(".").pop().toLowerCase();
+  static isGif(fPath) {
+    const ext = fPath.split(".").pop().toLowerCase();
     return ext === "gif";
   }
 

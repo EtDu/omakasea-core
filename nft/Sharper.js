@@ -6,9 +6,9 @@ const FileSystem = require("../util/FileSystem");
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
 class Sharper {
-  static toAsset(path) {
-    const input = fs.readFileSync(path);
-    const isGif = FileSystem.isGif(path);
+  static toAsset(fPath) {
+    const input = fs.readFileSync(fPath);
+    const isGif = FileSystem.isGif(fPath);
     return {
       input,
       tile: isGif ? false : true,
@@ -24,8 +24,8 @@ class Sharper {
       const metadata = [];
 
       for (const file of data.files) {
-        const path = `${UPLOAD_DIR}/${uploadId}/${file}`;
-        const asset = Sharper.toAsset(path);
+        const fPath = `${UPLOAD_DIR}/${uploadId}/${file}`;
+        const asset = Sharper.toAsset(fPath);
         assets.push(asset);
         metadata.push(sharp(asset.input).metadata());
       }
@@ -117,11 +117,11 @@ class Sharper {
 
   static writePng(spec, data, images) {
     return new Promise((resolve, reject) => {
-      const imagePath = `${spec.outputDir}/${data.uid}.png`;
+      const imagefPath = `${spec.outputDir}/${data.uid}.png`;
       const head = images.shift();
       sharp(head.input)
         .composite(images)
-        .toFile(imagePath)
+        .toFile(imagefPath)
         .then(() => {
           resolve();
         });
@@ -130,11 +130,11 @@ class Sharper {
 
   static writeGif(spec, data, images) {
     return new Promise((resolve, reject) => {
-      const imagePath = `${spec.outputDir}/${data.uid}.gif`;
+      const imagefPath = `${spec.outputDir}/${data.uid}.gif`;
       const base = Sharper.baseGif(data.dimensions);
       sharp(base)
         .composite(images)
-        .toFile(imagePath)
+        .toFile(imagefPath)
         .then(() => {
           resolve();
         });

@@ -6,14 +6,12 @@ const FileSystem = require("../util/FileSystem");
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
 class Resource {
-  static find(trait, attr) {
-    for (const f of attr.files) {
-      if (trait.includes(f.file)) {
-        const pages = f.pages ? f.pages : 0;
-        return {
-          name: `${attr.name}/${f.file}`,
-          pages,
-        };
+  static getPages(trait, resource) {
+    for (const name of resource.nameIndex) {
+      for (const t of resource.attributes[name].traits) {
+        if (t.name === trait.name) {
+          return t.pages ? t.pages : 0;
+        }
       }
     }
   }
@@ -24,16 +22,19 @@ class Resource {
     let pages = 0;
 
     const files = [];
-    if (artifact.traits.length === resource.pool.length) {
+    if (artifact.traits.length === Object.keys(resource.attributes).length) {
       for (let i = 0; i < artifact.traits.length; i++) {
         if (!isGif) {
-          isGif = FileSystem.isGif(artifact.traits[i]);
+          isGif = FileSystem.isGif(artifact.traits[i].path);
         }
 
-        const file = Resource.find(artifact.traits[i], resource.pool[i]);
+        const trait = artifact.traits[i];
+        files.push(trait.path);
 
-        pages = file.pages > pages ? file.pages : pages;
-        files.push(file.name);
+        if (artifact.isGif) {
+          const rPages = Resource.getPages(trait, resource);
+          pages = rPages > pages ? rPages : pages;
+        }
       }
 
       const dimensions = { ...resource.dimensions };
