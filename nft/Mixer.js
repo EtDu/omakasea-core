@@ -52,7 +52,7 @@ class Mixer {
       attribute.total -= 1;
 
       const trait = Mixer.getRandom(attribute.traits);
-      rating += trait.rarity;
+      rating += trait.rarity.total;
       traits.push({
         attribute: name,
         name: trait.name,
@@ -90,7 +90,7 @@ class Mixer {
 
       for (const t of traits) {
         if (t.name === trait.name) {
-          t.rarity -= 1;
+          t.rarity.count -= 1;
         }
       }
     }
@@ -104,7 +104,7 @@ class Mixer {
       attribute.total++;
       for (const aTrait of attribute.traits) {
         if (sTrait.name === aTrait.name) {
-          aTrait.rarity++;
+          aTrait.rarity.count++;
         }
       }
     }
