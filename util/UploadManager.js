@@ -60,7 +60,7 @@ class UploadManager {
 
   static upload(req, details) {
     return new Promise((resolve, reject) => {
-      const busboy = new Busboy({ headers: req.headers });
+      const busboy = Busboy({ headers: req.headers });
       const { uploadId, rangeStart } = details;
 
       busboy.on("file", (fullPath, file) => {
