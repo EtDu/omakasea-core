@@ -1,4 +1,3 @@
-const path = require("path");
 const sharp = require("sharp");
 
 const FileSystem = require("../util/FileSystem");
@@ -29,8 +28,8 @@ class Resource {
         }
 
         const trait = artifact.traits[i];
-        files.push(trait.path);
 
+        files.push(trait.path);
         if (artifact.isGif) {
           const rPages = Resource.getPages(trait, resource);
           pages = rPages > pages ? rPages : pages;
