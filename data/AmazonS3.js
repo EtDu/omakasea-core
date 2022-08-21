@@ -9,7 +9,7 @@ class AmazonS3 {
     return new Promise((resolve, reject) => {
       CONNECTION.listBuckets((err, node) => {
         if (err) {
-          console.log("Error", err);
+          reject(err);
         } else {
           resolve(node.Buckets);
         }
@@ -34,7 +34,7 @@ class AmazonS3 {
       let params = { Bucket: bucket };
       CONNECTION.createBucket(params, (err, data) => {
         if (err) {
-          console.log(err, err.stack);
+          reject(err);
         } else {
           resolve(data);
         }
@@ -52,7 +52,7 @@ class AmazonS3 {
       };
       CONNECTION.putObject(json, (err, data) => {
         if (err) {
-          console.log(err, err.stack);
+          reject(err);
         } else {
           resolve(data);
         }
@@ -71,7 +71,7 @@ class AmazonS3 {
 
       CONNECTION.upload(file, (err, data) => {
         if (err) {
-          console.log(err, err.stack);
+          reject(err);
         } else {
           resolve(data);
         }
@@ -83,7 +83,7 @@ class AmazonS3 {
     return new Promise((resolve, reject) => {
       CONNECTION.deleteObject(data, (err, data) => {
         if (err) {
-          console.log(err, err.stack);
+          reject(err);
         } else {
           resolve(data);
         }
@@ -94,9 +94,9 @@ class AmazonS3 {
   static __DELETE_BUCKET__(name) {
     return new Promise((resolve, reject) => {
       let params = { Bucket: name };
-      storage.deleteBucket(params, (err, data) => {
+      CONNECTION.deleteBucket(params, (err, data) => {
         if (err) {
-          console.log(err, err.stack);
+          reject(err);
         } else {
           resolve(data);
         }

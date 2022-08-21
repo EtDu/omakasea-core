@@ -1,9 +1,6 @@
 const Resource = require("./Resource");
 const Sharper = require("./Sharper");
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR;
-const GENERATED_DIR = process.env.GENERATED_DIR;
-
 class Maker {
   static generate(spec, resource, artifacts, callback) {
     const __NEXT__ = () => {
