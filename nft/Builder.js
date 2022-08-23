@@ -12,7 +12,6 @@ const Maker = require("./Maker");
 
 const Resource = require("./Resource");
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR;
 const GENERATED_DIR = process.env.GENERATED_DIR;
 
 class Builder {
@@ -107,10 +106,11 @@ class Builder {
           updated.uploadId = artifact.uploadId;
 
           collection.markModified("resources");
-          CollectionDAO.save(collection).then((col) => {
-            ArtifactDAO.delete(artifact);
-            ArtifactDAO.insertOne(updated).then(() => {
-              this.resPreview(uploadId);
+          CollectionDAO.save(collection).then(() => {
+            ArtifactDAO.delete(artifact).then(() => {
+              ArtifactDAO.insertOne(updated).then(() => {
+                this.resPreview(uploadId);
+              });
             });
           });
         });

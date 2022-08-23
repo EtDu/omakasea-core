@@ -23,7 +23,7 @@ class Authentication {
 
   static parse(req) {
     const data = Authentication.getMessage(req.session.nonce);
-    const sig = req.body.sig || req.query.sig;
+    const sig = req.headers.sig || req.body.sig || req.query.sig;
     return {
       sig,
       data,
