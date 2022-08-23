@@ -1,6 +1,7 @@
 const sharp = require("sharp");
 
 const FileSystem = require("../util/FileSystem");
+const GridFS = require("../data/GridFS");
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
@@ -76,32 +77,24 @@ class Resource {
     return Number(dimension);
   }
 
-  static getMetadata(conn, trait, width = {}, height = {}) {
+  static getMetadata(trait, width = {}, height = {}) {
     return new Promise((resolve, reject) => {
-      conn.GRID_FS.files.findOne({ filename: trait.key }, (err, file) => {
-        const stream = conn.GRID_FS.createReadStream(file.filename);
-        let bufferArray = [];
-        stream.on("data", (chunk) => {
-          bufferArray.push(chunk);
-        });
-        stream.on("end", () => {
-          const buffer = Buffer.concat(bufferArray);
-          sharp(buffer)
-            .metadata()
-            .then((data) => {
-              const meta = Resource.getDimensions(data);
-              width[meta.width] = width[meta.width] ? width[meta.width] + 1 : 1;
-              height[meta.height] = height[meta.height]
-                ? height[meta.height] + 1
-                : 1;
-              if (meta.duration) {
-                trait.duration = meta.duration;
-                trait.pages = meta.pages;
-              }
+      GridFS.getChunks(trait.key).then((buffer) => {
+        sharp(buffer)
+          .metadata()
+          .then((data) => {
+            const meta = Resource.getDimensions(data);
+            width[meta.width] = width[meta.width] ? width[meta.width] + 1 : 1;
+            height[meta.height] = height[meta.height]
+              ? height[meta.height] + 1
+              : 1;
+            if (meta.duration) {
+              trait.duration = meta.duration;
+              trait.pages = meta.pages;
+            }
 
-              resolve({ trait, width, height });
-            });
-        });
+            resolve({ trait, width, height });
+          });
       });
     });
   }
@@ -113,11 +106,10 @@ class Resource {
     };
   }
 
-  static create(conn, uploadId, resource) {
+  static create(resource) {
     return new Promise((resolve, reject) => {
       const width = {};
       const height = {};
-      const pool = [];
 
       let count = 0;
       let total = 0;
@@ -127,7 +119,7 @@ class Resource {
         total += current.traits.length;
 
         for (const trait of current.traits) {
-          Resource.getMetadata(conn, trait, width, height).then(
+          Resource.getMetadata(trait, width, height).then(
             ({ trait, width, height }) => {
               updated.push(trait);
               if (updated.length === current.length) {

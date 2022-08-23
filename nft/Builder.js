@@ -12,7 +12,7 @@ const Maker = require("./Maker");
 
 const Resource = require("./Resource");
 
-const { GridFS } = require("../data/GridFS");
+const GridFS = require("../data/GridFS");
 
 const GENERATED_DIR = process.env.GENERATED_DIR;
 
@@ -46,23 +46,21 @@ class Builder {
   }
 
   createPreview(uploadId, doc) {
-    GridFS.connect(process.env.OMAKASEA_URL).then((conn) => {
-      Resource.create(conn, uploadId, doc.resources[uploadId]).then(
-        (resource) => {
-          Mixer.create(2000, resource).then((artifacts) => {
-            ArtifactDAO.insertMany(uploadId, artifacts).then(() => {
-              CollectionDAO.saveIndexes(this.auth, uploadId, resource).then(
-                () => {
-                  const payload = this.prepPreview(uploadId, artifacts);
-                  this.sender.to(process.env.NFT_IMAGE, payload).then(() => {
-                    this.finalize();
-                  });
-                }
-              );
-            });
+    GridFS.connect(process.env.OMAKASEA_URL).then(() => {
+      Resource.create(doc.resources[uploadId]).then((resource) => {
+        Mixer.create(2000, resource).then((artifacts) => {
+          ArtifactDAO.insertMany(uploadId, artifacts).then(() => {
+            CollectionDAO.saveIndexes(this.auth, uploadId, resource).then(
+              () => {
+                const payload = this.prepPreview(uploadId, artifacts);
+                this.sender.to(process.env.NFT_IMAGE, payload).then(() => {
+                  this.finalize();
+                });
+              }
+            );
           });
-        }
-      );
+        });
+      });
     });
   }
 

@@ -57,7 +57,7 @@ class Mixer {
       traits.push({
         attribute: name,
         name: trait.name,
-        path: trait.path,
+        path: trait.key,
       });
 
       if (trait.duration !== undefined) {
