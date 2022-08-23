@@ -47,7 +47,9 @@ class Builder {
 
   createPreview(uploadId, doc) {
     GridFS.connect(process.env.OMAKASEA_URL).then(() => {
+      console.log("CONNECTED");
       Resource.create(doc.resources[uploadId]).then((resource) => {
+        console.log("RESOURCE CREATED");
         Mixer.create(2000, resource).then((artifacts) => {
           ArtifactDAO.insertMany(uploadId, artifacts).then(() => {
             CollectionDAO.saveIndexes(this.auth, uploadId, resource).then(
@@ -125,32 +127,34 @@ class Builder {
   }
 
   reqGenerate() {
-    CollectionDAO.get(this.auth).then((collection) => {
-      const uploadIds = [];
-      for (const uploadId of Object.keys(collection.generated)) {
-        if (collection.generated[uploadId]) {
-          uploadIds.push(uploadId);
+    GridFS.connect(process.env.OMAKASEA_URL).then(() => {
+      CollectionDAO.get(this.auth).then((collection) => {
+        const uploadIds = [];
+        for (const uploadId of Object.keys(collection.generated)) {
+          if (collection.generated[uploadId]) {
+            uploadIds.push(uploadId);
+          }
         }
-      }
 
-      let total = 0;
-      let generated = 0;
-      for (const uploadId of uploadIds) {
-        const outputDir = FileSystem.createGenerateDir(
-          `${GENERATED_DIR}/${uploadId}`
-        );
-        const resource = collection.resources[uploadId];
-        ArtifactDAO.search(uploadId).then((artifacts) => {
-          total += artifacts.length;
-          this.pending += artifacts.length;
-          const spec = { outputDir, uploadId };
-          Maker.generate(spec, resource, artifacts, () => {
-            generated++;
-            console.log(`${generated} / ${total}`);
-            this.finalize();
+        let total = 0;
+        let generated = 0;
+        for (const uploadId of uploadIds) {
+          const outputDir = FileSystem.createGenerateDir(
+            `${GENERATED_DIR}/${uploadId}`
+          );
+          const resource = collection.resources[uploadId];
+          ArtifactDAO.search(uploadId).then((artifacts) => {
+            total += artifacts.length;
+            this.pending += artifacts.length;
+            const spec = { outputDir, uploadId };
+            Maker.generate(spec, resource, artifacts, () => {
+              generated++;
+              console.log(`${generated} / ${total}`);
+              this.finalize();
+            });
           });
-        });
-      }
+        }
+      });
     });
   }
 

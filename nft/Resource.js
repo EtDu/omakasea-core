@@ -18,20 +18,16 @@ class Resource {
 
   static getData(artifact, resource) {
     const uid = artifact.uid;
-    let isGif = false;
+    const isGif = artifact.isGif;
     let pages = 0;
 
     const files = [];
     if (artifact.traits.length === Object.keys(resource.attributes).length) {
       for (let i = 0; i < artifact.traits.length; i++) {
-        if (!isGif) {
-          isGif = FileSystem.isGif(artifact.traits[i].path);
-        }
-
         const trait = artifact.traits[i];
 
         files.push(trait.path);
-        if (artifact.isGif) {
+        if (isGif) {
           const rPages = Resource.getPages(trait, resource);
           pages = rPages > pages ? rPages : pages;
         }
@@ -79,8 +75,8 @@ class Resource {
 
   static getMetadata(trait, width = {}, height = {}) {
     return new Promise((resolve, reject) => {
-      GridFS.getChunks(trait.key).then((buffer) => {
-        sharp(buffer)
+      GridFS.getChunks(trait.key).then((chunks) => {
+        sharp(chunks.input)
           .metadata()
           .then((data) => {
             const meta = Resource.getDimensions(data);
@@ -119,8 +115,8 @@ class Resource {
         total += current.traits.length;
 
         for (const trait of current.traits) {
-          Resource.getMetadata(trait, width, height).then(
-            ({ trait, width, height }) => {
+          Resource.getMetadata(trait, width, height)
+            .then(({ trait, width, height }) => {
               updated.push(trait);
               if (updated.length === current.length) {
                 resource.attributes[name] = updated;
@@ -134,8 +130,10 @@ class Resource {
                 };
                 resolve(resource);
               }
-            }
-          );
+            })
+            .catch((error) => {
+              console.log(`Resource.create\n\t${error}`);
+            });
         }
       }
     });

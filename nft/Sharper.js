@@ -1,14 +1,12 @@
 const fs = require("fs");
 const sharp = require("sharp");
 
-const FileSystem = require("../util/FileSystem");
+const GridFS = require("../data/GridFS");
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
 class Sharper {
-  static toAsset(fPath) {
-    const input = fs.readFileSync(fPath);
-    const isGif = FileSystem.isGif(fPath);
+  static toAsset(input, isGif) {
     return {
       input,
       tile: isGif ? false : true,
@@ -18,41 +16,51 @@ class Sharper {
     };
   }
 
-  static extract(uploadId, data) {
+  static extract(artifact) {
     return new Promise((resolve, reject) => {
       const assets = [];
       const metadata = [];
+      let count = 0;
+      for (const file of artifact.files) {
+        count++;
+        setTimeout(() => {
+          GridFS.getChunks(file)
+            .then((chunks) => {
+              const asset = Sharper.toAsset(chunks.input, chunks.isGif);
+              assets.push(asset);
+              metadata.push(sharp(asset.input).metadata());
 
-      for (const file of data.files) {
-        const fPath = `${UPLOAD_DIR}/${uploadId}/${file}`;
-        const asset = Sharper.toAsset(fPath);
-        assets.push(asset);
-        metadata.push(sharp(asset.input).metadata());
+              if (metadata.length === artifact.files.length) {
+                resolve({ assets, metadata });
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }, 10 * count);
       }
-
-      resolve({ assets, metadata });
     });
   }
 
-  static create(spec, data) {
+  static create(spec, artifact) {
     return new Promise((resolve, reject) => {
-      if (data.isGif) {
-        Sharper.createGif(spec, data).then(() => {
+      if (artifact.isGif) {
+        Sharper.createGif(spec, artifact).then(() => {
           resolve();
         });
       } else {
-        Sharper.createPng(spec, data).then(() => {
+        Sharper.createPng(spec, artifact).then(() => {
           resolve();
         });
       }
     });
   }
 
-  static createPng(spec, data) {
+  static createGif(spec, artifact) {
     return new Promise((resolve, reject) => {
-      Sharper.extract(spec.uploadId, data).then((results) => {
-        Sharper.normalize(data.dimensions, results).then((images) => {
-          Sharper.writePng(spec, data, images).then(() => {
+      Sharper.extract(artifact).then((results) => {
+        Sharper.normalize(artifact.dimensions, results).then((images) => {
+          Sharper.writeGif(spec, artifact, images).then(() => {
             resolve();
           });
         });
@@ -60,11 +68,11 @@ class Sharper {
     });
   }
 
-  static createGif(spec, data) {
+  static createPng(spec, artifact) {
     return new Promise((resolve, reject) => {
-      Sharper.extract(spec.uploadId, data).then((results) => {
-        Sharper.normalize(data.dimensions, results).then((images) => {
-          Sharper.writeGif(spec, data, images).then(() => {
+      Sharper.extract(artifact).then((results) => {
+        Sharper.normalize(artifact.dimensions, results).then((images) => {
+          Sharper.writePng(spec, artifact, images).then(() => {
             resolve();
           });
         });
