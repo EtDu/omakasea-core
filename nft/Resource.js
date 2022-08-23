@@ -76,23 +76,33 @@ class Resource {
     return Number(dimension);
   }
 
-  static getMetadata(path, trait, width = {}, height = {}) {
+  static getMetadata(conn, trait, width = {}, height = {}) {
     return new Promise((resolve, reject) => {
-      sharp(path)
-        .metadata()
-        .then((data) => {
-          const meta = Resource.getDimensions(data);
-          width[meta.width] = width[meta.width] ? width[meta.width] + 1 : 1;
-          height[meta.height] = height[meta.height]
-            ? height[meta.height] + 1
-            : 1;
-          if (meta.duration) {
-            trait.duration = meta.duration;
-            trait.pages = meta.pages;
-          }
-
-          resolve({ trait, width, height });
+      conn.GRID_FS.files.findOne({ filename: trait.key }, (err, file) => {
+        const stream = conn.GRID_FS.createReadStream(file.filename);
+        let bufferArray = [];
+        stream.on("data", (chunk) => {
+          bufferArray.push(chunk);
         });
+        stream.on("end", () => {
+          const buffer = Buffer.concat(bufferArray);
+          sharp(buffer)
+            .metadata()
+            .then((data) => {
+              const meta = Resource.getDimensions(data);
+              width[meta.width] = width[meta.width] ? width[meta.width] + 1 : 1;
+              height[meta.height] = height[meta.height]
+                ? height[meta.height] + 1
+                : 1;
+              if (meta.duration) {
+                trait.duration = meta.duration;
+                trait.pages = meta.pages;
+              }
+
+              resolve({ trait, width, height });
+            });
+        });
+      });
     });
   }
 
@@ -103,7 +113,7 @@ class Resource {
     };
   }
 
-  static create(uploadId, resource) {
+  static create(conn, uploadId, resource) {
     return new Promise((resolve, reject) => {
       const width = {};
       const height = {};
@@ -117,8 +127,7 @@ class Resource {
         total += current.traits.length;
 
         for (const trait of current.traits) {
-          const path = `${UPLOAD_DIR}/${uploadId}/${trait.path}`;
-          Resource.getMetadata(path, trait, width, height).then(
+          Resource.getMetadata(conn, trait, width, height).then(
             ({ trait, width, height }) => {
               updated.push(trait);
               if (updated.length === current.length) {

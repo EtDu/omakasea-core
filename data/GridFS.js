@@ -5,7 +5,26 @@ let GRID_FS = null;
 let GRID_FS_BUCKET = null;
 
 class GridFS {
-  static getFile(imageKey) {
+  static getChunks(imageKey) {
+    return new Promise((resolve, reject) => {
+      GridFS.getStream(imageKey)
+        .then((stream) => {
+          const chunks = [];
+          stream.on("data", (chunk) => {
+            chunks.push(chunk);
+          });
+
+          stream.on("end", () => {
+            resolve(Buffer.concat(chunks));
+          });
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  static getStream(imageKey) {
     return new Promise((resolve, reject) => {
       GRID_FS.files.findOne({ filename: imageKey }, (err, file) => {
         // Check if file
