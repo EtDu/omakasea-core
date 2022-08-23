@@ -7,7 +7,7 @@ const Authentication = require("../util/Authentication");
 let GRID_FS = null;
 let GRID_FS_BUCKET = null;
 
-const storage = new GridFsStorage({
+const STORAGE = new GridFsStorage({
   url: process.env.OMAKASEA_URL,
   file: (req, file) => {
     return new Promise((resolve, reject) => {
@@ -29,8 +29,8 @@ const storage = new GridFsStorage({
     });
   },
 });
-const UPLOADER = multer({ storage, preservePath: true });
-Object.freeze(UPLOADER);
+const Uploader = multer({ storage: STORAGE, preservePath: true });
+Object.freeze(Uploader);
 
 class GridFS {
   static connect(url) {
@@ -54,4 +54,4 @@ class GridFS {
   }
 }
 
-module.exports = { GridFS, UPLOADER };
+module.exports = { GridFS, Uploader };
