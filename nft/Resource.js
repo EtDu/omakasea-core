@@ -1,9 +1,6 @@
 const sharp = require("sharp");
 
-const FileSystem = require("../util/FileSystem");
 const GridFS = require("../data/GridFS");
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
 class Resource {
   static getPages(trait, resource) {
@@ -26,7 +23,7 @@ class Resource {
       for (let i = 0; i < artifact.traits.length; i++) {
         const trait = artifact.traits[i];
 
-        files.push(trait.path);
+        files.push(trait.key);
         if (isGif) {
           const rPages = Resource.getPages(trait, resource);
           pages = rPages > pages ? rPages : pages;

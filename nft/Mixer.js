@@ -57,7 +57,7 @@ class Mixer {
       traits.push({
         attribute: name,
         name: trait.name,
-        path: trait.key,
+        key: trait.key,
       });
 
       if (trait.duration !== undefined) {
@@ -106,7 +106,7 @@ class Mixer {
       const attribute = resource.attributes[sTrait.attribute];
       attribute.total++;
       for (const aTrait of attribute.traits) {
-        if (sTrait.name === aTrait.name) {
+        if (sTrait.key === aTrait.key) {
           aTrait.rarity.count++;
         }
       }

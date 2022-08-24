@@ -66,7 +66,7 @@ class Builder {
     for (const artifact of artifacts) {
       const traits = [];
       for (const trait of artifact.traits) {
-        traits.push(trait.path);
+        traits.push(trait.key);
       }
       specs.push({
         uid: artifact.uid,
