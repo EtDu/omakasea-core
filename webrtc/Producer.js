@@ -1,5 +1,21 @@
 import mediasoup from "mediasoup";
-import { mediaCodecs } from "./constants.js";
+
+const MEDIA_CODECS = [
+    {
+        kind: "audio",
+        mimeType: "audio/opus",
+        clockRate: 48000,
+        channels: 2,
+    },
+    {
+        kind: "video",
+        mimeType: "video/VP8",
+        clockRate: 90000,
+        parameters: {
+            "x-google-start-bitrate": 1000,
+        },
+    },
+];
 
 class Producer {
     static addProducer(data, socket, producer, roomName) {
@@ -21,7 +37,7 @@ class Producer {
             router1 = data.rooms[roomName].router;
             peers = data.rooms[roomName].peers || [];
         } else {
-            router1 = await WORKER.createRouter({ mediaCodecs });
+            router1 = await WORKER.createRouter({ mediaCodecs: MEDIA_CODECS });
         }
 
         console.log(`Router ID: ${router1.id}`, peers.length);
