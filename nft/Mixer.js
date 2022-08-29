@@ -18,14 +18,14 @@ class Mixer {
       let isValid = true;
       let retries = 0;
       let created = new Set();
-      const specs = [];
+      const artifacts = [];
       for (let i = 0; i < count; i++) {
         if (isValid && retries < MAX_RETRIES) {
           const result = Mixer.spawn(resource);
 
           const canCreate = !created.has(result.spec.uid) && isValid;
           if (canCreate && result.isAligned) {
-            specs.push(result.spec);
+            artifacts.push(result.spec);
           } else if (isValid) {
             Mixer.recycle(resource, result.spec);
             retries++;
@@ -38,7 +38,7 @@ class Mixer {
         isValid = Mixer.isValid(resource);
       }
 
-      resolve(specs);
+      resolve(artifacts);
     });
   }
 
