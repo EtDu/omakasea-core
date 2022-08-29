@@ -18,31 +18,31 @@ const MEDIA_CODECS = [
 ];
 
 class Producer {
-    static addProducer(data, socket, producer, roomName) {
-        data.producers = [
-            ...data.producers,
+    static addProducer(globalState, socket, producer, roomName) {
+        globalState.producers = [
+            ...globalState.producers,
             { socketId: socket.id, producer, roomName },
         ];
 
-        data.peers[socket.id] = {
-            ...data.peers[socket.id],
-            producers: [...data.peers[socket.id].producers, producer.id],
+        globalState.peers[socket.id] = {
+            ...globalState.peers[socket.id],
+            producers: [...globalState.peers[socket.id].producers, producer.id],
         };
     }
 
-    static async createRoom(data, roomName, socketId) {
+    static async createRoom(globalState, roomName, socketId) {
         let router1;
         let peers = [];
-        if (data.rooms[roomName]) {
-            router1 = data.rooms[roomName].router;
-            peers = data.rooms[roomName].peers || [];
+        if (globalState.rooms[roomName]) {
+            router1 = globalState.rooms[roomName].router;
+            peers = globalState.rooms[roomName].peers || [];
         } else {
             router1 = await WORKER.createRouter({ mediaCodecs: MEDIA_CODECS });
         }
 
         console.log(`Router ID: ${router1.id}`, peers.length);
 
-        data.rooms[roomName] = {
+        globalState.rooms[roomName] = {
             router: router1,
             peers: [...peers, socketId],
         };

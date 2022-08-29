@@ -1,6 +1,6 @@
 class Transport {
-    static getTransport(data, socketId) {
-        const [producerTransport] = data.transports.filter(
+    static getTransport(globalState, socketId) {
+        const [producerTransport] = globalState.transports.filter(
             (transport) =>
                 transport.socketId === socketId && !transport.consumer
         );
@@ -44,15 +44,18 @@ class Transport {
         });
     }
 
-    static addTransport(data, socket, transport, roomName, consumer) {
-        data.transports = [
-            ...data.transports,
+    static addTransport(globalState, socket, transport, roomName, consumer) {
+        globalState.transports = [
+            ...globalState.transports,
             { socketId: socket.id, transport, roomName, consumer },
         ];
 
-        data.peers[socket.id] = {
-            ...data.peers[socket.id],
-            transports: [...data.peers[socket.id].transports, transport.id],
+        globalState.peers[socket.id] = {
+            ...globalState.peers[socket.id],
+            transports: [
+                ...globalState.peers[socket.id].transports,
+                transport.id,
+            ],
         };
     }
 }

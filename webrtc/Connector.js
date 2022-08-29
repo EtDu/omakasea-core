@@ -14,27 +14,43 @@ function removeItems(socket, items, type) {
 }
 
 class Connector {
-    static disconnect(data, socket) {
+    static disconnect(globalState, socket) {
         console.log("peer disconnected");
-        data.consumers = removeItems(socket, data.consumers, "consumer");
-        data.producers = removeItems(socket, data.producers, "producer");
-        data.transports = removeItems(socket, data.transports, "transport");
+        globalState.consumers = removeItems(
+            socket,
+            globalState.consumers,
+            "consumer"
+        );
+        globalState.producers = removeItems(
+            socket,
+            globalState.producers,
+            "producer"
+        );
+        globalState.transports = removeItems(
+            socket,
+            globalState.transports,
+            "transport"
+        );
 
-        const { roomName } = data.peers[socket.id];
-        delete data.peers[socket.id];
+        const { roomName } = globalState.peers[socket.id];
+        delete globalState.peers[socket.id];
 
-        data.rooms[roomName] = {
-            router: data.rooms[roomName].router,
-            peers: data.rooms[roomName].peers.filter(
+        globalState.rooms[roomName] = {
+            router: globalState.rooms[roomName].router,
+            peers: globalState.rooms[roomName].peers.filter(
                 (socketId) => socketId !== socket.id
             ),
         };
     }
 
-    static async joinRoom(data, socket, roomName, callback) {
-        const router1 = await Producer.createRoom(data, roomName, socket.id);
+    static async joinRoom(globalState, socket, roomName, callback) {
+        const router1 = await Producer.createRoom(
+            globalState,
+            roomName,
+            socket.id
+        );
 
-        data.peers[socket.id] = {
+        globalState.peers[socket.id] = {
             socket,
             roomName,
             transports: [],
@@ -51,9 +67,9 @@ class Connector {
         callback({ rtpCapabilities });
     }
 
-    static createWebRtcTransport(data, socket, consumer, callback) {
-        const roomName = data.peers[socket.id].roomName;
-        const router = data.rooms[roomName].router;
+    static createWebRtcTransport(globalState, socket, consumer, callback) {
+        const roomName = globalState.peers[socket.id].roomName;
+        const router = globalState.rooms[roomName].router;
         Transport.createWebRtcTransport(router).then(
             (transport) => {
                 callback({
@@ -66,7 +82,7 @@ class Connector {
                 });
 
                 Transport.addTransport(
-                    data,
+                    globalState,
                     socket,
                     transport,
                     roomName,
@@ -79,11 +95,11 @@ class Connector {
         );
     }
 
-    static getProducers(data, socket, callback) {
-        const { roomName } = data.peers[socket.id];
+    static getProducers(globalState, socket, callback) {
+        const { roomName } = globalState.peers[socket.id];
 
         let producerList = [];
-        data.producers.forEach((producerData) => {
+        globalState.producers.forEach((producerData) => {
             if (
                 producerData.socketId !== socket.id &&
                 producerData.roomName === roomName
@@ -95,26 +111,31 @@ class Connector {
         callback(producerList);
     }
 
-    static transportConnect(data, socket, dtlsParameters) {
+    static transportConnect(globalState, socket, dtlsParameters) {
         console.log("DTLS PARAMS... ", { dtlsParameters });
-        Transport.getTransport(data, socket.id).connect({ dtlsParameters });
+        Transport.getTransport(globalState, socket.id).connect({
+            dtlsParameters,
+        });
     }
 
     static async transportProduce(
-        data,
+        globalState,
         socket,
         { kind, rtpParameters },
         callback
     ) {
-        const producer = await Transport.getTransport(data, socket.id).produce({
+        const producer = await Transport.getTransport(
+            globalState,
+            socket.id
+        ).produce({
             kind,
             rtpParameters,
         });
 
-        const { roomName } = data.peers[socket.id];
+        const { roomName } = globalState.peers[socket.id];
 
-        Producer.addProducer(data, socket, producer, roomName);
-        Consumer.informConsumers(data, roomName, socket.id, producer.id);
+        Producer.addProducer(globalState, socket, producer, roomName);
+        Consumer.informConsumers(globalState, roomName, socket.id, producer.id);
 
         console.log("Producer ID: ", producer.id, producer.kind);
 
@@ -125,16 +146,16 @@ class Connector {
 
         callback({
             id: producer.id,
-            producersExist: data.producers.length > 1 ? true : false,
+            producersExist: globalState.producers.length > 1 ? true : false,
         });
     }
 
     static async transportRecvConnect(
-        data,
+        globalState,
         { dtlsParameters, serverConsumerTransportId }
     ) {
         console.log(`DTLS PARAMS: ${dtlsParameters}`);
-        const consumerTransport = data.transports.find(
+        const consumerTransport = globalState.transports.find(
             (transportData) =>
                 transportData.consumer &&
                 transportData.transport.id == serverConsumerTransportId
@@ -143,15 +164,15 @@ class Connector {
     }
 
     static async consume(
-        data,
+        globalState,
         socket,
         { rtpCapabilities, remoteProducerId, serverConsumerTransportId },
         callback
     ) {
         try {
-            const { roomName } = data.peers[socket.id];
-            const router = data.rooms[roomName].router;
-            let consumerTransport = data.transports.find(
+            const { roomName } = globalState.peers[socket.id];
+            const router = globalState.rooms[roomName].router;
+            let consumerTransport = globalState.transports.find(
                 (transportData) =>
                     transportData.consumer &&
                     transportData.transport.id == serverConsumerTransportId
@@ -178,18 +199,18 @@ class Connector {
                     socket.emit("producer-closed", { remoteProducerId });
 
                     consumerTransport.close([]);
-                    data.transports = data.transports.filter(
+                    globalState.transports = globalState.transports.filter(
                         (transportData) =>
                             transportData.transport.id !== consumerTransport.id
                     );
                     consumer.close();
-                    data.consumers = data.consumers.filter(
+                    globalState.consumers = globalState.consumers.filter(
                         (consumerData) =>
                             consumerData.consumer.id !== consumer.id
                     );
                 });
 
-                Consumer.addConsumer(data, socket, consumer, roomName);
+                Consumer.addConsumer(globalState, socket, consumer, roomName);
                 const params = {
                     id: consumer.id,
                     producerId: remoteProducerId,
