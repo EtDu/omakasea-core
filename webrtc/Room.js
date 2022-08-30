@@ -1,4 +1,10 @@
-import WORKER from "./Worker.js";
+import Worker from "./Worker.js";
+
+let WORKER;
+(async () => {
+  WORKER = await Worker.createWorker();
+  Object.freeze(WORKER);
+})();
 
 const MEDIA_CODECS = [
   {

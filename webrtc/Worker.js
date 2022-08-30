@@ -17,10 +17,4 @@ class Worker {
   }
 }
 
-let WORKER;
-(async () => {
-  WORKER = await Worker.createWorker();
-  Object.freeze(WORKER);
-})();
-
-export default WORKER;
+export default Worker;
