@@ -1,4 +1,7 @@
-import { Connector } from "./Connector.js";
+import { Room } from "./Room.js";
+import { Producer } from "./Producer.js";
+import { Consumer } from "./Consumer.js";
+import { Transport } from "./Transport.js";
 
 const GLOBAL_STATE = {
     rooms: {},
@@ -18,46 +21,32 @@ class Router {
             });
 
             socket.on("disconnect", () => {
-                Connector.disconnect(GLOBAL_STATE, socket);
+                Room.disconnect(GLOBAL_STATE, socket);
             });
 
             socket.on("joinRoom", async ({ roomName }, callback) => {
-                await Connector.joinRoom(
-                    GLOBAL_STATE,
-                    socket,
-                    roomName,
-                    callback
-                );
+                await Room.join(GLOBAL_STATE, socket, roomName, callback);
             });
 
             socket.on(
                 "createWebRtcTransport",
                 async ({ consumer }, callback) => {
-                    Connector.createWebRtcTransport(
-                        GLOBAL_STATE,
-                        socket,
-                        consumer,
-                        callback
-                    );
+                    Transport.create(GLOBAL_STATE, socket, consumer, callback);
                 }
             );
 
             socket.on("getProducers", (callback) => {
-                Connector.getProducers(GLOBAL_STATE, socket, callback);
+                Producer.getProducers(GLOBAL_STATE, socket, callback);
             });
 
             socket.on("transport-connect", ({ dtlsParameters }) => {
-                Connector.transportConnect(
-                    GLOBAL_STATE,
-                    socket,
-                    dtlsParameters
-                );
+                Transport.connect(GLOBAL_STATE, socket, dtlsParameters);
             });
 
             socket.on(
                 "transport-produce",
                 async ({ kind, rtpParameters }, callback) => {
-                    await Connector.transportProduce(
+                    await Transport.produce(
                         GLOBAL_STATE,
                         socket,
                         { kind, rtpParameters },
@@ -69,7 +58,7 @@ class Router {
             socket.on(
                 "transport-recv-connect",
                 async ({ dtlsParameters, serverConsumerTransportId }) => {
-                    await Connector.transportRecvConnect(GLOBAL_STATE, {
+                    await Transport.receive(GLOBAL_STATE, {
                         dtlsParameters,
                         serverConsumerTransportId,
                     });
@@ -86,7 +75,7 @@ class Router {
                     },
                     callback
                 ) => {
-                    Connector.consume(
+                    Consumer.consume(
                         GLOBAL_STATE,
                         socket,
                         {
