@@ -59,27 +59,27 @@ class Room {
     }
 
     static async create(globalState, roomName, socketId) {
-        let router1;
+        let router;
         let peers = [];
         if (globalState.rooms[roomName]) {
-            router1 = globalState.rooms[roomName].router;
+            router = globalState.rooms[roomName].router;
             peers = globalState.rooms[roomName].peers || [];
         } else {
-            router1 = await WORKER.createRouter({ mediaCodecs: MEDIA_CODECS });
+            router = await WORKER.createRouter({ mediaCodecs: MEDIA_CODECS });
         }
 
-        console.log(`Router ID: ${router1.id}`, peers.length);
+        console.log(`Router ID: ${router.id}`, peers.length);
 
         globalState.rooms[roomName] = {
-            router: router1,
+            router: router,
             peers: [...peers, socketId],
         };
 
-        return router1;
+        return router;
     }
 
     static async join(globalState, socket, roomName, callback) {
-        const router1 = await Room.create(globalState, roomName, socket.id);
+        const router = await Room.create(globalState, roomName, socket.id);
 
         globalState.peers[socket.id] = {
             socket,
@@ -93,7 +93,7 @@ class Room {
             },
         };
 
-        const rtpCapabilities = router1.rtpCapabilities;
+        const rtpCapabilities = router.rtpCapabilities;
 
         callback({ rtpCapabilities });
     }
