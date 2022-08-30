@@ -1,5 +1,5 @@
-import { Producer } from "./Producer.js";
 import { Consumer } from "./Consumer.js";
+import { Producer } from "./Producer.js";
 
 const HOST_URL = "192.168.86.102";
 
@@ -112,7 +112,7 @@ class Transport {
 
         const { roomName } = globalState.peers[socket.id];
 
-        Producer.addProducer(globalState, socket, producer, roomName);
+        Producer.add(globalState, socket, producer, roomName);
         Consumer.inform(globalState, roomName, socket.id, producer.id);
 
         console.log("Producer ID: ", producer.id, producer.kind);

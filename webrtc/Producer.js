@@ -1,5 +1,5 @@
 class Producer {
-    static addProducer(globalState, socket, producer, roomName) {
+    static add(globalState, socket, producer, roomName) {
         globalState.producers = [
             ...globalState.producers,
             { socketId: socket.id, producer, roomName },
@@ -11,7 +11,7 @@ class Producer {
         };
     }
 
-    static getProducers(globalState, socket, callback) {
+    static get(globalState, socket, callback) {
         const { roomName } = globalState.peers[socket.id];
 
         let producerList = [];

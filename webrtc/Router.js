@@ -36,7 +36,7 @@ class Router {
             );
 
             socket.on("getProducers", (callback) => {
-                Producer.getProducers(GLOBAL_STATE, socket, callback);
+                Producer.get(GLOBAL_STATE, socket, callback);
             });
 
             socket.on("transport-connect", ({ dtlsParameters }) => {
