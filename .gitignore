@@ -1,6 +1,7 @@
 .env
 .DS_STORE
 .vscode
+.idea
 
 node_modules
 _uploads
@@ -9,3 +10,5 @@ _generated
 __notes__
 __tmp__
 __exp__
+
+certs
