@@ -1,7 +1,11 @@
 import Consumer from "./Consumer.js";
 import Producer from "./Producer.js";
 
-const HOST_URL = "192.168.86.102";
+import dotenv from "dotenv";
+dotenv.config();
+
+const HOST_URL = process.env.HOST_URL;
+console.log(HOST_URL);
 
 class Transport {
   static get(globalState, socketId) {
@@ -53,6 +57,8 @@ class Transport {
           enableUdp: true,
           enableTcp: true,
           preferUdp: true,
+          rtcMinPort: 10000,
+          rtcMaxPort: 10100,
         };
 
         let transport = await router.createWebRtcTransport(transportOptions);

@@ -3,8 +3,8 @@ import mediasoup from "mediasoup";
 class Worker {
   static async createWorker() {
     const worker = await mediasoup.createWorker({
-      rtcMinPort: 2000,
-      rtcMaxPort: 2020,
+      rtcMinPort: 10000,
+      rtcMaxPort: 10100,
     });
     console.log(`worker pid ${worker.pid}`);
 
