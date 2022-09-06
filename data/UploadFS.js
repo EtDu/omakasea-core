@@ -1,4 +1,4 @@
-import multer from "multer";
+const multer = require("multer");
 
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, callback) => {
@@ -12,4 +12,5 @@ const fileStorageEngine = multer.diskStorage({
 
 const UploadFS = multer({ storage: fileStorageEngine });
 Object.freeze(UploadFS);
-export default UploadFS;
+
+module.exports = UploadFS;
