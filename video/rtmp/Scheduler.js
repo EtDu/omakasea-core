@@ -16,9 +16,9 @@ class Scheduler {
         );
     }
 
-    static transmux(inputPath, outputPath) {
+    static convert(inputPath, outputPath) {
         return execute(
-            `./omakasea-core/shell/player.sh ${videoPath} ${rtmpUrl}`,
+            `./omakasea-core/shell/player.sh ${inputPath} ${outputPath}`,
         );
     }
 }
