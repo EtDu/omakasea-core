@@ -2,7 +2,10 @@ const { exec } = require("node:child_process");
 
 function execute(command) {
     return new Promise((resolve, reject) => {
+        console.log(command);
         const child = exec(command);
+        child.stdout.pipe(process.stdout);
+
         child.on("exit", () => {
             resolve();
         });
@@ -23,4 +26,4 @@ class Scheduler {
     }
 }
 
-module.exports = Scheduler;
+module.exports = { Scheduler, execute };
