@@ -18,7 +18,7 @@ class Scheduler {
 
     static convert(inputPath, outputPath) {
         return execute(
-            `./omakasea-core/shell/player.sh ${inputPath} ${outputPath}`,
+            `./omakasea-core/shell/converter.sh ${inputPath} ${outputPath}`,
         );
     }
 }
