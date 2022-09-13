@@ -24,7 +24,7 @@ const STORAGE = new GridFsStorage({
         });
     },
 });
-const UploadDB = multer({ storage: STORAGE, preservePath: true });
-Object.freeze(UploadDB);
+const UploadImageDB = multer({ storage: STORAGE, preservePath: true });
+Object.freeze(UploadImageDB);
 
-module.exports = UploadDB;
+module.exports = UploadImageDB;
