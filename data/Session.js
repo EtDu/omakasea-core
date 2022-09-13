@@ -9,7 +9,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 
 const SESSION_STORE = new MongoDBStore(
     {
-        uri: process.env.MONGO_URL,
+        uri: process.env.MONGODB_URL,
         databaseName: process.env.SESSION_DB,
         collection: process.env.SESSION_COLLECTION,
         connectionOptions: {
