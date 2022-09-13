@@ -12,7 +12,7 @@ const fileStorageEngine = multer.diskStorage({
     destination: (req, file, callback) => {
         const auth = Authentication.parse(req);
         if (Authentication.isAuthorized(auth)) {
-            const filename = file.originalname;
+            const filename = file.originalname.replaceAll(" ", "_");
 
             const rootName = filename.split(".")[0];
             const sourceFile = `${UPLOAD_AUTHORIZED}/${filename}`;
@@ -35,7 +35,7 @@ const fileStorageEngine = multer.diskStorage({
     },
 
     filename: (req, file, callback) => {
-        callback(null, file.originalname);
+        callback(null, file.originalname.replaceAll(" ", "_"));
     },
 });
 
