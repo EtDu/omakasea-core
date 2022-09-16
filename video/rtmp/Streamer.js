@@ -12,6 +12,7 @@ const BASE_CONFIG = {
     http: {
         mediaroot: process.env.MEDIA_ROOT,
         allow_origin: "*",
+        port: 9001,
     },
     trans: {
         ffmpeg: process.env.FFMPEG,
@@ -30,9 +31,10 @@ const BASE_CONFIG = {
 };
 
 class Streamer {
-    constructor(port) {
-        this.config = { ...BASE_CONFIG };
-        this.config.http.port = port;
+    constructor(ports, config) {
+        this.config = { ...BASE_CONFIG, ...config };
+        this.config.rtmp.port = ports.rtmp;
+        this.config.http.port = ports.http;
         this.streamer = new NodeMediaServer(this.config);
     }
 
