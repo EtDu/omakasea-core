@@ -3,10 +3,8 @@ const multer = require("multer");
 const Authentication = require("../../util/Authentication");
 const VideoUploadDAO = require("../mongo/dao/VideoUploadDAO");
 
-const UPLOAD_AUTHORIZED = "../_uploads/authorized";
-const UPLOAD_PLAYBACK = "../_uploads/playback";
-const UPLOAD_STREAM = "../_uploads/stream";
-const UPLOAD_UNAUTHORIZED = "../_uploads/unauthorized";
+const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
+const UPLOAD_UNAUTHORIZED = process.env.UPLOAD_UNAUTHORIZED;
 
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, callback) => {
@@ -15,9 +13,9 @@ const fileStorageEngine = multer.diskStorage({
             const filename = file.originalname.replaceAll(" ", "_");
 
             const rootName = filename.split(".")[0];
-            const sourceFile = `${UPLOAD_AUTHORIZED}/${filename}`;
-            const mp4File = `${UPLOAD_PLAYBACK}/${rootName}.mp4`;
-            const hlsFile = `${UPLOAD_STREAM}/${rootName}.ts`;
+            const sourceFile = filename;
+            const mp4File = `${rootName}.mp4`;
+            const hlsFile = `${rootName}.ts`;
 
             const upload = {
                 sourceFile,
