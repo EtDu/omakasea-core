@@ -11,12 +11,15 @@ const { adminAddresses } = require("../data/Constants");
 const MESSAGE = `Welcome to Omakasea! Please sign to continue.\n\nNONCE:\n__NONCE__`;
 
 class Authentication {
+    static uuid() {
+        return crypto.randomUUID();
+    }
     static sha2(string) {
         return createHash("sha256").update(string).digest("hex");
     }
 
     static signRequest(req) {
-        const nonce = crypto.randomUUID();
+        const nonce = Authentication.uuid();
         req.session.nonce = nonce;
         return Authentication.getMessage(nonce);
     }
