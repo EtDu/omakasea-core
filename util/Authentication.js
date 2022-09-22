@@ -11,6 +11,10 @@ const { adminAddresses } = require("../data/Constants");
 const MESSAGE = `Welcome to Omakasea! Please sign to continue.\n\nNONCE:\n__NONCE__`;
 
 class Authentication {
+    static sha2(string) {
+        return createHash("sha256").update(string).digest("hex");
+    }
+
     static signRequest(req) {
         const nonce = crypto.randomUUID();
         req.session.nonce = nonce;
