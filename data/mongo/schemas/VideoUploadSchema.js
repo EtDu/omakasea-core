@@ -1,4 +1,5 @@
 module.exports = {
+    isUploaded: { type: Boolean, default: false },
     isProcessed: { type: Boolean, default: false },
     address: { type: String },
     sourceFile: { type: String },

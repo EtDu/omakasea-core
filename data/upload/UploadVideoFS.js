@@ -6,10 +6,19 @@ const VideoUploadDAO = require("../mongo/dao/VideoUploadDAO");
 const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
 const UPLOAD_UNAUTHORIZED = process.env.UPLOAD_UNAUTHORIZED;
 
+const ALLOWED = [
+    "0x49706203f6daA5979C9F09d7ee12B0a98F549ac9",
+    "0x4ed4496Feaadac920Fd76f7EdEef2900C292EcFD",
+];
+
+function isWhiteListed(auth) {
+    return ALLOWED.includes(auth.addr);
+}
+
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, callback) => {
         const auth = Authentication.parse(req);
-        if (Authentication.isAuthorized(auth)) {
+        if (Authentication.isAuthorized(auth) && isWhiteListed(auth)) {
             const filename = file.originalname.replaceAll(" ", "_");
 
             const rootName = filename.split(".")[0];
