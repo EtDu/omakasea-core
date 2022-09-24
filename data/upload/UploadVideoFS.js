@@ -13,36 +13,32 @@ const ALLOWED = [
     "0xA5e541194aD9DE1D54cCccc6E3dB6a8158e68A04",
 ];
 
-function isWhiteListed(auth) {
-    return ALLOWED.includes(auth.addr);
-}
-
-function isContributor(auth) {
-    return new Promise((resolve, reject) => {
-        ContributorDAO.isContributor(auth.addr).then();
-    });
-}
-
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, callback) => {
         const auth = Authentication.parse(req);
-        if (Authentication.isAuthorized(auth) && isWhiteListed(auth)) {
-            const filename = file.originalname.replaceAll(" ", "_");
+        if (Authentication.isAuthorized(auth)) {
+            ContributorDAO.isContributor(auth.addr).then((isActive) => {
+                if (isActive) {
+                    const filename = file.originalname.replaceAll(" ", "_");
 
-            const rootName = filename.split(".")[0];
-            const sourceFile = filename;
-            const mp4File = `${rootName}.mp4`;
-            const hlsFile = `${rootName}.ts`;
+                    const rootName = filename.split(".")[0];
+                    const sourceFile = filename;
+                    const mp4File = `${rootName}.mp4`;
+                    const hlsFile = `${rootName}.ts`;
 
-            const upload = {
-                sourceFile,
-                mp4File,
-                hlsFile,
-                address: auth.addr,
-            };
+                    const upload = {
+                        sourceFile,
+                        mp4File,
+                        hlsFile,
+                        address: auth.addr,
+                    };
 
-            VideoUploadDAO.create(upload).then(() => {
-                callback(null, UPLOAD_AUTHORIZED);
+                    VideoUploadDAO.create(upload).then(() => {
+                        callback(null, UPLOAD_AUTHORIZED);
+                    });
+                } else {
+                    callback(null, UPLOAD_UNAUTHORIZED);
+                }
             });
         } else {
             callback(null, UPLOAD_UNAUTHORIZED);
