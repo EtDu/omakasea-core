@@ -2,6 +2,7 @@ const multer = require("multer");
 
 const Authentication = require("../../util/Authentication");
 const VideoUploadDAO = require("../mongo/dao/VideoUploadDAO");
+const ContributorDAO = require("../mongo/dao/ContributorDAO");
 
 const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
 const UPLOAD_UNAUTHORIZED = process.env.UPLOAD_UNAUTHORIZED;
@@ -14,6 +15,12 @@ const ALLOWED = [
 
 function isWhiteListed(auth) {
     return ALLOWED.includes(auth.addr);
+}
+
+function isContributor(auth) {
+    return new Promise((resolve, reject) => {
+        ContributorDAO.isContributor(auth.addr).then();
+    });
 }
 
 const fileStorageEngine = multer.diskStorage({
