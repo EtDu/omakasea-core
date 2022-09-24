@@ -9,6 +9,7 @@ const UPLOAD_UNAUTHORIZED = process.env.UPLOAD_UNAUTHORIZED;
 const ALLOWED = [
     "0x49706203f6daA5979C9F09d7ee12B0a98F549ac9",
     "0x4ed4496Feaadac920Fd76f7EdEef2900C292EcFD",
+    "0xA5e541194aD9DE1D54cCccc6E3dB6a8158e68A04",
 ];
 
 function isWhiteListed(auth) {
