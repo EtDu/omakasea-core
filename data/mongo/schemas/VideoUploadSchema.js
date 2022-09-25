@@ -1,9 +1,8 @@
 module.exports = {
     isUploaded: { type: Boolean, default: false },
     isProcessed: { type: Boolean, default: false },
+    uuid: { type: String },
     address: { type: String },
-    sourceFile: { type: String },
-    mp4File: { type: String },
-    hlsFile: { type: String },
+    filename: { type: String },
     createdAt: { type: Number },
 };

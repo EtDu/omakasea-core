@@ -13,10 +13,10 @@ class VideoUploadDAO {
         });
     }
 
-    static getUnprocessed() {
+    static search(sourceFile) {
         return new Promise((resolve, reject) => {
             __BaseDAO__
-                .__search__(VideoUpload, { isProcessed: false })
+                .__search__(VideoUpload, { sourceFile })
                 .then((documents) => {
                     resolve(documents);
                 });
@@ -38,6 +38,16 @@ class VideoUploadDAO {
     static save(document) {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__save__(document).then(() => {
+                resolve();
+            });
+        });
+    }
+
+    static uploadComplete(uuid) {
+        return new Promise((resolve, reject) => {
+            __BaseDAO__.__get__(VideoUpload, { uuid }).then((doc) => {
+                doc.isUploaded = true;
+                __BaseDAO__.__save__(doc);
                 resolve();
             });
         });

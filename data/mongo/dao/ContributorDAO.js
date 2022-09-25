@@ -10,7 +10,6 @@ class ContributorDAO {
     static isContributor(address) {
         return new Promise((resolve, reject) => {
             const query = { address, isActive: true };
-            console.log(query);
             __BaseDAO__.__get__(Contributor, query).then((result) => {
                 if (result !== null) {
                     resolve(true);
