@@ -3,6 +3,19 @@ const __BaseDAO__ = require("./__BaseDAO__");
 const VideoUpload = require("../models/VideoUpload");
 
 class VideoUploadDAO {
+    static getProcessed() {
+        return new Promise((resolve, reject) => {
+            __BaseDAO__
+                .__search__(VideoUpload, {
+                    isUploaded: true,
+                    isProcessed: true,
+                })
+                .then((documents) => {
+                    resolve(documents);
+                });
+        });
+    }
+
     static getUnprocessed() {
         return new Promise((resolve, reject) => {
             __BaseDAO__
