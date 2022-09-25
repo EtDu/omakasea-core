@@ -25,6 +25,7 @@ const fileStorageEngine = multer.diskStorage({
             uuid: req.uuid,
             address: auth.addr,
             filename,
+            extension,
         };
 
         VideoUploadDAO.create(upload).then(() => {

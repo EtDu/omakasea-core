@@ -4,5 +4,6 @@ module.exports = {
     uuid: { type: String },
     address: { type: String },
     filename: { type: String },
+    extension: { type: String },
     createdAt: { type: Number },
 };
