@@ -3,8 +3,8 @@ const __BaseDAO__ = require("./__BaseDAO__");
 const VideoUpload = require("../models/VideoUpload");
 
 class VideoUploadDAO {
-    static listAll() {
-        return __BaseDAO__.__search__(VideoUpload, {});
+    static listAll(query = {}) {
+        return __BaseDAO__.__search__(VideoUpload, query, {}, { createdAt: 1 });
     }
 
     static getProcessed() {
