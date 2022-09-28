@@ -25,8 +25,7 @@ class ContributorDAO {
 
     static isContributor(address) {
         return new Promise((resolve, reject) => {
-            const query = { address };
-            __BaseDAO__.__get__(Contributor, query).then((result) => {
+            ContributorDAO.get(address).then((result) => {
                 if (result !== null) {
                     resolve(true);
                 } else {
@@ -34,6 +33,11 @@ class ContributorDAO {
                 }
             });
         });
+    }
+
+    static get(address) {
+        const query = { address };
+        return __BaseDAO__.__get__(Contributor, query);
     }
 
     static listAll() {
