@@ -2,12 +2,10 @@ const { exec } = require("node:child_process");
 
 function execute(command) {
     return new Promise((resolve, reject) => {
-        console.log(command);
-        const child = exec(command);
-        child.stdout.pipe(process.stdout);
-
-        child.on("exit", () => {
-            resolve();
+        exec(command, (error, stdout, stderr) => {
+            if (error) return reject(error);
+            if (stderr) return reject(stderr);
+            resolve(stdout);
         });
     });
 }
