@@ -1,6 +1,7 @@
 const __BaseDAO__ = require("./__BaseDAO__");
 
 const VideoUpload = require("../models/VideoUpload");
+const VideoUploadSchema = require("../schemas/VideoUploadSchema");
 
 class VideoUploadDAO {
     static listAll(query = {}) {
@@ -69,6 +70,26 @@ class VideoUploadDAO {
                 doc.isUploaded = true;
                 __BaseDAO__.__save__(doc);
                 resolve();
+            });
+        });
+    }
+
+    static account(address) {
+        return new Promise((resolve, reject) => {
+            const query = {
+                address,
+            };
+            __BaseDAO__.__search__(VideoUpload, query).then((results) => {
+                const videos = [];
+                for (const row of results) {
+                    const r = {};
+                    for (const key of Object.keys(VideoUploadSchema)) {
+                        r[key] = row[key];
+                    }
+                    videos.push(r);
+                }
+
+                resolve(videos);
             });
         });
     }
