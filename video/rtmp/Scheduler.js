@@ -15,10 +15,16 @@ function execute(command) {
 class Scheduler {
     static play(videoPath, rtmpUrl) {
         return new Promise((resolve, reject) => {
-            const proc3 = new ffmpeg({ source: videoPath, timeout: 0 })
-                .addOption("-vcodec", "libx264")
-                .addOption("-acodec", "aac")
-                .addOption("-crf", 26)
+            const proc3 = new ffmpeg({
+                source: videoPath,
+                timeout: 0,
+            })
+                .native()
+                .addOption("-c:v", "libx264")
+                .addOption("-preset", "veryfast")
+                .addOption("-tune", "zerolatency")
+                .addOption("-c:a", "aac")
+                .addOption("-ar", "44100")
                 .addOption("-f", "flv")
                 .on("start", (command) => {
                     console.log(command);
