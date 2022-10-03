@@ -38,6 +38,12 @@ class Scheduler {
                 .on("end", () => {
                     resolve();
                 })
+                .on("error", (error) => {
+                    console.log("=========");
+                    console.log(error);
+                    console.log("=========");
+                    reject();
+                })
                 .output(rtmpUrl, (stdout, stderr) => {
                     console.log("Convert complete" + stdout);
                 })
