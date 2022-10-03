@@ -3,14 +3,14 @@ const { fork } = require("child_process");
 const Listener = require("../redis/Listener");
 
 class Launcher {
-  constructor(builderPath) {
-    console.log("LAUNCHER CREATED");
-    this.listener = new Listener();
-    this.listener.listen(process.env.NFT_QUEUE, (data) => {
-      const builder = fork(builderPath);
-      builder.send(data);
-    });
-  }
+    constructor(channel, target) {
+        console.log(`LAUNCHER CREATED : ${channel}`);
+        this.listener = new Listener();
+        this.listener.listen(channel, (data) => {
+            const builder = fork(target);
+            builder.send(data);
+        });
+    }
 }
 
 module.exports = Launcher;

@@ -27,6 +27,7 @@ class VideoUploadDAO {
                 .__search__(VideoUpload, {
                     isUploaded: true,
                     isProcessed: false,
+                    hasError: false,
                 })
                 .then((documents) => {
                     resolve(documents);
@@ -72,6 +73,10 @@ class VideoUploadDAO {
                 resolve();
             });
         });
+    }
+
+    static get(uuid) {
+        return __BaseDAO__.__get__(VideoUpload, { uuid });
     }
 
     static account(address) {
