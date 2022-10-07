@@ -1,22 +1,38 @@
 import ffmpeg from "fluent-ffmpeg";
 
 class Scheduler {
-    static timeSig(duration) {
-        const sec_num = parseInt(duration, 10); // don't forget the second param
+    static getDuration(inputPath) {
+        return new Promise((resolve, reject) => {
+            ffmpeg(inputPath).ffprobe((err, data) => {
+                resolve(Scheduler.timeSig(data.streams[0].duration));
+            });
+        });
+    }
+
+    static formatDuration(d) {
+        let hours;
+        let minutes;
+        let seconds;
+
+        if (d.hours < 10) {
+            hours = "0" + d.hours;
+        }
+        if (d.minutes < 10) {
+            minutes = "0" + d.minutes;
+        }
+        if (d.seconds < 10) {
+            seconds = "0" + d.seconds;
+        }
+
+        return hours + ":" + minutes + ":" + seconds;
+    }
+
+    static timeSig(d) {
+        const sec_num = parseInt(d, 10); // don't forget the second param
         var hours = Math.floor(sec_num / 3600);
         var minutes = Math.floor((sec_num - hours * 3600) / 60);
         var seconds = sec_num - hours * 3600 - minutes * 60;
-
-        if (hours < 10) {
-            hours = "0" + hours;
-        }
-        if (minutes < 10) {
-            minutes = "0" + minutes;
-        }
-        if (seconds < 10) {
-            seconds = "0" + seconds;
-        }
-        return hours + ":" + minutes + ":" + seconds;
+        return { hours, minutes, seconds };
     }
 
     static play(videoPath, rtmpUrl) {

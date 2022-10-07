@@ -6,5 +6,6 @@ export default {
     address: { type: String },
     filename: { type: String },
     extension: { type: String },
+    duration: { type: Object },
     createdAt: { type: Number },
 };

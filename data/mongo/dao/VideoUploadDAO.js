@@ -1,6 +1,9 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
 import VideoUpload from "../models/VideoUpload.js";
 import VideoUploadSchema from "../schemas/VideoUploadSchema.js";
+import Scheduler from "../../../video/rtmp/Scheduler.js";
+
+const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
 
 class VideoUploadDAO {
     static listAll(query = {}) {
@@ -67,9 +70,14 @@ class VideoUploadDAO {
     static uploadComplete(uuid) {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(VideoUpload, { uuid }).then((doc) => {
-                doc.isUploaded = true;
-                __BaseDAO__.__save__(doc);
-                resolve();
+                Scheduler.getDuration(
+                    `${UPLOAD_AUTHORIZED}/${uuid}.${doc.extension}`,
+                ).then((duration) => {
+                    doc.duration = duration;
+                    doc.isUploaded = true;
+                    __BaseDAO__.__save__(doc);
+                    resolve();
+                });
             });
         });
     }
