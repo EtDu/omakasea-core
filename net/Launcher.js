@@ -1,6 +1,5 @@
-const process = require("process");
-const { fork } = require("child_process");
-const Listener = require("../redis/Listener");
+import { fork } from "child_process";
+import Listener from "../redis/Listener.js";
 
 class Launcher {
     constructor(channel, target) {
@@ -13,4 +12,4 @@ class Launcher {
     }
 }
 
-module.exports = Launcher;
+export default Launcher;

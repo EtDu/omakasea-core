@@ -1,5 +1,6 @@
-const session = require("express-session");
-const MongoDBStore = require("connect-mongodb-session")(session);
+import session from "express-session";
+import { default as connectMongoDBSession } from "connect-mongodb-session";
+const MongoDBStore = connectMongoDBSession(session);
 
 const HOUR = 1000 * 60 * 60;
 const SESSION_LIFETIME = 48 * HOUR;
@@ -37,4 +38,4 @@ const SESSION_CONFIGURATION = {
     },
 };
 
-module.exports = session(SESSION_CONFIGURATION);
+export default session(SESSION_CONFIGURATION);

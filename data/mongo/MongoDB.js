@@ -1,16 +1,16 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 class MongoDB {
-  static connect(url) {
-    return mongoose.connect(url, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  }
+    static connect(url) {
+        return mongoose.connect(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+    }
 
-  static disconnect() {
-    mongoose.connection.close();
-  }
+    static disconnect() {
+        mongoose.connection.close();
+    }
 }
 
-module.exports = MongoDB;
+export default MongoDB;

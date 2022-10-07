@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     PREVIEW: "pre",
     REDRAW: "rdr",
     GENERATE: "gen",

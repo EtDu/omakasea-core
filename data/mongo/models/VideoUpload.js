@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const VideoUploadSchema = require("../schemas/VideoUploadSchema");
+import mongoose from "mongoose";
+import VideoUploadSchema from "../schemas/VideoUploadSchema.js";
 
 const target = new mongoose.Schema(VideoUploadSchema);
 const VideoUpload = mongoose.model("VideoUpload", target);
 
-module.exports = VideoUpload;
+export default VideoUpload;

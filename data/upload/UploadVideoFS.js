@@ -1,9 +1,9 @@
-const crypto = require("crypto");
-const multer = require("multer");
+import crypto from "crypto";
+import multer from "multer";
 
-const Authentication = require("../../util/Authentication");
-const VideoUploadDAO = require("../mongo/dao/VideoUploadDAO");
-const ContributorDAO = require("../mongo/dao/ContributorDAO");
+import Authentication from "../../util/Authentication.js";
+import VideoUploadDAO from "../mongo/dao/VideoUploadDAO.js";
+import ContributorDAO from "../mongo/dao/ContributorDAO.js";
 
 const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
 
@@ -52,4 +52,4 @@ const UploadFS = multer({
 });
 Object.freeze(UploadFS);
 
-module.exports = UploadFS;
+export default UploadFS;

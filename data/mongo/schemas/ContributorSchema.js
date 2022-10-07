@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     isActive: { type: Boolean, default: false },
     address: { type: String },
     seconds: { type: Number, default: 0 },

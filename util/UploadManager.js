@@ -1,7 +1,7 @@
-const Busboy = require("busboy");
-const fs = require("fs");
+import Busboy from "busboy";
+import fs from "fs";
 
-const FileSystem = require("./FileSystem");
+import FileSystem from "./FileSystem.js";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
@@ -166,4 +166,4 @@ class UploadManager {
     }
 }
 
-module.exports = UploadManager;
+export default UploadManager;

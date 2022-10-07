@@ -1,12 +1,11 @@
-const Sentry = require("@sentry/node");
-const { recoverPersonalSignature } = require("@metamask/eth-sig-util");
-const crypto = require("crypto");
+import Sentry from "@sentry/node";
+import { recoverPersonalSignature } from "@metamask/eth-sig-util";
+import crypto from "crypto";
 
-const {
-    utils: { getAddress },
-} = require("ethers");
+import ethers from "ethers";
+const getAddress = ethers.utils.getAddress;
 
-const { adminAddresses } = require("../data/Constants");
+import { adminAddresses } from "../data/Constants.js";
 
 const MESSAGE = `Welcome to Omakasea! Please sign to continue.\n\nNONCE:\n__NONCE__`;
 
@@ -107,4 +106,4 @@ class Authentication {
     }
 }
 
-module.exports = Authentication;
+export default Authentication;

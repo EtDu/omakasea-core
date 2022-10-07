@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const ContributorSchema = require("../schemas/ContributorSchema");
+import mongoose from "mongoose";
+import ContributorSchema from "../schemas/ContributorSchema.js";
 
 const contributorSchema = new mongoose.Schema(ContributorSchema);
 const Contributor = mongoose.model("Contributor", contributorSchema);
 
-module.exports = Contributor;
+export default Contributor;

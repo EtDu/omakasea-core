@@ -1,4 +1,4 @@
-const redis = require("redis");
+import redis from "redis";
 
 class Client {
     static create() {
@@ -10,4 +10,4 @@ class Client {
     }
 }
 
-module.exports = Client;
+export default Client;

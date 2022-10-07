@@ -1,4 +1,4 @@
-const ffmpeg = require("fluent-ffmpeg");
+import ffmpeg from "fluent-ffmpeg";
 
 class Scheduler {
     static timeSig(duration) {
@@ -97,4 +97,4 @@ class Scheduler {
     }
 }
 
-module.exports = Scheduler;
+export default Scheduler;

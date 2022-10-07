@@ -1,4 +1,4 @@
-const Sender = require("../redis/Sender");
+import Sender from "../redis/Sender.js";
 
 class Broadcaster {
     static create(channel) {
@@ -18,4 +18,4 @@ class Broadcaster {
     }
 }
 
-module.exports = Broadcaster;
+export default Broadcaster;

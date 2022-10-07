@@ -1,7 +1,6 @@
-const __BaseDAO__ = require("./__BaseDAO__");
-
-const VideoUpload = require("../models/VideoUpload");
-const VideoUploadSchema = require("../schemas/VideoUploadSchema");
+import __BaseDAO__ from "./__BaseDAO__.js";
+import VideoUpload from "../models/VideoUpload.js";
+import VideoUploadSchema from "../schemas/VideoUploadSchema.js";
 
 class VideoUploadDAO {
     static listAll(query = {}) {
@@ -100,4 +99,4 @@ class VideoUploadDAO {
     }
 }
 
-module.exports = VideoUploadDAO;
+export default VideoUploadDAO;

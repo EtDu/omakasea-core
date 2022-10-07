@@ -22,7 +22,7 @@ const networkMap = {
     4: "rinkeby",
 };
 
-module.exports = {
+export {
     whitelistedAddresses,
     signerAddress,
     ropstenDaoDelegate,

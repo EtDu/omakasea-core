@@ -1,7 +1,6 @@
-const __BaseDAO__ = require("./__BaseDAO__");
-
-const Collection = require("../../models/Collection");
-const CollectionSchema = require("../schemas/CollectionSchema");
+import __BaseDAO__ from "./__BaseDAO__.js";
+import Collection from "../../models/Collection.js";
+import CollectionSchema from "../schemas/CollectionSchema.js";
 
 class CollectionDAO {
     static get(auth) {
@@ -111,4 +110,4 @@ class CollectionDAO {
     }
 }
 
-module.exports = CollectionDAO;
+export default CollectionDAO;

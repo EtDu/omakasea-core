@@ -1,6 +1,6 @@
-const multer = require("multer");
-const { GridFsStorage } = require("multer-gridfs-storage");
-const Authentication = require("../../util/Authentication");
+import multer from "multer";
+import { GridFsStorage } from "multer-gridfs-storage";
+import Authentication from "../../util/Authentication.js";
 
 const STORAGE = new GridFsStorage({
     url: process.env.OMAKASEA_URL,
@@ -27,4 +27,4 @@ const STORAGE = new GridFsStorage({
 const UploadImageDB = multer({ storage: STORAGE, preservePath: true });
 Object.freeze(UploadImageDB);
 
-module.exports = UploadImageDB;
+export default UploadImageDB;

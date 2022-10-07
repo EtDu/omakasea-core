@@ -1,6 +1,5 @@
-const __BaseDAO__ = require("./__BaseDAO__");
-
-const Contributor = require("../models/Contributor");
+import __BaseDAO__ from "./__BaseDAO__.js";
+import Contributor from "../models/Contributor.js";
 
 class ContributorDAO {
     static insert(contributor) {
@@ -45,4 +44,4 @@ class ContributorDAO {
     }
 }
 
-module.exports = ContributorDAO;
+export default ContributorDAO;
