@@ -23,6 +23,7 @@ const fileStorageEngine = multer.diskStorage({
 
         const upload = {
             uuid: req.uuid,
+            folderUUID: req.folderUUID,
             address: auth.addr,
             filename,
             extension,
