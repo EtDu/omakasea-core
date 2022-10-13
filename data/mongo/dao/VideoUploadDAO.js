@@ -1,7 +1,7 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
 import VideoUpload from "../models/VideoUpload.js";
 import VideoUploadSchema from "../schemas/VideoUploadSchema.js";
-import Scheduler from "../../../video/rtmp/Scheduler.js";
+import FFMPEG from "../../../video/FFMPEG.js";
 
 const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
 
@@ -67,10 +67,10 @@ class VideoUploadDAO {
         });
     }
 
-    static uploadComplete(uuid) {
+    static uploadComplete(details) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__.__get__(VideoUpload, { uuid }).then((doc) => {
-                Scheduler.getDuration(
+            __BaseDAO__.__get__(VideoUpload, { ...details }).then((doc) => {
+                FFMPEG.getDuration(
                     `${UPLOAD_AUTHORIZED}/${uuid}.${doc.extension}`,
                 ).then((duration) => {
                     doc.duration = duration;

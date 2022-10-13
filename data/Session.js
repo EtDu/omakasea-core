@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import session from "express-session";
 import { default as connectMongoDBSession } from "connect-mongodb-session";
 const MongoDBStore = connectMongoDBSession(session);

@@ -5,7 +5,7 @@ const EXCLUDE = [".DS_Store"];
 
 class FileSystem {
     static getName(fPath) {
-        return fPath.split(path.sep).pop().split(".")[0];
+        return fPath.split(path.sep).pop();
     }
 
     static isGif(fPath) {

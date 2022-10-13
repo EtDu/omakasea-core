@@ -1,8 +1,6 @@
-import fs from "fs";
-import path from "path";
-import { create } from "ipfs-http-client";
-
-const ipfsClient = create();
+const fs = require("fs");
+const path = require("path");
+const ipfsClient = require("ipfs-http-client").create();
 
 const FileSystem = require("../../util/FileSystem");
 const ArtifactDAO = require("../data/dao/ArtifactDAO");
