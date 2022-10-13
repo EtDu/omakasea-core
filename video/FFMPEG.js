@@ -29,7 +29,9 @@ class FFMPEG {
         return new Promise((resolve, reject) => {
             FFMPEG.getInfo(inputPath)
                 .then((data) => {
-                    resolve(FFMPEG.timeSig(data.streams[0].duration));
+                    console.log(data);
+                    // resolve(FFMPEG.timeSig(data.streams[0].duration));
+                    resolve()
                 })
                 .catch((err) => {
                     reject(err);

@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config()
+
 import crypto from "crypto";
 import multer from "multer";
 
@@ -19,8 +22,8 @@ const fileStorageEngine = multer.diskStorage({
         const extension = toks[toks.length - 1];
 
         req.uuid = crypto.randomUUID();
+        req.folderUUID = req.headers.folderuuid
         const sourceFile = `${req.uuid}.${extension}`;
-
         const upload = {
             uuid: req.uuid,
             folderUUID: req.folderUUID,
@@ -28,7 +31,6 @@ const fileStorageEngine = multer.diskStorage({
             filename,
             extension,
         };
-
         VideoUploadDAO.create(upload).then(() => {
             cb(null, sourceFile);
         });

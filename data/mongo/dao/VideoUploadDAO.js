@@ -1,3 +1,6 @@
+import dotenv from "dotenv"
+dotenv.config()
+
 import __BaseDAO__ from "./__BaseDAO__.js";
 import VideoUpload from "../models/VideoUpload.js";
 import VideoUploadSchema from "../schemas/VideoUploadSchema.js";
@@ -71,7 +74,7 @@ class VideoUploadDAO {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(VideoUpload, { ...details }).then((doc) => {
                 FFMPEG.getDuration(
-                    `${UPLOAD_AUTHORIZED}/${uuid}.${doc.extension}`,
+                    `${UPLOAD_AUTHORIZED}/${details.uuid}.${doc.extension}`,
                 ).then((duration) => {
                     doc.duration = duration;
                     doc.isUploaded = true;
