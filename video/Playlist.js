@@ -12,7 +12,8 @@ import FileSystem from "../util/FileSystem.js";
 import IPFS from "../data/net/IPFS.js";
 import FFMPEG from "./FFMPEG.js";
 
-const TIME_BUFFER = 3 * 3600;
+const HOURS = 3;
+const TIME_BUFFER = HOURS * 3600;
 
 class Playlist {
     constructor(folderUUID) {
