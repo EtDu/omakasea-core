@@ -1,93 +1,118 @@
-const fs = require("fs");
-const path = require("path");
-const ipfsClient = require("ipfs-http-client").create();
+import dotenv from "dotenv";
+dotenv.config();
 
-const FileSystem = require("../../util/FileSystem");
-const ArtifactDAO = require("../data/dao/ArtifactDAO");
+const UPLOAD_DIR = process.env.UPLOAD_DIR;
+const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR;
+const IPFS_URL = process.env.IPFS_URL;
+const IPFS_PORT = process.env.IPFS_PORT;
+
+import fs from "fs";
+import axios from "axios";
+import { create } from "ipfs-http-client";
+
+import FolderUploadDAO from "../mongo/dao/FolderUploadDAO.js";
+import VideoUploadDAO from "../mongo/dao/VideoUploadDAO.js";
+import FFMPEG from "../../video/FFMPEG.js";
+import FileSystem from "../../util/FileSystem.js";
+
+async function ipfsClient() {
+    const config = {
+        host: "192.168.86.102",
+        port: 5001,
+    };
+
+    return await create(config);
+}
 
 class IPFS {
-    static uploadFile(fPath, metadata) {
+    static async uploadReady() {
         return new Promise((resolve, reject) => {
-            const content = fs.readFileSync(fPath);
-            const name = metadata.name;
-            ipfsClient
-                .add({ path: name, content }, { pin: true })
-                .then((result) => {
-                    metadata.image = `ipfs://${result.cid}`;
-                    const payload = {
-                        path: metadata.name,
-                        content: JSON.stringify(metadata),
-                    };
-                    console.log(payload);
-                    resolve(payload);
-                });
+            FolderUploadDAO.getReady().then(async (folders) => {
+                for (const folder of folders) {
+                    await IPFS.uploadDir(folder.uuid);
+                }
+                resolve();
+            });
         });
     }
 
-    static uploadMetadata(metadata) {
+    static download(video) {
+        const { cid } = video;
+        const downloadPath = FileSystem.getDownloadPath(video);
+
         return new Promise((resolve, reject) => {
-            ipfsClient
-                .add(metadata, { wrapWithDirectory: true, pin: true })
-                .then((result) => {
-                    resolve(result);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
+            FileSystem.delete(downloadPath);
+            const writer = fs.createWriteStream(downloadPath);
+            const url = `http://${IPFS_URL}:${IPFS_PORT}/ipfs/${cid}`;
+
+            axios({
+                url,
+                method: "GET",
+                responseType: "stream",
+            }).then((response) => {
+                response.data.pipe(writer);
+
+                writer.on("finish", resolve);
+                writer.on("error", reject);
+            });
         });
     }
 
-    static uploadCollection(uploadId) {
-        return new Promise((resolve, reject) => {
-            const files = FileSystem.getGenerated(uploadId);
+    static async uploadDir(folderUUID) {
+        VideoUploadDAO.search({ folderUUID }).then(async (videos) => {
+            const files = [];
+            const index = {
+                FOLDER: { uuid: folderUUID },
+            };
+            for (const video of videos) {
+                const fPath = FileSystem.getUploadPath(video);
+                const content = fs.readFileSync(fPath);
 
-            const uids = [];
-            const fileIndex = {};
+                files.push({
+                    path: video.filename,
+                    content,
+                });
 
-            for (const f of files) {
-                uids.push(f.fName);
-                fileIndex[f.fName] = f;
+                index[video.filename] = {
+                    fPath,
+                    uuid: video.uuid,
+                };
+            }
+            const ipfs = await ipfsClient();
+            const uploaded = await ipfs.addAll(files, {
+                wrapWithDirectory: true,
+            });
+            for await (const upload of uploaded) {
+                if (upload.path.length > 0) {
+                    index[upload.path].cid = upload.cid.toString();
+                } else {
+                    index["FOLDER"].cid = upload.cid.toString();
+                }
             }
 
-            ArtifactDAO.getMany({ uid: uids }).then((artifacts) => {
-                const metadata = {};
-                for (const artifact of artifacts) {
-                    let collection = null;
-                    const attributes = [];
-                    for (const trait of artifact.traits) {
-                        const toks = trait.split(path.sep);
-                        attributes.push({
-                            trait_type: toks[1],
-                            value: toks[2].split("#")[0],
-                        });
-                        collection = toks[0];
+            for (const key of Object.keys(index)) {
+                if (key === "FOLDER") {
+                    FolderUploadDAO.updateIPFS(index[key]);
+                } else {
+                    try {
+                        FFMPEG.getMetadata(index[key].fPath)
+                            .then((metadata) => {
+                                index[key].metadata = metadata;
+                                VideoUploadDAO.updateIPFS(index[key]);
+                                FileSystem.delete(index[key].fPath);
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                            });
+                    } catch (error) {
+                        console.log("==============");
+                        console.log(error);
+                        console.log("==============");
                     }
-
-                    metadata[artifact.uid] = {
-                        date: Date.now(),
-                        collection,
-                        name: `${collection} #${artifact.sequence}`,
-                        image: undefined,
-                        attributes,
-                    };
                 }
-
-                const uploads = [];
-
-                for (const uid of Object.keys(metadata)) {
-                    const fPath = fileIndex[uid].fPath;
-                    const data = metadata[uid];
-                    uploads.push(IPFS.uploadFile(fPath, data));
-                }
-
-                Promise.all(uploads).then((metadata) => {
-                    IPFS.uploadMetadata(metadata).then((result) => {
-                        resolve(result);
-                    });
-                });
-            });
+            }
         });
     }
 }
 
-module.exports = IPFS;
+export default IPFS;

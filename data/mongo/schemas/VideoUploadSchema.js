@@ -1,6 +1,5 @@
 export default {
     isUploaded: { type: Boolean, default: false },
-    isProcessed: { type: Boolean, default: false },
     hasError: { type: Boolean, default: false },
     folderUUID: { type: String },
     uuid: { type: String },

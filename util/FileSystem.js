@@ -1,9 +1,37 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import fs from "fs";
 import path from "path";
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR;
+const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR;
+const TRANSCODE_DIR = process.env.TRANSCODE_DIR;
 
 const EXCLUDE = [".DS_Store"];
 
 class FileSystem {
+    static getUploadPath(video) {
+        const { uuid, extension } = video;
+        return `${UPLOAD_DIR}/${uuid}.${extension}`;
+    }
+
+    static getDownloadPath(video) {
+        const { uuid, extension } = video;
+        return `${DOWNLOAD_DIR}/${uuid}.${extension}`;
+    }
+
+    static getTranscodePath(video) {
+        const { uuid, extension } = video;
+        return `${TRANSCODE_DIR}/${uuid}.${extension}`;
+    }
+
+    static delete(fPath) {
+        try {
+            fs.unlinkSync(fPath);
+        } catch (error) {}
+    }
+
     static getName(fPath) {
         return fPath.split(path.sep).pop();
     }

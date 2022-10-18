@@ -39,7 +39,7 @@ class ContributorDAO {
         return __BaseDAO__.__get__(Contributor, query);
     }
 
-    static listAll() {
+    static search() {
         return __BaseDAO__.__search__(Contributor, {});
     }
 }

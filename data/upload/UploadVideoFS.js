@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
 import crypto from "crypto";
 import multer from "multer";
@@ -8,11 +8,11 @@ import Authentication from "../../util/Authentication.js";
 import VideoUploadDAO from "../mongo/dao/VideoUploadDAO.js";
 import ContributorDAO from "../mongo/dao/ContributorDAO.js";
 
-const UPLOAD_AUTHORIZED = process.env.UPLOAD_AUTHORIZED;
+const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, UPLOAD_AUTHORIZED);
+        cb(null, UPLOAD_DIR);
     },
     filename: (req, file, cb) => {
         const auth = Authentication.parse(req);
@@ -22,7 +22,7 @@ const fileStorageEngine = multer.diskStorage({
         const extension = toks[toks.length - 1];
 
         req.uuid = crypto.randomUUID();
-        req.folderUUID = req.headers.folderuuid
+        req.folderUUID = req.headers.folderuuid;
         const sourceFile = `${req.uuid}.${extension}`;
         const upload = {
             uuid: req.uuid,

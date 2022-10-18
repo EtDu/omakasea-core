@@ -1,5 +1,7 @@
 import ffmpeg from "fluent-ffmpeg";
 
+import FileSystem from "../util/FileSystem.js";
+
 class FFMPEG {
     static getResolution(inputPath) {
         return new Promise((resolve, reject) => {
@@ -15,13 +17,27 @@ class FFMPEG {
 
     static getInfo(inputPath) {
         return new Promise((resolve, reject) => {
-            ffmpeg(inputPath).ffprobe((err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
+            try {
+                ffmpeg(inputPath)
+                    .addOption("-v", "error")
+                    .on("error", (err) => {
+                        console.log("--- ffmpeg meets error ---");
+                        console.log(err);
+                        reject(err);
+                    })
+                    .ffprobe((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            } catch (error) {
+                console.log("==============");
+                console.log(error);
+                console.log("==============");
+                reject(error);
+            }
         });
     }
 
@@ -30,6 +46,21 @@ class FFMPEG {
             FFMPEG.getInfo(inputPath)
                 .then((data) => {
                     resolve(FFMPEG.timeSig(data));
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    }
+
+    static getMetadata(inputPath) {
+        return new Promise((resolve, reject) => {
+            FFMPEG.getInfo(inputPath)
+                .then((data) => {
+                    resolve({
+                        duration: FFMPEG.timeSig(data),
+                        resolution: FFMPEG.resolutionSig(data),
+                    });
                 })
                 .catch((err) => {
                     reject(err);
@@ -56,9 +87,20 @@ class FFMPEG {
     }
 
     static resolutionSig(data) {
+        let width;
+        let height;
+        for (const stream of data.streams) {
+            if (stream.width && width === undefined) {
+                width = stream.width;
+            }
+            if (stream.height && height === undefined) {
+                height = stream.height;
+            }
+        }
+
         return {
-            width: data.streams[0].width,
-            height: data.streams[0].height,
+            width,
+            height,
         };
     }
 
@@ -81,7 +123,6 @@ class FFMPEG {
                 })
                     .addOption("-ss", startsAt)
                     .addOption("-to", endsAt)
-                    // .addOption("-c", "copy")
                     .addOption("-vf", "scale=1920x1080:flags=lanczos")
                     .on("start", (command) => {
                         console.log(command);
@@ -159,35 +200,23 @@ class FFMPEG {
         });
     }
 
-    static convert(inputPath, outputPath) {
+    static convert(video) {
+        const resolution = video.metadata.resolution;
+        const inputPath = FileSystem.getDownloadPath(video);
+        const outputPath = FileSystem.getTranscodePath(video);
+        FileSystem.delete(outputPath);
         return new Promise((resolve, reject) => {
             try {
                 const __CONVERTER__ = new ffmpeg({
                     source: inputPath,
                     timeout: 0,
                 })
-                    .addOption("-c:a", "copy")
-                    .addOption("-crf", 20)
-                    .addOption("-preset", "slow")
-                    .addOption("-hls_list_size", 1)
                     .on("start", (command) => {
                         console.log(command);
                     })
                     .on("end", (stdout) => {
                         try {
-                            FFMPEG.getInfo(outputPath)
-                                .then((data) => {
-                                    resolve({
-                                        time: FFMPEG.timeSig(data),
-                                        resolution: FFMPEG.resolutionSig(data),
-                                    });
-                                })
-                                .catch((error) => {
-                                    console.log("=========");
-                                    console.log(error);
-                                    console.log("=========");
-                                    reject();
-                                });
+                            resolve(stdout);
                         } catch (error) {
                             console.log("=========");
                             console.log(error);
@@ -205,16 +234,18 @@ class FFMPEG {
                         console.log("Convert complete" + stdout);
                     });
 
-                FFMPEG.getResolution((res) => {
-                    if (res.width > 1080) {
-                        __CONVERTER__.addOption(
-                            "-vf",
-                            "scale=1920x1080:flags=lanczos",
-                        );
+                if (resolution.height > 1080) {
+                    __CONVERTER__
+                        .addOption("-vf", "scale=1920x1080:flags=lanczos")
+                        .addOption("-preset", "slow")
+                        .addOption("-c:a", "copy")
+                        .addOption("-crf", 20)
+                        .addOption("-hls_list_size", 1);
+                } else {
+                    __CONVERTER__.addOption("-c", "copy");
+                }
 
-                        __CONVERTER__.run();
-                    }
-                });
+                __CONVERTER__.run();
             } catch (error) {
                 console.log("=========");
                 console.log(error);

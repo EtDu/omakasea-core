@@ -8,7 +8,7 @@ AWS.config.update({ region: "ap-southeast-1" });
 const CONNECTION = new AWS.S3({ apiVersion: "2006-03-01" });
 
 class AmazonS3 {
-    static getAllBuckets() {
+    static searchBuckets() {
         return new Promise((resolve, reject) => {
             CONNECTION.listBuckets((err, node) => {
                 if (err) {
