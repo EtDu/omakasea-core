@@ -200,7 +200,7 @@ class FFMPEG {
         });
     }
 
-    static convert(video) {
+    static convert(video, options = {}) {
         const resolution = video.metadata.resolution;
         const inputPath = FileSystem.getDownloadPath(video);
         const outputPath = FileSystem.getTranscodePath(video);
@@ -243,6 +243,13 @@ class FFMPEG {
                         .addOption("-hls_list_size", 1);
                 } else {
                     __CONVERTER__.addOption("-c", "copy");
+                }
+
+                if (options.startsAt) {
+                    __CONVERTER__.addOption("-ss", options.startsAt);
+                }
+                if (options.endsAt) {
+                    __CONVERTER__.addOption("-to", options.endsAt);
                 }
 
                 __CONVERTER__.run();

@@ -14,6 +14,7 @@ import FFMPEG from "./FFMPEG.js";
 
 const HOURS = 3;
 const TIME_BUFFER = HOURS * 3600;
+const CLIP_MAX = 5 * 60;
 
 class Playlist {
     constructor(folderUUID) {
@@ -21,6 +22,7 @@ class Playlist {
 
         this.seconds = 0;
         this.index = 0;
+        this.loop = 0;
 
         this.videos;
         this.downloads = new Queue();
@@ -33,11 +35,7 @@ class Playlist {
         this.listener = new Listener();
         this.listener.listen(`PLAYLIST/${this.folderUUID}`, (data) => {
             if (data.opcode === "complete") {
-                this.seconds -= this.toSeconds(this.current.metadata);
-
                 FileSystem.delete(data.current);
-                FileSystem.delete(FileSystem.getDownloadPath(this.current));
-
                 this.download();
                 this.playCurrent();
             }
@@ -75,7 +73,11 @@ class Playlist {
                 this.index++;
             } else {
                 this.index = 0;
+                this.loop++;
             }
+
+            console.log(`\n${this.seconds} < ${TIME_BUFFER}`);
+            console.log(`INDEX: ${this.index}\nLOOP: ${this.loop}\n`);
         }
     }
 
@@ -88,8 +90,11 @@ class Playlist {
                 this.pending.enqueue(next);
 
                 IPFS.download(next).then(() => {
-                    FFMPEG.convert(next).then(() => {
+                    const options = {};
+
+                    FFMPEG.convert(next, options).then(() => {
                         count--;
+                        FileSystem.delete(FileSystem.getDownloadPath(next));
                         if (count === 0) {
                             resolve();
                         }
@@ -101,6 +106,8 @@ class Playlist {
 
     playCurrent() {
         this.current = this.pending.dequeue();
+        this.seconds -= this.toSeconds(this.current.metadata);
+
         this.broadcaster.send({
             opcode: "stream",
             folderUUID: this.folderUUID,

@@ -81,6 +81,7 @@ class IPFS {
             const ipfs = await ipfsClient();
             const uploaded = await ipfs.addAll(files, {
                 wrapWithDirectory: true,
+                pin: true,
             });
             for await (const upload of uploaded) {
                 if (upload.path.length > 0) {
