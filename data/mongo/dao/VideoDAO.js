@@ -1,26 +1,28 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
-import VideoUpload from "../models/VideoUpload.js";
-import VideoUploadSchema from "../schemas/VideoUploadSchema.js";
+import Video from "../models/Video.js";
+import VideoSchema from "../schemas/VideoSchema.js";
 
-class VideoUploadDAO {
+class VideoDAO {
     static updateIPFS(data) {
-        __BaseDAO__
-            .__get__(VideoUpload, { uuid: data.uuid, isUploaded: true })
-            .then((video) => {
-                video.cid = data.cid;
-                video.metadata = data.metadata;
-                __BaseDAO__.__save__(video);
-            });
+        return new Promise((resolve, reject) => {
+            __BaseDAO__
+                .__get__(Video, { uuid: data.uuid, isUploaded: true })
+                .then((video) => {
+                    video.cid = data.cid;
+                    video.metadata = data.metadata;
+                    __BaseDAO__.__save__(video).then(resolve());
+                });
+        });
     }
 
     static search(query = {}) {
-        return __BaseDAO__.__search__(VideoUpload, query, {}, { createdAt: 1 });
+        return __BaseDAO__.__search__(Video, query, {}, { createdAt: 1 });
     }
 
     static getProcessed() {
         return new Promise((resolve, reject) => {
             __BaseDAO__
-                .__search__(VideoUpload, {
+                .__search__(Video, {
                     isUploaded: true,
                     isProcessed: true,
                 })
@@ -33,7 +35,7 @@ class VideoUploadDAO {
     static getUnprocessed() {
         return new Promise((resolve, reject) => {
             __BaseDAO__
-                .__search__(VideoUpload, {
+                .__search__(Video, {
                     isUploaded: true,
                     isProcessed: false,
                     hasError: false,
@@ -46,7 +48,7 @@ class VideoUploadDAO {
 
     static create(upload) {
         return new Promise((resolve, reject) => {
-            const video = new VideoUpload({
+            const video = new Video({
                 ...upload,
                 createdAt: Date.now(),
             });
@@ -66,7 +68,7 @@ class VideoUploadDAO {
 
     static uploadComplete(details) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__.__get__(VideoUpload, { ...details }).then((doc) => {
+            __BaseDAO__.__get__(Video, { ...details }).then((doc) => {
                 doc.isUploaded = true;
                 __BaseDAO__.__save__(doc);
                 resolve(doc);
@@ -75,7 +77,7 @@ class VideoUploadDAO {
     }
 
     static get(uuid) {
-        return __BaseDAO__.__get__(VideoUpload, { uuid });
+        return __BaseDAO__.__get__(Video, { uuid });
     }
 
     static account(address) {
@@ -83,11 +85,11 @@ class VideoUploadDAO {
             const query = {
                 address,
             };
-            __BaseDAO__.__search__(VideoUpload, query).then((results) => {
+            __BaseDAO__.__search__(Video, query).then((results) => {
                 const videos = [];
                 for (const row of results) {
                     const r = {};
-                    for (const key of Object.keys(VideoUploadSchema)) {
+                    for (const key of Object.keys(VideoSchema)) {
                         r[key] = row[key];
                     }
                     videos.push(r);
@@ -99,4 +101,4 @@ class VideoUploadDAO {
     }
 }
 
-export default VideoUploadDAO;
+export default VideoDAO;

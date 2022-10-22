@@ -5,7 +5,7 @@ import crypto from "crypto";
 import multer from "multer";
 
 import Authentication from "../../util/Authentication.js";
-import VideoUploadDAO from "../mongo/dao/VideoUploadDAO.js";
+import VideoDAO from "../mongo/dao/VideoDAO.js";
 import ContributorDAO from "../mongo/dao/ContributorDAO.js";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
@@ -31,7 +31,7 @@ const fileStorageEngine = multer.diskStorage({
             filename,
             extension,
         };
-        VideoUploadDAO.create(upload).then(() => {
+        VideoDAO.create(upload).then(() => {
             cb(null, sourceFile);
         });
     },
