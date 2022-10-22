@@ -51,10 +51,13 @@ class IPFS {
         const ipfs = await ipfsClient();
         const query = { address: data.address };
         UploadDAO.get(query).then(async (upload) => {
-            this.__upload__(ipfs, upload, () => {
+            this.__upload__(false, ipfs, upload, (hasUpdated) => {
                 console.log("callback");
-                VideoDAO.search({ address: data.address, isActive: true }).then(
-                    async (videos) => {
+                if (hasUpdated) {
+                    VideoDAO.search({
+                        address: data.address,
+                        isActive: true,
+                    }).then(async (videos) => {
                         const files = [];
                         const sortBy = (a, b) => {
                             if (a.filename < b.filename) {
@@ -67,10 +70,12 @@ class IPFS {
                         };
 
                         for (const video of videos.sort(sortBy)) {
-                            files.push({
-                                name: video.filename,
-                                cid: video.cid,
-                            });
+                            if (video.cid && video.isActive) {
+                                files.push({
+                                    name: video.filename,
+                                    cid: video.cid,
+                                });
+                            }
                         }
 
                         UploadDAO.get(query).then(async (upload) => {
@@ -83,13 +88,15 @@ class IPFS {
                                 callback();
                             });
                         });
-                    },
-                );
+                    });
+                } else {
+                    callback();
+                }
             });
         });
     }
 
-    static async __upload__(ipfs, upload, callback = null) {
+    static async __upload__(isUpdated, ipfs, upload, callback = null) {
         const pending = [...upload.pending];
 
         if (pending.length > 0) {
@@ -164,6 +171,7 @@ class IPFS {
 
                                         if (count === 0) {
                                             this.__upload__(
+                                                true,
                                                 ipfs,
                                                 upload,
                                                 callback,
@@ -183,7 +191,7 @@ class IPFS {
                 });
             });
         } else if (callback !== null) {
-            callback();
+            callback(isUpdated);
         }
     }
 }

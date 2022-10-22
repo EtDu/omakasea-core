@@ -11,7 +11,6 @@ class UploadDAO {
     }
 
     static updateIPFS(upload) {
-        upload.markModified("cid");
         upload.markModified("history");
         upload.markModified("pending");
         upload.markModified("folders");
