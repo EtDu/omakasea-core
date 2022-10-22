@@ -10,7 +10,7 @@ class VideoDAO {
                 .then((video) => {
                     video.cid = data.cid;
                     video.metadata = data.metadata;
-                    __BaseDAO__.__save__(video).then(resolve());
+                    __BaseDAO__.__save__(video).then(resolve);
                 });
         });
     }

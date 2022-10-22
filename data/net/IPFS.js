@@ -56,7 +56,17 @@ class IPFS {
                 VideoDAO.search({ address: data.address, isActive: true }).then(
                     async (videos) => {
                         const files = [];
-                        for (const video of videos) {
+                        const sortBy = (a, b) => {
+                            if (a.filename < b.filename) {
+                                return -1;
+                            }
+                            if (a.filename > b.filename) {
+                                return 1;
+                            }
+                            return 0;
+                        };
+
+                        for (const video of videos.sort(sortBy)) {
                             files.push({
                                 name: video.filename,
                                 cid: video.cid,
@@ -90,8 +100,6 @@ class IPFS {
             };
 
             VideoDAO.search(query).then(async (videos) => {
-                let folderCID;
-
                 const files = [];
                 const index = {};
 
@@ -116,8 +124,6 @@ class IPFS {
                     for await (const upload of uploaded) {
                         if (upload.path.length > 0) {
                             index[upload.path].cid = upload.cid.toString();
-                        } else {
-                            folderCID = upload.cid.toString();
                         }
                     }
                 }
