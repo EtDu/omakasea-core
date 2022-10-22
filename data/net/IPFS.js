@@ -59,21 +59,16 @@ class IPFS {
                         isActive: true,
                     }).then(async (videos) => {
                         const files = [];
-                        const sortBy = (a, b) => {
-                            if (a.filename < b.filename) {
-                                return -1;
-                            }
-                            if (a.filename > b.filename) {
-                                return 1;
-                            }
-                            return 0;
+                        const SORT_BY = (a, b) => {
+                            return a.uploadedAt - b.uploadedAt;
                         };
 
-                        for (const video of videos.sort(sortBy)) {
+                        for (const video of videos.sort(SORT_BY)) {
                             if (video.cid && video.isActive) {
                                 files.push({
                                     name: video.filename,
                                     cid: video.cid,
+                                    uploadedAt: video.createdAt,
                                 });
                             }
                         }
