@@ -60,7 +60,7 @@ class IPFS {
                     }).then(async (videos) => {
                         const files = [];
                         const SORT_BY = (a, b) => {
-                            return a.uploadedAt - b.uploadedAt;
+                            return b.uploadedAt - a.uploadedAt;
                         };
 
                         for (const video of videos.sort(SORT_BY)) {
