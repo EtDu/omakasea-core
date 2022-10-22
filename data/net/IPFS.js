@@ -68,12 +68,7 @@ class IPFS {
                                 pin: true,
                             });
 
-                            if (upload.cid) {
-                                upload.history.push(upload.cid);
-                            }
-
-                            upload.cid = cid.path;
-
+                            upload.history.push(cid.path);
                             UploadDAO.updateIPFS(upload).then(() => {
                                 callback();
                             });
