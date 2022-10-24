@@ -15,6 +15,10 @@ class VideoDAO {
         });
     }
 
+    static get(query) {
+        return __BaseDAO__.__get__(Video, query);
+    }
+
     static search(query = {}) {
         return __BaseDAO__.__search__(Video, query, {}, { createdAt: 1 });
     }

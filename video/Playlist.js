@@ -17,6 +17,8 @@ const TIME_BUFFER = HOURS * 3600;
 const CLIP_MAX = 5 * 60;
 
 class Playlist {
+    static update() {}
+
     constructor(folderUUID) {
         this.folderUUID = folderUUID;
 
@@ -28,10 +30,9 @@ class Playlist {
         this.downloads = new Queue();
         this.pending = new Queue();
 
-        this.broadcaster = Broadcaster.create("PLAYLIST");
-
         this.current = {};
 
+        this.broadcaster = Broadcaster.create("PLAYLIST");
         this.listener = new Listener();
         this.listener.listen(`PLAYLIST/${this.folderUUID}`, (data) => {
             if (data.opcode === "complete") {

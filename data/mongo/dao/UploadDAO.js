@@ -11,14 +11,15 @@ class UploadDAO {
     }
 
     static updateIPFS(upload) {
-        upload.markModified("history");
-        upload.markModified("pending");
-        upload.markModified("folders");
         return __BaseDAO__.__save__(upload);
     }
 
     static get(query) {
         return __BaseDAO__.__get__(Upload, query);
+    }
+
+    static search(query) {
+        return __BaseDAO__.__search__(Upload, query);
     }
 
     static init(request) {

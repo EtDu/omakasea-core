@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR;
-const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR;
 const IPFS_URL = process.env.IPFS_URL;
 const IPFS_PORT = process.env.IPFS_PORT;
 
@@ -52,7 +50,6 @@ class IPFS {
         const query = { address: data.address };
         UploadDAO.get(query).then(async (upload) => {
             this.__upload__(false, ipfs, upload, (hasUpdated) => {
-                console.log("callback");
                 if (hasUpdated) {
                     VideoDAO.search({
                         address: data.address,
@@ -60,7 +57,7 @@ class IPFS {
                     }).then(async (videos) => {
                         const files = [];
                         const SORT_BY = (a, b) => {
-                            return b.uploadedAt - a.uploadedAt;
+                            return b.createdAt - a.createdAt;
                         };
 
                         for (const video of videos.sort(SORT_BY)) {
@@ -79,8 +76,9 @@ class IPFS {
                             });
 
                             upload.history.push(cid.path);
+                            upload.markModified("history");
                             UploadDAO.updateIPFS(upload).then(() => {
-                                callback();
+                                callback(upload);
                             });
                         });
                     });
@@ -102,12 +100,14 @@ class IPFS {
             };
 
             VideoDAO.search(query).then(async (videos) => {
+                console.log(videos.length);
                 const files = [];
                 const index = {};
 
                 for (const video of videos) {
                     const fPath = FileSystem.getUploadPath(video);
                     const content = fs.readFileSync(fPath);
+
                     files.push({
                         path: video.filename,
                         content,
@@ -116,17 +116,16 @@ class IPFS {
                         fPath,
                         uuid: video.uuid,
                     };
+                }
 
-                    const ipfs = await ipfsClient();
-                    const uploaded = await ipfs.addAll(files, {
-                        wrapWithDirectory: true,
-                        pin: true,
-                    });
+                const uploaded = await ipfs.addAll(files, {
+                    wrapWithDirectory: true,
+                    pin: true,
+                });
 
-                    for await (const upload of uploaded) {
-                        if (upload.path.length > 0) {
-                            index[upload.path].cid = upload.cid.toString();
-                        }
+                for await (const upload of uploaded) {
+                    if (upload.path.length > 0) {
+                        index[upload.path].cid = upload.cid.toString();
                     }
                 }
 
@@ -151,7 +150,7 @@ class IPFS {
 
                 pending.shift();
                 upload.pending = pending;
-
+                upload.markModified("pending");
                 UploadDAO.updateIPFS(upload).then(() => {
                     const keys = Object.keys(index);
                     let count = keys.length;
@@ -160,6 +159,7 @@ class IPFS {
                             FFMPEG.getMetadata(index[key].fPath)
                                 .then((metadata) => {
                                     index[key].metadata = metadata;
+
                                     VideoDAO.updateIPFS(index[key]).then(() => {
                                         count--;
                                         FileSystem.delete(index[key].fPath);

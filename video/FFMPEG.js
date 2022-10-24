@@ -211,9 +211,7 @@ class FFMPEG {
                     source: inputPath,
                     timeout: 0,
                 })
-                    .on("start", (command) => {
-                        console.log(command);
-                    })
+                    .on("start", (command) => {})
                     .on("end", (stdout) => {
                         try {
                             resolve(stdout);

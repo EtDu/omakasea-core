@@ -29,7 +29,7 @@ class FileSystem {
     static delete(fPath) {
         try {
             fs.unlinkSync(fPath);
-        } catch (error) {}
+        } catch (_) {}
     }
 
     static getName(fPath) {
@@ -72,6 +72,10 @@ class FileSystem {
         );
 
         FileSystem.createDir(targetDir);
+    }
+
+    static exists(fullPath) {
+        return fs.existsSync(fullPath);
     }
 
     static createDir(fullPath) {

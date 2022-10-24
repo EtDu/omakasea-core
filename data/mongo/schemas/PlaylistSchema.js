@@ -1,7 +1,6 @@
 export default {
-    cid: { type: String },
     address: { type: String },
+    playing: { type: Object, default: null },
     listing: { type: Object, default: [] },
-    isActive: { type: Boolean, default: true },
     createdAt: { type: Number },
 };
