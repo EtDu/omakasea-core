@@ -170,7 +170,11 @@ class Playlist {
 
         if (runningTime < TIME_BUFFER) {
             const current = playlist.listing[index];
-            VideoDAO.get({ cid: current.cid }).then((video) => {
+            const query = {
+                cid: current.cid,
+                createdAt: current.uploadedAt,
+            };
+            VideoDAO.get(query).then((video) => {
                 runningTime += this.toSeconds(video.metadata);
 
                 if (this.cache[video.uuid] === undefined) {
