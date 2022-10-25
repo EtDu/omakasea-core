@@ -41,15 +41,12 @@ class UploadDAO {
         });
     }
 
-    static increment(query) {
+    static increment(folderUUID, videoCount) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__.__get__(Upload, query).then((upload) => {
-                upload.count += 1;
-                console.log(`${upload.files.length} === ${upload.count}`);
-                upload.isReady = upload.files.length === upload.count;
-                __BaseDAO__.__save__(upload).then(() => {
-                    resolve(upload.isReady);
-                });
+            __BaseDAO__.__get__(Upload, { folderUUID }).then((upload) => {
+                upload.isReady = upload.files.length === videoCount;
+                __BaseDAO__.__save__(upload);
+                resolve(upload.isReady);
             });
         });
     }

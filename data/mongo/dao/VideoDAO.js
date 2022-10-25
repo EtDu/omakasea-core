@@ -73,7 +73,19 @@ class VideoDAO {
             __BaseDAO__.__get__(Video, { ...details }).then((doc) => {
                 doc.isUploaded = true;
                 __BaseDAO__.__save__(doc).then(() => {
-                    resolve(doc);
+                    __BaseDAO__
+                        .__search__(
+                            Video,
+                            {
+                                folderUUID: details.folderUUID,
+                                isUploaded: true,
+                            },
+                            { isUploaded: true },
+                        )
+
+                        .then((videos) => {
+                            resolve(videos.length);
+                        });
                 });
             });
         });
