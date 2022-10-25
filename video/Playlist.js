@@ -210,9 +210,12 @@ class Playlist {
             const dPath = FileSystem.getDownloadPath(video);
             const tPath = FileSystem.getTranscodePath(video);
 
+            let op = "C";
+
             if (!this.isLoaded && listing.length < ERROR_BUFFER_MAX) {
                 FileSystem.delete(dPath);
                 FileSystem.delete(tPath);
+                op = "R";
             }
 
             const isDownloaded = FileSystem.exists(dPath);
@@ -221,7 +224,7 @@ class Playlist {
             if (!isDownloaded && !isTranscoded) {
                 IPFS.download(video).then(() => {
                     files.downloads.push(dPath);
-                    console.log(`C + ${video.uuid}`);
+                    console.log(`${op} | ${video.uuid}`);
                     FFMPEG.convert(video).then(() => {
                         files.transcoded.push(tPath);
                         FileSystem.delete(dPath);
