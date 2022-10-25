@@ -41,10 +41,11 @@ class Playlist {
                             this.cache[video.uuid] === undefined;
 
                         if (remove) {
-                            console.log(`\t\tDELETING ${video.uuid}`);
-                            FileSystem.delete(
-                                FileSystem.getTranscodePath(video),
-                            );
+                            const tPath = FileSystem.getTranscodePath(video);
+                            if (FileSystem.exists(tPath)) {
+                                console.log(`\t\tDELETING ${video.uuid}`);
+                                FileSystem.delete(tPath);
+                            }
                         } else {
                             this.cache[video.uuid] -= 1;
                         }
