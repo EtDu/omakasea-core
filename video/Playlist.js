@@ -2,12 +2,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import IPFS from "../data/net/IPFS.js";
+import UploadDAO from "../data/mongo/dao/UploadDAO.js";
 import VideoDAO from "../data/mongo/dao/VideoDAO.js";
 import PlaylistDAO from "../data/mongo/dao/PlaylistDAO.js";
 import FileSystem from "../util/FileSystem.js";
 import Client from "../http/Client.js";
 import Server from "../http/Server.js";
 import FFMPEG from "../video/FFMPEG.js";
+import Upload from "../data/mongo/models/Upload.js";
 
 const STREAMER_URL = "http://192.168.86.102:4082";
 
@@ -48,6 +50,38 @@ class Playlist {
             metadata.duration.minutes * 60 +
             metadata.duration.seconds
         );
+    }
+
+    listing() {
+        return new Promise((resolve, reject) => {
+            UploadDAO.search({ address: this.address, isUploaded: true }).then(
+                (uploads) => {
+                    this.__listing__(uploads, [], (cids) => {
+                        PlaylistDAO.get({ address: this.address }).then(
+                            (playlist) => {
+                                playlist.listing = cids.sort((a, b) => {
+                                    return b.uploadedAt - a.uploadedAt;
+                                });
+                                PlaylistDAO.save(playlist).then(resolve);
+                            },
+                        );
+                    });
+                },
+            );
+        });
+    }
+
+    __listing__(uploads, cids, callback) {
+        if (uploads.length > 0) {
+            const cid = uploads.shift().cid;
+            const url = `http://192.168.86.102:8080/ipfs/${cid}`;
+
+            Client.get(url).then((res) => {
+                this.__listing__(uploads, cids.concat(res.data), callback);
+            });
+        } else {
+            callback(cids);
+        }
     }
 
     __next__(playlist) {
@@ -213,9 +247,11 @@ class Playlist {
             this.increment().then((playlist) => {
                 const payload = { data: playlist.playing };
                 Client.post(STREAMER_URL, payload);
-                this.load().then((listing) => {
-                    this.download(listing).then((files) => {
-                        resolve(files);
+                this.listing().then(() => {
+                    this.load().then((listing) => {
+                        this.download(listing).then((files) => {
+                            resolve(files);
+                        });
                     });
                 });
             });
@@ -223,13 +259,17 @@ class Playlist {
     }
 
     START() {
-        this.server.start();
-        this.load().then((listing) => {
-            this.download(listing).then(() => {
-                this.isLoaded = true;
-                PlaylistDAO.get({ address: this.address }).then((playlist) => {
-                    const payload = { data: playlist.playing };
-                    Client.post(STREAMER_URL, payload);
+        this.listing().then(() => {
+            this.server.start();
+            this.load().then((listing) => {
+                this.download(listing).then(() => {
+                    this.isLoaded = true;
+                    PlaylistDAO.get({ address: this.address }).then(
+                        (playlist) => {
+                            const payload = { data: playlist.playing };
+                            Client.post(STREAMER_URL, payload);
+                        },
+                    );
                 });
             });
         });

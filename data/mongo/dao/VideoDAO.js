@@ -5,13 +5,11 @@ import VideoSchema from "../schemas/VideoSchema.js";
 class VideoDAO {
     static updateIPFS(data) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__
-                .__get__(Video, { uuid: data.uuid, isUploaded: true })
-                .then((video) => {
-                    video.cid = data.cid;
-                    video.metadata = data.metadata;
-                    __BaseDAO__.__save__(video).then(resolve);
-                });
+            __BaseDAO__.__get__(Video, { uuid: data.uuid }).then((video) => {
+                video.cid = data.cid;
+                video.metadata = data.metadata;
+                __BaseDAO__.__save__(video).then(resolve);
+            });
         });
     }
 

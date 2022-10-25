@@ -10,7 +10,7 @@ class UploadDAO {
         });
     }
 
-    static updateIPFS(upload) {
+    static save(upload) {
         return __BaseDAO__.__save__(upload);
     }
 
@@ -19,56 +19,37 @@ class UploadDAO {
     }
 
     static search(query) {
-        return __BaseDAO__.__search__(Upload, query);
+        return __BaseDAO__.__search__(Upload, query, {}, { createdAt: 1 });
     }
 
     static init(request) {
         return new Promise((resolve, reject) => {
-            const query = { address: request.address };
-            __BaseDAO__.__get__(Upload, query).then((result) => {
-                let upload = result;
-                if (upload === null) {
-                    upload = new Upload({
-                        address: request.address,
-                        createdAt: Date.now(),
-                    });
-                }
+            const address = request.address;
+            const folderUUID = crypto.randomUUID();
+            const files = request.files;
+            const createdAt = Date.now();
+            const upload = new Upload({
+                address,
+                folderUUID,
+                files,
+                createdAt,
+            });
 
-                const uuid = crypto.randomUUID();
-
-                upload.folders[uuid] = {
-                    size: request.folder.length,
-                    count: 0,
-                };
-
-                upload.markModified("folders");
-                __BaseDAO__.__save__(upload).then((doc) => {
-                    resolve(uuid);
-                });
+            __BaseDAO__.__save__(upload).then((doc) => {
+                resolve(upload.folderUUID);
             });
         });
     }
 
-    static increment(target) {
+    static increment(query) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__
-                .__get__(Upload, { address: target.address })
-                .then((upload) => {
-                    upload.folders[target.uuid].count += 1;
-                    const isReady =
-                        upload.folders[target.uuid].size ===
-                        upload.folders[target.uuid].count;
-
-                    if (isReady) {
-                        upload.pending.push(target.uuid);
-                        upload.markModified("pending");
-                    }
-
-                    upload.markModified("folders");
-                    __BaseDAO__.__save__(upload).then(() => {
-                        resolve(isReady);
-                    });
+            __BaseDAO__.__get__(Upload, query).then((upload) => {
+                upload.count += 1;
+                upload.isReady = upload.files.length === upload.count;
+                __BaseDAO__.__save__(upload).then(() => {
+                    resolve(upload.isReady);
                 });
+            });
         });
     }
 }
