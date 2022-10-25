@@ -26,7 +26,7 @@ class VideoDAO {
             __BaseDAO__
                 .__search__(Video, {
                     isUploaded: true,
-                    isProcessed: true,
+                    isMerged: true,
                 })
                 .then((documents) => {
                     resolve(documents);
@@ -39,7 +39,7 @@ class VideoDAO {
             __BaseDAO__
                 .__search__(Video, {
                     isUploaded: true,
-                    isProcessed: false,
+                    isMerged: false,
                     hasError: false,
                 })
                 .then((documents) => {

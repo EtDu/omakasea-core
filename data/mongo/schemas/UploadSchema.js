@@ -6,7 +6,6 @@ export default {
     count: { type: Number, default: 0 },
     isReady: { type: Boolean, default: false },
     isUploaded: { type: Boolean, default: false },
-    isProcessing: { type: Boolean, default: false },
-
+    isMerged: { type: Boolean, default: false },
     createdAt: { type: Number },
 };

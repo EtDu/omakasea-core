@@ -55,20 +55,40 @@ class Playlist {
 
     listing() {
         return new Promise((resolve, reject) => {
-            UploadDAO.search({ address: this.address, isUploaded: true }).then(
-                (uploads) => {
-                    this.__listing__(uploads, [], (cids) => {
+            UploadDAO.search({
+                address: this.address,
+                isUploaded: true,
+                isMerged: false,
+            }).then((uploads) => {
+                if (uploads.length > 0) {
+                    this.__listing__([...uploads], [], (cids) => {
                         PlaylistDAO.get({ address: this.address }).then(
-                            (playlist) => {
-                                playlist.listing = cids.sort((a, b) => {
-                                    return b.uploadedAt - a.uploadedAt;
+                            async (playlist) => {
+                                playlist.listing = cids
+                                    .sort((a, b) => {
+                                        return b.uploadedAt - a.uploadedAt;
+                                    })
+                                    .concat(playlist.listing);
+
+                                playlist.cid = await IPFS.savePlaylist(
+                                    playlist.listing,
+                                );
+
+                                playlist.markModified("listing");
+                                PlaylistDAO.save(playlist).then(() => {
+                                    for (const upload of uploads) {
+                                        upload.isMerged = true;
+                                        UploadDAO.save(upload);
+                                    }
+                                    resolve();
                                 });
-                                PlaylistDAO.save(playlist).then(resolve);
                             },
                         );
                     });
-                },
-            );
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 
@@ -110,11 +130,16 @@ class Playlist {
     load() {
         return new Promise((resolve, reject) => {
             PlaylistDAO.get({ address: this.address }).then((playlist) => {
-                let index = 0;
-                if (playlist.playing !== null) {
-                    index = this.__next__(playlist);
+                if (playlist.listing.length > 0) {
+                    let index = 0;
+                    if (playlist.playing !== null) {
+                        index = this.__next__(playlist);
+                    }
+
+                    this.__load__(resolve, playlist, index);
+                } else {
+                    resolve([]);
                 }
-                this.__load__(resolve, playlist, index);
             });
         });
     }
@@ -273,6 +298,7 @@ class Playlist {
                         );
                     });
                 } else {
+                    console.log("WAITING 1 MINUTE");
                     setTimeout(() => {
                         this.START();
                     }, 60000);
