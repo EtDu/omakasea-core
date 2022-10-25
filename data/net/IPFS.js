@@ -24,12 +24,17 @@ async function ipfsClient() {
 
 class IPFS {
     static async savePlaylist(files) {
-        const ipfs = await ipfsClient();
-        const cid = await ipfs.add(JSON.stringify(files), {
-            pin: true,
-        });
+        try {
+            const ipfs = await ipfsClient();
+            const cid = await ipfs.add(JSON.stringify(files), {
+                pin: true,
+            });
 
-        return cid.path;
+            return cid.path;
+        } catch (error) {
+            console.log(`IPFS.saveplaylist -- ${error}`);
+        }
+        return null;
     }
 
     static download(video) {

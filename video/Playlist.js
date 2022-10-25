@@ -36,7 +36,18 @@ class Playlist {
             this.BROADCAST().then(() => {
                 VideoDAO.search(last).then((videos) => {
                     for (const video of videos) {
-                        FileSystem.delete(FileSystem.getTranscodePath(video));
+                        const remove =
+                            this.cache[video.uuid] === 0 ||
+                            this.cache[video.uuid] === undefined;
+
+                        if (remove) {
+                            console.log(`\t\tDELETING ${video.uuid}`);
+                            FileSystem.delete(
+                                FileSystem.getTranscodePath(video),
+                            );
+                        } else {
+                            this.cache[video.uuid] -= 1;
+                        }
                     }
                 });
             });
@@ -70,18 +81,24 @@ class Playlist {
                                     })
                                     .concat(playlist.listing);
 
-                                playlist.cid = await IPFS.savePlaylist(
+                                const playlistCID = await IPFS.savePlaylist(
                                     playlist.listing,
                                 );
 
-                                playlist.markModified("listing");
-                                PlaylistDAO.save(playlist).then(() => {
-                                    for (const upload of uploads) {
-                                        upload.isMerged = true;
-                                        UploadDAO.save(upload);
-                                    }
+                                if (playlistCID !== null) {
+                                    playlist.cid = playlistCID;
+
+                                    playlist.markModified("listing");
+                                    PlaylistDAO.save(playlist).then(() => {
+                                        for (const upload of uploads) {
+                                            upload.isMerged = true;
+                                            UploadDAO.save(upload);
+                                        }
+                                        resolve();
+                                    });
+                                } else {
                                     resolve();
-                                });
+                                }
                             },
                         );
                     });
@@ -131,6 +148,7 @@ class Playlist {
         return new Promise((resolve, reject) => {
             PlaylistDAO.get({ address: this.address }).then((playlist) => {
                 if (playlist.listing.length > 0) {
+                    this.cache = {};
                     let index = 0;
                     if (playlist.playing !== null) {
                         index = this.__next__(playlist);
@@ -154,6 +172,10 @@ class Playlist {
             VideoDAO.search({ cid: current.cid }).then((videos) => {
                 runningTime += this.toSeconds(videos[0].metadata);
 
+                if (this.cache[videos[0].uuid] === undefined) {
+                    this.cache[videos[0].uuid] = 0;
+                }
+                this.cache[videos[0].uuid] += 1;
                 listing.push(videos[0]);
                 this.__load__(
                     resolve,
