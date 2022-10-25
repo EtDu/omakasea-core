@@ -9,7 +9,6 @@ import FileSystem from "../util/FileSystem.js";
 import Client from "../http/Client.js";
 import Server from "../http/Server.js";
 import FFMPEG from "../video/FFMPEG.js";
-import Upload from "../data/mongo/models/Upload.js";
 
 const STREAMER_URL = "http://192.168.86.102:4082";
 
@@ -42,6 +41,8 @@ class Playlist {
                 });
             });
         });
+
+        this.server.start();
     }
 
     toSeconds(metadata) {
@@ -260,17 +261,22 @@ class Playlist {
 
     START() {
         this.listing().then(() => {
-            this.server.start();
             this.load().then((listing) => {
-                this.download(listing).then(() => {
-                    this.isLoaded = true;
-                    PlaylistDAO.get({ address: this.address }).then(
-                        (playlist) => {
-                            const payload = { data: playlist.playing };
-                            Client.post(STREAMER_URL, payload);
-                        },
-                    );
-                });
+                if (listing.length > 0) {
+                    this.download(listing).then(() => {
+                        this.isLoaded = true;
+                        PlaylistDAO.get({ address: this.address }).then(
+                            (playlist) => {
+                                const payload = { data: playlist.playing };
+                                Client.post(STREAMER_URL, payload);
+                            },
+                        );
+                    });
+                } else {
+                    setTimeout(() => {
+                        this.START();
+                    }, 60000);
+                }
             });
         });
     }
