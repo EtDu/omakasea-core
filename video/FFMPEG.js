@@ -181,9 +181,7 @@ class FFMPEG {
                 .addOption("-c:a", "aac")
                 .addOption("-ar", "44100")
                 .addOption("-f", "flv")
-                .on("start", (command) => {
-                    console.log(command);
-                })
+                .on("start", (command) => {})
                 .on("end", () => {
                     resolve();
                 })
@@ -193,9 +191,7 @@ class FFMPEG {
                     console.log("=========");
                     reject();
                 })
-                .output(rtmpUrl, (stdout, stderr) => {
-                    console.log("Convert complete" + stdout);
-                })
+                .output(rtmpUrl, (stdout, stderr) => {})
                 .run();
         });
     }
