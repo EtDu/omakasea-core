@@ -33,19 +33,24 @@ class Playlist {
                     cid: req.body.cid,
                     createdAt: req.body.uploadedAt,
                 };
-                VideoDAO.get(last).then((video) => {
-                    const remove =
-                        this.cache[video.uuid] === 0 ||
-                        this.cache[video.uuid] === undefined;
 
-                    if (remove) {
-                        const tPath = FileSystem.getTranscodePath(video);
-                        if (FileSystem.exists(tPath)) {
-                            console.log(`D - ${video.uuid}`);
-                            FileSystem.delete(tPath);
+                VideoDAO.get(last).then((video) => {
+                    try {
+                        const remove =
+                            this.cache[video.uuid] === 0 ||
+                            this.cache[video.uuid] === undefined;
+
+                        if (remove) {
+                            const tPath = FileSystem.getTranscodePath(video);
+                            if (FileSystem.exists(tPath)) {
+                                console.log(`D - ${video.uuid}`);
+                                FileSystem.delete(tPath);
+                            }
+                        } else {
+                            this.cache[video.uuid] -= 1;
                         }
-                    } else {
-                        this.cache[video.uuid] -= 1;
+                    } catch (error) {
+                        console.log(`PLAYBACK ERROR: ${error}`);
                     }
                 });
             });
@@ -299,7 +304,9 @@ class Playlist {
         return new Promise((resolve, reject) => {
             this.increment().then((playlist) => {
                 const payload = { data: playlist.playing };
-                Client.post(STREAMER_URL, payload);
+                Client.post(STREAMER_URL, payload).catch(() => {
+                    console.log("STREAMER IS DOWN");
+                });
                 this.listing().then(() => {
                     this.load().then((listing) => {
                         this.download(listing).then((files) => {

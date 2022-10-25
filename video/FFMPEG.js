@@ -168,7 +168,7 @@ class FFMPEG {
         });
     }
 
-    static play(videoPath, rtmpUrl) {
+    static stream(videoPath, rtmpUrl) {
         return new Promise((resolve, reject) => {
             const __PLAYER__ = new ffmpeg({
                 source: videoPath,
