@@ -72,8 +72,9 @@ class VideoDAO {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(Video, { ...details }).then((doc) => {
                 doc.isUploaded = true;
-                __BaseDAO__.__save__(doc);
-                resolve(doc);
+                __BaseDAO__.__save__(doc).then(() => {
+                    resolve(doc);
+                });
             });
         });
     }
