@@ -91,10 +91,6 @@ class VideoDAO {
         });
     }
 
-    static get(uuid) {
-        return __BaseDAO__.__get__(Video, { uuid });
-    }
-
     static account(address) {
         return new Promise((resolve, reject) => {
             const query = {

@@ -28,27 +28,26 @@ class Playlist {
         this.server = new Server(THIS_NAME, THIS_PORT);
         this.server.post("/", (req, res) => {
             res.json({ status: 200 });
-            const last = {
-                cid: req.body.cid,
-                createdAt: req.body.uploadedAt,
-            };
-
             this.BROADCAST().then(() => {
-                VideoDAO.search(last).then((videos) => {
-                    for (const video of videos) {
-                        const remove =
-                            this.cache[video.uuid] === 0 ||
-                            this.cache[video.uuid] === undefined;
+                const last = {
+                    cid: req.body.cid,
+                    createdAt: req.body.uploadedAt,
+                };
+                VideoDAO.get(last).then((video) => {
+                    const remove =
+                        this.cache[video.uuid] === 0 ||
+                        this.cache[video.uuid] === undefined;
 
-                        if (remove) {
-                            const tPath = FileSystem.getTranscodePath(video);
-                            if (FileSystem.exists(tPath)) {
-                                console.log(`\t\tDELETING ${video.uuid}`);
-                                FileSystem.delete(tPath);
-                            }
-                        } else {
-                            this.cache[video.uuid] -= 1;
+                    if (remove) {
+                        const tPath = FileSystem.getTranscodePath(video);
+                        if (FileSystem.exists(tPath)) {
+                            console.log(
+                                `\n\t\tDELETING\n\t\t${video.filename}\n\t\t${video.uuid}`,
+                            );
+                            FileSystem.delete(tPath);
                         }
+                    } else {
+                        this.cache[video.uuid] -= 1;
                     }
                 });
             });
@@ -171,14 +170,14 @@ class Playlist {
 
         if (runningTime < TIME_BUFFER) {
             const current = playlist.listing[index];
-            VideoDAO.search({ cid: current.cid }).then((videos) => {
-                runningTime += this.toSeconds(videos[0].metadata);
+            VideoDAO.get({ cid: current.cid }).then((video) => {
+                runningTime += this.toSeconds(video.metadata);
 
-                if (this.cache[videos[0].uuid] === undefined) {
-                    this.cache[videos[0].uuid] = 0;
+                if (this.cache[video.uuid] === undefined) {
+                    this.cache[video.uuid] = 0;
                 }
-                this.cache[videos[0].uuid] += 1;
-                listing.push(videos[0]);
+                this.cache[video.uuid] += 1;
+                listing.push(video);
                 this.__load__(
                     resolve,
                     playlist,
