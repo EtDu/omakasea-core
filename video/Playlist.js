@@ -41,7 +41,7 @@ class Playlist {
                     if (remove) {
                         const tPath = FileSystem.getTranscodePath(video);
                         if (FileSystem.exists(tPath)) {
-                            console.log(`D: ${video.uuid}`);
+                            console.log(`D - ${video.uuid}`);
                             FileSystem.delete(tPath);
                         }
                     } else {
@@ -221,7 +221,7 @@ class Playlist {
             if (!isDownloaded && !isTranscoded) {
                 IPFS.download(video).then(() => {
                     files.downloads.push(dPath);
-                    console.log(`C: ${video.uuid}`);
+                    console.log(`C + ${video.uuid}`);
                     FFMPEG.convert(video).then(() => {
                         files.transcoded.push(tPath);
                         FileSystem.delete(dPath);
