@@ -97,6 +97,7 @@ class Playlist {
                                         resolve();
                                     });
                                 } else {
+                                    console.log("NULL CID FOUND");
                                     resolve();
                                 }
                             },
