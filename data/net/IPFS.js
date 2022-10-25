@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const IPFS_URL = process.env.IPFS_URL;
+const IPFS_HOST = process.env.IPFS_HOST;
 const IPFS_PORT = process.env.IPFS_PORT;
+const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
 
 import fs from "fs";
 import axios from "axios";
@@ -15,7 +16,7 @@ import FileSystem from "../../util/FileSystem.js";
 
 async function ipfsClient() {
     const config = {
-        host: "192.168.86.102",
+        host: IPFS_HOST,
         port: 5001,
     };
 
@@ -44,7 +45,7 @@ class IPFS {
         return new Promise((resolve, reject) => {
             FileSystem.delete(downloadPath);
             const writer = fs.createWriteStream(downloadPath);
-            const url = `http://${IPFS_URL}:${IPFS_PORT}/ipfs/${cid}`;
+            const url = `${IPFS_URL}/${cid}`;
 
             axios({
                 url,

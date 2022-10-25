@@ -10,11 +10,16 @@ import Client from "../http/Client.js";
 import Server from "../http/Server.js";
 import FFMPEG from "../video/FFMPEG.js";
 
-const STREAMER_URL = "http://192.168.86.102:4082";
+const STREAMER_HOST = process.env.STREAMER_HOST;
+const STREAMER_PORT = process.env.STREAMER_PORT;
+const STREAMER_URL = `http://${STREAMER_HOST}:${STREAMER_PORT}`;
+
+const IPFS_HOST = process.env.IPFS_HOST;
+const IPFS_PORT = process.env.IPFS_PORT;
+const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
 
 const HOURS = 3;
 const TIME_BUFFER = HOURS * 3600;
-
 const ERROR_BUFFER_MAX = 3;
 
 const THIS_PORT = 4081;
@@ -116,7 +121,7 @@ class Playlist {
     __listing__(uploads, cids, callback) {
         if (uploads.length > 0) {
             const cid = uploads.shift().cid;
-            const url = `http://192.168.86.102:8080/ipfs/${cid}`;
+            const url = `${IPFS_URL}/${cid}`;
 
             Client.get(url).then((res) => {
                 this.__listing__(uploads, cids.concat(res.data), callback);
