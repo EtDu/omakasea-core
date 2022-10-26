@@ -20,9 +20,9 @@ class Authentication {
             signature: sig,
         };
 
-        const address = getAddress(recoverPersonalSignature(signature));
-        const isValid = address === data.address;
         const tokenId = data.tokenId;
+        const address = getAddress(recoverPersonalSignature(signature));
+        const isValid = address === data.address && tokenId !== null;
         return { address, isValid, tokenId };
     }
 
