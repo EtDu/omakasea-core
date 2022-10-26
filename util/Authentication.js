@@ -10,6 +10,20 @@ import { adminAddresses } from "../data/Constants.js";
 const MESSAGE = `Welcome to Omakasea! Please sign to continue.\n\nNONCE:\n__NONCE__`;
 
 class Authentication {
+    static verify(req) {
+        const message = req.body.message;
+        const data = JSON.parse(message);
+        const sig = req.body.sig;
+
+        const signature = {
+            data: message,
+            signature: sig,
+        };
+
+        const address = getAddress(recoverPersonalSignature(signature));
+        return address === data.address;
+    }
+
     static uuid() {
         return crypto.randomUUID();
     }
