@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+import axios from "axios";
 import Sentry from "@sentry/node";
 import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 import crypto from "crypto";
@@ -9,7 +13,65 @@ import { adminAddresses } from "../data/Constants.js";
 
 const MESSAGE = `Welcome to Omakasea! Please sign to continue.\n\nNONCE:\n__NONCE__`;
 
+const ALCHEMY_ID = process.env.NEXT_PUBLIC_ALCHEMY_ID;
+const ALCHEMY_URL = `https://eth-mainnet.g.alchemy.com/nft/v2/${ALCHEMY_ID}`;
+
+const MGLTH_CONTRACT_ADDRESS = "0xabaCAdabA4A41e86092847d7b07D00094B8203F8";
+const MGLTH_COMPARE = MGLTH_CONTRACT_ADDRESS.toLocaleLowerCase();
+
+const METADATA_URL = `${ALCHEMY_URL}/getNFTMetadata?refreshCache=false&contractAddress=${MGLTH_CONTRACT_ADDRESS}&tokenId`;
+const TOKENS_OWNED_URL = `${ALCHEMY_URL}/getContractsForOwner?owner`;
+
 class Authentication {
+    static getMetaData(tokenId) {
+        return new Promise((resolve, reject) => {
+            const url = `${METADATA_URL}=${tokenId}`;
+
+            axios
+                .get(url)
+                .then((res) => {
+                    if (res.data.metadata) {
+                        resolve(res.data.metadata);
+                    }
+                })
+                .catch((error) => {
+                    reject(error);
+                });
+        });
+    }
+
+    static tokensOwned(address) {
+        return new Promise((resolve, reject) => {
+            const url = `${TOKENS_OWNED_URL}=${address}`;
+            axios
+                .get(url)
+                .then((res) => {
+                    let ids = [];
+                    const { contracts } = res.data;
+
+                    let i = 0;
+                    const found = [];
+                    while (i < contracts.length) {
+                        let contract = contracts[i];
+                        if (contract.address === MGLTH_COMPARE) {
+                            i++;
+                            Authentication.getMetaData(
+                                Number(contract.tokenId),
+                            ).then((data) => {
+                                found.push(data);
+                                if (i === contracts.length) {
+                                    resolve(found);
+                                }
+                            });
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        });
+    }
+
     static verify(req) {
         const message = req.body.message;
         const data = JSON.parse(message);
