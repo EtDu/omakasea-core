@@ -14,13 +14,15 @@ const PLAYER_URL = `http://${PLAYER_HOST}:${PLAYER_PORT}`;
 
 class Streamer {
     static next(req) {
-        Client.post(PLAYER_URL, {
-            data: {
-                ...req.body,
-            },
-        }).catch(() => {
-            console.log("\nPLAYER IS DOWN");
-        });
+        setTimeout(() => {
+            Client.post(PLAYER_URL, {
+                data: {
+                    ...req.body,
+                },
+            }).catch(() => {
+                console.log("\nPLAYER IS DOWN");
+            });
+        }, 5000);
     }
 
     static start(req) {
