@@ -21,7 +21,8 @@ class Authentication {
         };
 
         const address = getAddress(recoverPersonalSignature(signature));
-        return address === data.address;
+        const isValid = address === data.address;
+        return { address, isValid };
     }
 
     static uuid() {
