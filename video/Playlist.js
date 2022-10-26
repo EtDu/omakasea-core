@@ -39,25 +39,28 @@ class Playlist {
                     createdAt: req.body.uploadedAt,
                 };
 
-                VideoDAO.get(last).then((video) => {
-                    try {
-                        const remove =
-                            this.cache[video.uuid] === 0 ||
-                            this.cache[video.uuid] === undefined;
+                if (last.cid) {
+                    VideoDAO.get(last).then((video) => {
+                        try {
+                            const remove =
+                                this.cache[video.uuid] === 0 ||
+                                this.cache[video.uuid] === undefined;
 
-                        if (remove) {
-                            const tPath = FileSystem.getTranscodePath(video);
-                            if (FileSystem.exists(tPath)) {
-                                console.log(`D - ${video.uuid}`);
-                                FileSystem.delete(tPath);
+                            if (remove) {
+                                const tPath =
+                                    FileSystem.getTranscodePath(video);
+                                if (FileSystem.exists(tPath)) {
+                                    console.log(`D - ${video.uuid}`);
+                                    FileSystem.delete(tPath);
+                                }
+                            } else {
+                                this.cache[video.uuid] -= 1;
                             }
-                        } else {
-                            this.cache[video.uuid] -= 1;
+                        } catch (error) {
+                            console.log(`PLAYBACK ERROR: ${error}`);
                         }
-                    } catch (error) {
-                        console.log(`PLAYBACK ERROR: ${error}`);
-                    }
-                });
+                    });
+                }
             });
         });
 
