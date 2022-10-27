@@ -117,8 +117,8 @@ class Authentication {
 
     static signSession(req) {
         const auth = Authentication.parse(req);
-        req.session.address = Authentication.__authenticate__(auth);
-        auth.addr = req.session.address;
+        // req.session.address = Authentication.__authenticate__(auth);
+        auth.addr = "req.session.address";
         return auth;
     }
 

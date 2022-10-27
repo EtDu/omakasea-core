@@ -17,14 +17,61 @@ const MGLTH_COMPARE = MGLTH_CONTRACT_ADDRESS.toLocaleLowerCase();
 const METADATA_URL = `${ALCHEMY_URL}/getNFTMetadata?refreshCache=false&contractAddress=${MGLTH_CONTRACT_ADDRESS}&tokenId`;
 const TOKENS_OWNED_URL = `${ALCHEMY_URL}/getContractsForOwner?owner`;
 
-class MegalithToken {
-    static parse(token) {
-        const tokenId = this.getTokenId(token);
-        const isVandal = this.isVandal(token);
-        const position = this.getPosition(token);
-        const seconds = this.getSeconds(token);
+const INVALID_TOKEN = {
+    tokenId: null,
+    isVandal: null,
+    position: null,
+    seconds: null,
+};
 
-        return { tokenId, isVandal, position, seconds };
+class MegalithToken {
+    static authenticate(input) {
+        return new Promise((resolve, reject) => {
+            const message = input.message;
+            const data = JSON.parse(message);
+            const sig = input.sig;
+
+            const signature = {
+                data: message,
+                signature: sig,
+            };
+
+            const tokenId = data.tokenId;
+            const address = getAddress(recoverPersonalSignature(signature));
+            this.tokensOwned(address).then((tokens) => {
+                let hasToken = false;
+                for (const token of tokens) {
+                    if (!hasToken && token.tokenId === tokenId) {
+                        hasToken = true;
+                    }
+                }
+                const isValid =
+                    hasToken && address === data.address && tokenId !== null;
+
+                resolve({ address, isValid, tokenId });
+            });
+        });
+    }
+
+    static isValid(parsed) {
+        let valid = true;
+        for (const key of Object.keys(parsed)) {
+            valid = !(parsed[key] === null || parsed[key] === undefined);
+        }
+        return valid;
+    }
+
+    static parse(token) {
+        if (token.attributes.length > 0) {
+            const tokenId = this.getTokenId(token);
+            const isVandal = this.isVandal(token);
+            const position = this.getPosition(token);
+            const seconds = this.getSeconds(token);
+
+            return { tokenId, isVandal, position, seconds };
+        }
+
+        return INVALID_TOKEN;
     }
 
     static isVandal(token) {
@@ -41,7 +88,7 @@ class MegalithToken {
     }
 
     static getSeconds(token) {
-        const seconds = this.__getAttr__("Stream Seconds", token);
+        let seconds = this.__getAttr__("Stream Seconds", token);
         if (seconds !== null || seconds !== undefined) {
             return Number(seconds);
         }
@@ -56,16 +103,14 @@ class MegalithToken {
         return null;
     }
 
-    static getMetaData(tokenId) {
+    static getToken(tokenId) {
         return new Promise((resolve, reject) => {
             const url = `${METADATA_URL}=${tokenId}`;
 
             axios
                 .get(url)
                 .then((res) => {
-                    if (res.data.metadata) {
-                        resolve(res.data.metadata);
-                    }
+                    resolve(this.parse(res.data.metadata));
                 })
                 .catch((error) => {
                     reject(error);
@@ -79,46 +124,33 @@ class MegalithToken {
             axios
                 .get(url)
                 .then((res) => {
-                    let ids = [];
                     const { contracts } = res.data;
 
                     let i = 0;
                     const found = [];
-                    while (i < contracts.length) {
-                        let contract = contracts[i];
-                        if (contract.address === MGLTH_COMPARE) {
-                            i++;
-                            MegalithToken.getMetaData(
-                                Number(contract.tokenId),
-                            ).then((data) => {
-                                found.push(data);
-                                if (i === contracts.length) {
-                                    resolve(found);
-                                }
-                            });
+                    if (contracts.length > 0) {
+                        while (i < contracts.length) {
+                            let contract = contracts[i];
+                            if (contract.address === MGLTH_COMPARE) {
+                                i++;
+                                MegalithToken.getToken(
+                                    Number(contract.tokenId),
+                                ).then((data) => {
+                                    found.push(data);
+                                    if (i === contracts.length) {
+                                        resolve(found);
+                                    }
+                                });
+                            }
                         }
+                    } else {
+                        resolve(found);
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                 });
         });
-    }
-
-    static verify(req) {
-        const message = req.body.message;
-        const data = JSON.parse(message);
-        const sig = req.body.sig;
-
-        const signature = {
-            data: message,
-            signature: sig,
-        };
-
-        const tokenId = data.tokenId;
-        const address = getAddress(recoverPersonalSignature(signature));
-        const isValid = address === data.address && tokenId !== null;
-        return { address, isValid, tokenId };
     }
 
     static __getAttr__(key, token) {
