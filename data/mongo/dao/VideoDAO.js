@@ -6,6 +6,7 @@ class VideoDAO {
     static updateIPFS(data) {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(Video, { uuid: data.uuid }).then((video) => {
+                video.hasError = false;
                 video.cid = data.cid;
                 video.metadata = data.metadata;
                 __BaseDAO__.__save__(video).then(resolve);
@@ -40,7 +41,6 @@ class VideoDAO {
                 .__search__(Video, {
                     isUploaded: true,
                     isMerged: false,
-                    hasError: false,
                 })
                 .then((documents) => {
                     resolve(documents);

@@ -33,11 +33,8 @@ class Playlist {
         this.server = new Server(THIS_NAME, THIS_PORT);
         this.server.post("/", (req, res) => {
             res.json({ status: 200 });
-            this.BROADCAST().then(() => {
-                const last = {
-                    cid: req.body.cid,
-                    createdAt: req.body.uploadedAt,
-                };
+            this.PLAY().then(() => {
+                const last = { ...req.body };
 
                 if (last.cid) {
                     VideoDAO.get(last).then((video) => {
@@ -234,18 +231,20 @@ class Playlist {
             const isDownloaded = FileSystem.exists(dPath);
             const isTranscoded = FileSystem.exists(tPath);
 
+            const options = { endsAt: "00:00:10" };
+
             if (!isDownloaded && !isTranscoded) {
                 IPFS.download(video).then(() => {
                     files.downloads.push(dPath);
                     console.log(`${op} | ${video.uuid}`);
-                    FFMPEG.convert(video).then(() => {
+                    FFMPEG.convert(video, options).then(() => {
                         files.transcoded.push(tPath);
                         FileSystem.delete(dPath);
                         this.__download__(resolve, listing, files);
                     });
                 });
             } else if (!isTranscoded) {
-                FFMPEG.convert(video).then(() => {
+                FFMPEG.convert(video, options).then(() => {
                     if (isDownloaded) {
                         FileSystem.delete(dPath);
                     }
@@ -308,7 +307,7 @@ class Playlist {
         });
     }
 
-    BROADCAST() {
+    PLAY() {
         return new Promise((resolve, reject) => {
             this.increment().then((playlist) => {
                 const payload = { data: playlist.playing };
