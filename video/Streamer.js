@@ -18,12 +18,13 @@ class Streamer {
                     data: {
                         ...data,
                     },
-                }).catch(() => {
-                    console.log("\nPLAYER IS DOWN");
-                });
+                })
+                    .then(resolve)
+                    .catch(() => {
+                        console.log("\nPLAYER IS DOWN");
+                        resolve();
+                    });
             }, 5000);
-
-            resolve();
         });
     }
 
@@ -31,7 +32,7 @@ class Streamer {
         return new Promise((resolve, reject) => {
             console.log(`P > ${video.uuid}`);
             FFMPEG.stream(video.path, RTMP_URL).then(() => {
-                Streamer.next(data).then(resolve).catch(reject);
+                Streamer.next(video).then(resolve).catch(reject);
             });
         });
     }
