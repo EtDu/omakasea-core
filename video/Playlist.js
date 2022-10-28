@@ -231,7 +231,7 @@ class Playlist {
             const isDownloaded = FileSystem.exists(dPath);
             const isTranscoded = FileSystem.exists(tPath);
 
-            const options = { endsAt: "00:00:10" };
+            const options = {};
 
             if (!isDownloaded && !isTranscoded) {
                 IPFS.download(video).then(() => {
