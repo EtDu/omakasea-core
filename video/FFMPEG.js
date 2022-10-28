@@ -182,9 +182,7 @@ class FFMPEG {
                 .addOption("-ar", "44100")
                 .addOption("-f", "flv")
                 .on("start", (command) => {})
-                .on("end", () => {
-                    resolve();
-                })
+                .on("end", resolve)
                 .on("error", (error) => {
                     console.log("=========");
                     console.log(error);

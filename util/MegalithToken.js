@@ -56,7 +56,7 @@ class MegalithToken {
     static isValid(parsed) {
         let valid = true;
         for (const key of Object.keys(parsed)) {
-            valid = !(parsed[key] === null || parsed[key] === undefined);
+            valid = !(parsed[key] === null && parsed[key] === undefined);
         }
         return valid;
     }
@@ -80,7 +80,7 @@ class MegalithToken {
 
     static getPosition(token) {
         const position = this.__getAttr__("Stream Queue Position", token);
-        if (position !== null || position !== undefined) {
+        if (position !== null && position !== undefined) {
             return Number(position.replace("/409", ""));
         }
 
@@ -89,7 +89,7 @@ class MegalithToken {
 
     static getSeconds(token) {
         let seconds = this.__getAttr__("Stream Seconds", token);
-        if (seconds !== null || seconds !== undefined) {
+        if (seconds !== null && seconds !== undefined) {
             return Number(seconds);
         }
 
