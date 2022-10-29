@@ -129,25 +129,6 @@ class IPFS {
                 }
             }
 
-            let ipfsFiles = [];
-            for (const key of Object.keys(index)) {
-                const file = index[key];
-                ipfsFiles.push({
-                    name: key,
-                    cid: file.cid,
-                });
-            }
-
-            ipfsFiles = ipfsFiles.sort((a, b) => {
-                if (a.name < b.name) {
-                    return -1;
-                }
-                if (a.name > b.name) {
-                    return 1;
-                }
-                return 0;
-            });
-
             const keys = Object.keys(index);
             let count = keys.length;
             for (const key of keys) {
