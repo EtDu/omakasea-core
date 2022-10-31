@@ -14,6 +14,10 @@ const STREAMER_HOST = process.env.STREAMER_HOST;
 const STREAMER_PORT = process.env.STREAMER_PORT;
 const STREAMER_URL = `http://${STREAMER_HOST}:${STREAMER_PORT}`;
 
+const TRANSCODER_HOST = process.env.TRANSCODER_HOST;
+const TRANSCODER_PORT = process.env.TRANSCODER_PORT;
+const TRANSCODER_URL = `http://${TRANSCODER_HOST}:${TRANSCODER_PORT}`;
+
 const IPFS_HOST = process.env.IPFS_HOST;
 const IPFS_PORT = process.env.IPFS_PORT;
 const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
@@ -58,6 +62,16 @@ class Playlist {
                         }
                     });
                 }
+            });
+        });
+
+        this.server.get("/start", (req, res) => {
+            res.json({ status: "success" });
+            PlaylistDAO.get({ address: this.address }).then((playlist) => {
+                const payload = { data: playlist.playing };
+                Client.post(STREAMER_URL, payload).catch(() => {
+                    console.log("STREAMER IS DOWN");
+                });
             });
         });
 
@@ -203,67 +217,10 @@ class Playlist {
         }
     }
 
-    download(listing) {
-        return new Promise((resolve, reject) => {
-            const FILES = {
-                downloads: [],
-                transcoded: [],
-            };
-            this.__download__(resolve, listing, FILES);
+    transcode(listing) {
+        return Client.post(TRANSCODER_URL, {
+            data: { listing, isLoaded: this.isLoaded },
         });
-    }
-
-    __download__(resolve, listing, files) {
-        if (listing.length > 0) {
-            const video = listing.shift();
-
-            const dPath = FileSystem.getDownloadPath(video);
-            const tPath = FileSystem.getTranscodePath(video);
-
-            let op = "C";
-
-            if (!this.isLoaded && listing.length < ERROR_BUFFER_MAX) {
-                FileSystem.delete(dPath);
-                FileSystem.delete(tPath);
-                op = "R";
-            }
-
-            const isDownloaded = FileSystem.exists(dPath);
-            const isTranscoded = FileSystem.exists(tPath);
-
-            const options = {};
-
-            if (!isDownloaded && !isTranscoded) {
-                IPFS.download(video).then(() => {
-                    files.downloads.push(dPath);
-                    console.log(`${op} | ${video.uuid}`);
-                    FFMPEG.convert(video, options).then(() => {
-                        files.transcoded.push(tPath);
-                        FileSystem.delete(dPath);
-                        this.__download__(resolve, listing, files);
-                    });
-                });
-            } else if (!isTranscoded) {
-                FFMPEG.convert(video, options).then(() => {
-                    if (isDownloaded) {
-                        FileSystem.delete(dPath);
-                    }
-
-                    files.transcoded.push(tPath);
-                    this.__download__(resolve, listing, files);
-                });
-            } else {
-                if (isDownloaded) {
-                    FileSystem.delete(dPath);
-                }
-
-                files.transcoded.push(tPath);
-                FileSystem.delete(dPath);
-                this.__download__(resolve, listing, files);
-            }
-        } else {
-            resolve(files);
-        }
     }
 
     clear(files) {
@@ -311,14 +268,14 @@ class Playlist {
         return new Promise((resolve, reject) => {
             this.increment().then((playlist) => {
                 const payload = { data: playlist.playing };
-                Client.post(STREAMER_URL, payload).catch(() => {
-                    console.log("STREAMER IS DOWN");
-                });
+                Client.post(STREAMER_URL, payload)
+                    .then(resolve)
+                    .catch(() => {
+                        console.log("STREAMER IS DOWN");
+                    });
                 this.listing().then(() => {
                     this.load().then((listing) => {
-                        this.download(listing).then((files) => {
-                            resolve(files);
-                        });
+                        this.transcode(listing).then(resolve);
                     });
                 });
             });
@@ -329,14 +286,8 @@ class Playlist {
         this.listing().then(() => {
             this.load().then((listing) => {
                 if (listing.length > 0) {
-                    this.download(listing).then(() => {
+                    this.transcode(listing).then(() => {
                         this.isLoaded = true;
-                        PlaylistDAO.get({ address: this.address }).then(
-                            (playlist) => {
-                                const payload = { data: playlist.playing };
-                                Client.post(STREAMER_URL, payload);
-                            },
-                        );
                     });
                 } else {
                     console.log("WAITING 1 MINUTE");

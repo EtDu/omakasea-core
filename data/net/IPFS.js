@@ -5,6 +5,10 @@ const IPFS_HOST = process.env.IPFS_HOST;
 const IPFS_PORT = process.env.IPFS_PORT;
 const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
 
+const VALIDATOR_HOST = process.env.VALIDATOR_HOST;
+const VALIDATOR_PORT = process.env.VALIDATOR_PORT;
+const VALIDATOR_URL = `http://${VALIDATOR_HOST}:${VALIDATOR_PORT}`;
+
 import fs from "fs";
 import axios from "axios";
 import { create } from "ipfs-http-client";
@@ -13,6 +17,7 @@ import UploadDAO from "../mongo/dao/UploadDAO.js";
 import VideoDAO from "../mongo/dao/VideoDAO.js";
 import FFMPEG from "../../video/FFMPEG.js";
 import FileSystem from "../../util/FileSystem.js";
+import Client from "../../http/Client.js";
 
 async function ipfsClient() {
     const config = {
@@ -103,6 +108,7 @@ class IPFS {
         VideoDAO.search(query).then(async (videos) => {
             const files = [];
             const index = {};
+            const payload = [];
 
             for (const video of videos) {
                 const fPath = FileSystem.getUploadPath(video);
@@ -112,6 +118,7 @@ class IPFS {
                     path: video.filename,
                     content,
                 });
+
                 index[video.filename] = {
                     fPath,
                     uuid: video.uuid,
@@ -125,41 +132,17 @@ class IPFS {
 
             for await (const upload of uploaded) {
                 if (upload.path.length > 0) {
-                    index[upload.path].cid = upload.cid.toString();
+                    const cid = upload.cid.toString();
+                    const file = { cid, ...index[upload.path] };
+                    payload.push(file);
                 }
             }
 
-            const keys = Object.keys(index);
-            let count = keys.length;
-            for (const key of keys) {
-                try {
-                    FFMPEG.getMetadata(index[key].fPath)
-                        .then((metadata) => {
-                            index[key].metadata = metadata;
-
-                            VideoDAO.updateIPFS(index[key]).then(() => {
-                                count--;
-                                FileSystem.delete(index[key].fPath);
-
-                                if (count === 0) {
-                                    data.isUploaded = true;
-                                    UploadDAO.save(data).then(() => {
-                                        if (callback !== null) {
-                                            callback();
-                                        }
-                                    });
-                                }
-                            });
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        });
-                } catch (error) {
-                    console.log("==============");
-                    console.log(error);
-                    console.log("==============");
+            Client.post(VALIDATOR_URL, { data: payload }).then(() => {
+                if (callback !== null) {
+                    callback();
                 }
-            }
+            });
         });
     }
 }
