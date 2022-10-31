@@ -36,7 +36,7 @@ class Transcoder {
             const isDownloaded = FileSystem.exists(dPath);
             const isTranscoded = FileSystem.exists(tPath);
 
-            const options = { endsAt: "00:00:15" };
+            const options = {};
 
             if (!isDownloaded && !isTranscoded) {
                 IPFS.download(video).then(() => {
