@@ -25,6 +25,23 @@ const INVALID_TOKEN = {
 };
 
 class MegalithToken {
+    static check(input) {
+        return new Promise((resolve, reject) => {
+            const message = input.message;
+            const data = JSON.parse(message);
+            const sig = input.sig;
+
+            const signature = {
+                data: message,
+                signature: sig,
+            };
+
+            const address = getAddress(recoverPersonalSignature(signature));
+            const isValid = address === input.address;
+            resolve(isValid);
+        });
+    }
+
     static authenticate(input) {
         return new Promise((resolve, reject) => {
             const message = input.message;
