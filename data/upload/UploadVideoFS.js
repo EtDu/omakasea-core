@@ -15,7 +15,9 @@ const fileStorageEngine = multer.diskStorage({
         cb(null, UPLOAD_DIR);
     },
     filename: (req, file, cb) => {
-        const auth = Authentication.parse(req);
+        const message = input.message;
+        const data = JSON.parse(message);
+        const address = data.address;
 
         const filename = file.originalname;
         const toks = filename.split(".");
@@ -27,7 +29,7 @@ const fileStorageEngine = multer.diskStorage({
         const upload = {
             uuid: req.uuid,
             folderUUID: req.folderUUID,
-            address: auth.addr,
+            address,
             filename,
             extension,
         };
