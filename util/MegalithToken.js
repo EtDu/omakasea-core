@@ -130,9 +130,9 @@ class MegalithToken {
                     const found = [];
                     if (contracts.length > 0) {
                         while (i < contracts.length) {
+                            i++;
                             let contract = contracts[i];
                             if (contract.address === MGLTH_COMPARE) {
-                                i++;
                                 MegalithToken.getToken(
                                     Number(contract.tokenId),
                                 ).then((data) => {
@@ -141,6 +141,8 @@ class MegalithToken {
                                         resolve(found);
                                     }
                                 });
+                            } else if (i === contracts.length) {
+                                resolve(found);
                             }
                         }
                     } else {
