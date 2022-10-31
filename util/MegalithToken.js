@@ -28,6 +28,7 @@ class MegalithToken {
     static check(input) {
         return new Promise((resolve, reject) => {
             const message = input.message;
+            const data = JSON.parse(message);
             const sig = input.sig;
 
             const signature = {
@@ -36,7 +37,7 @@ class MegalithToken {
             };
 
             const address = getAddress(recoverPersonalSignature(signature));
-            const isAuthorized = address === input.address;
+            const isAuthorized = address === data.address;
             resolve({ isAuthorized, address });
         });
     }
