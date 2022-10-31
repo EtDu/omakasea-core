@@ -40,7 +40,7 @@ const fileStorageEngine = multer.diskStorage({
 const UploadFS = multer({
     storage: fileStorageEngine,
     fileFilter: (req, file, cb) => {
-        const message = input.message;
+        const message = req.headers.message;
         const data = JSON.parse(message);
         const address = data.address;
         ContributorDAO.isContributor(address).then((isActive) => {
