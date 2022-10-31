@@ -17,7 +17,7 @@ const fileStorageEngine = multer.diskStorage({
     filename: (req, file, cb) => {
         const message = input.message;
         const data = JSON.parse(message);
-        const address = data.address;
+        const address = req.session.address;
 
         const filename = file.originalname;
         const toks = filename.split(".");
