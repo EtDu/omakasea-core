@@ -15,8 +15,6 @@ const fileStorageEngine = multer.diskStorage({
         cb(null, UPLOAD_DIR);
     },
     filename: (req, file, cb) => {
-        const message = input.message;
-        const data = JSON.parse(message);
         const address = req.session.address;
 
         const filename = file.originalname;
