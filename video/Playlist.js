@@ -135,10 +135,14 @@ class Playlist {
                     }
 
                     const last = list.pop();
+                    const clipTime =
+                        Playlist.toSeconds(last.metadata.duration) + time;
 
-                    last.boundary = Playlist.toDuration(
-                        Playlist.toSeconds(last.metadata.duration) + time,
-                    );
+                    if (clipTime > 30) {
+                        last.boundary = Playlist.toDuration(clipTime);
+                    } else {
+                        last.boundary = last.metadata.duration;
+                    }
 
                     list.push(last);
                     playlist.resumeAt = last;
