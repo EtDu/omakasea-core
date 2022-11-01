@@ -43,8 +43,8 @@ const UploadFS = multer({
         const message = req.headers.message;
         const data = JSON.parse(message);
         const address = data.address;
-        ContributorDAO.isContributor(address).then((isActive) => {
-            if (isActive) {
+        ContributorDAO.isContributor(address).then((isValid) => {
+            if (isValid) {
                 req.authorized = true;
                 cb(null, true);
             } else {

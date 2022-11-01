@@ -1,7 +1,5 @@
 export default {
-    isActive: { type: Boolean, default: true },
     isUploaded: { type: Boolean, default: false },
-    hasError: { type: Boolean, default: true },
     folderUUID: { type: String },
     uuid: { type: String },
     cid: { type: String },

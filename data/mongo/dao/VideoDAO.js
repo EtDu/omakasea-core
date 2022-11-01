@@ -6,9 +6,7 @@ class VideoDAO {
     static updateIPFS(data) {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(Video, { uuid: data.uuid }).then((video) => {
-                video.hasError = false;
                 video.cid = data.cid;
-                video.metadata = data.metadata;
                 __BaseDAO__.__save__(video).then(resolve);
             });
         });
@@ -20,32 +18,6 @@ class VideoDAO {
 
     static search(query = {}) {
         return __BaseDAO__.__search__(Video, query, {}, { createdAt: 1 });
-    }
-
-    static getProcessed() {
-        return new Promise((resolve, reject) => {
-            __BaseDAO__
-                .__search__(Video, {
-                    isUploaded: true,
-                    isMerged: true,
-                })
-                .then((documents) => {
-                    resolve(documents);
-                });
-        });
-    }
-
-    static getUnprocessed() {
-        return new Promise((resolve, reject) => {
-            __BaseDAO__
-                .__search__(Video, {
-                    isUploaded: true,
-                    isMerged: false,
-                })
-                .then((documents) => {
-                    resolve(documents);
-                });
-        });
     }
 
     static create(upload) {

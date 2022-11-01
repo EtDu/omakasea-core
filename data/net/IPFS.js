@@ -72,7 +72,6 @@ class IPFS {
         this.__upload__(ipfs, data, () => {
             VideoDAO.search({
                 folderUUID: data.folderUUID,
-                isActive: true,
             }).then(async (videos) => {
                 const files = [];
                 const SORT_BY = (a, b) => {
@@ -80,7 +79,7 @@ class IPFS {
                 };
 
                 for (const video of videos.sort(SORT_BY)) {
-                    if (video.cid && video.isActive) {
+                    if (video.cid) {
                         files.push({
                             name: video.filename,
                             cid: video.cid,
