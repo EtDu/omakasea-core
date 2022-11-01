@@ -90,15 +90,15 @@ class Playlist {
         });
     }
 
-    static cycle(data) {
+    static cycle(params) {
         return new Promise((resolve, reject) => {
-            const address = data.address;
+            const address = params.address;
             PlaylistDAO.get({ address })
                 .then((playlist) => {
                     const list = [];
 
                     let i = Playlist.indexOf(playlist);
-                    let time = data.seconds;
+                    let time = params.seconds;
 
                     if (playlist.resumeAt) {
                         const startSecs =
