@@ -33,7 +33,31 @@ const SORT_BY = (a, b) => {
     return b.uploadedAt - a.uploadedAt;
 };
 
+const LEADING_ZERO = (number) => {
+    return number < 10 ? "0" + number : number;
+};
+
 class Playlist {
+    static indexOf(playlist, resume = null) {
+        let i = 0;
+
+        if (resume !== null) {
+            let isFound = false;
+
+            for (const video of playlist.listing) {
+                if (video.uuid === resume.uuid) {
+                    isFound = true;
+                }
+
+                if (!isFound) {
+                    i++;
+                }
+            }
+        }
+
+        return i;
+    }
+
     static async merge(upload) {
         return new Promise((resolve, reject) => {
             PlaylistDAO.get({ address: upload.address }).then(
@@ -50,13 +74,11 @@ class Playlist {
                         });
                     }
 
-                    playlist.listing = merged;
-
                     const playlistCID = await IPFS.savePlaylist(listing);
 
                     if (playlistCID !== null) {
                         playlist.cid = playlistCID;
-
+                        playlist.listing = merged;
                         playlist.markModified("listing");
                         PlaylistDAO.save(playlist).then(resolve);
                     } else {
@@ -68,305 +90,81 @@ class Playlist {
         });
     }
 
+    static splice(data) {
+        return new Promise((resolve, reject) => {
+            const address = data.address;
+            PlaylistDAO.get({ address })
+                .then((playlist) => {
+                    let advance = 0;
+                    if (data.resume) {
+                        advance = Playlist.toSeconds(data.resume.boundary);
+                    }
+                    const list = [];
+
+                    let time = data.seconds - advance;
+                    let i = Playlist.indexOf(playlist, data.resume);
+
+                    console.log(time);
+                    while (time > 0) {
+                        const current = playlist.listing[i];
+                        time -= Playlist.toSeconds(current.metadata.duration);
+
+                        const frame = { ...current };
+                        if (advance > 0) {
+                            frame.boundary = data.resume.boundary;
+                            advance = -1;
+                        }
+
+                        list.push(frame);
+
+                        if (i + 1 < playlist.listing.length) {
+                            i++;
+                        } else {
+                            i = 0;
+                        }
+                    }
+
+                    const last = list.pop();
+
+                    last.boundary = Playlist.toDuration(
+                        Playlist.toSeconds(last.metadata.duration) + time,
+                    );
+
+                    list.push(last);
+                    resolve(list);
+                })
+                .catch(reject);
+        });
+    }
+
     static increment(address) {
         return new Promise((resolve, reject) => {
             PlaylistDAO.get({ address }).then((playlist) => {
-                if (playlist.playing === null) {
-                    playlist.playing = playlist.listing[0];
-                } else {
-                    let i = 0;
-                    let isFound = false;
-
-                    const current = playlist.playing;
-                    for (const video of playlist.listing) {
-                        if (video.uuid === current.uuid) {
-                            isFound = true;
-                        }
-
-                        if (!isFound) {
-                            i++;
-                        }
-                    }
-
-                    if (i + 1 === playlist.playing.length) {
-                        i = 0;
-                    } else {
-                        i++;
-                    }
-                }
-
-                PlaylistDAO.save(playlist);
+                resolve();
             });
         });
     }
 
-    constructor(address) {
-        this.address = address;
-        this.isLoaded = false;
-
-        this.server = new Server(THIS_NAME, THIS_PORT);
-        this.server.post("/", (req, res) => {
-            res.json({ status: 200 });
-            this.PLAY().then(() => {
-                const last = { ...req.body };
-
-                if (last.cid) {
-                    VideoDAO.get(last).then((video) => {
-                        try {
-                            const remove =
-                                this.cache[video.uuid] === 0 ||
-                                this.cache[video.uuid] === undefined;
-
-                            if (remove) {
-                                const tPath =
-                                    FileSystem.getTranscodePath(video);
-                                if (FileSystem.exists(tPath)) {
-                                    console.log(`D - ${video.uuid}`);
-                                    FileSystem.delete(tPath);
-                                }
-                            } else {
-                                this.cache[video.uuid] -= 1;
-                            }
-                        } catch (error) {
-                            console.log(`PLAYBACK ERROR: ${error}`);
-                        }
-                    });
-                }
-            });
-        });
-
-        this.server.get("/start", (req, res) => {
-            res.json({ status: "success" });
-            PlaylistDAO.get({ address: this.address }).then((playlist) => {
-                const payload = { data: playlist.playing };
-                Client.post(STREAMER_URL, payload).catch(() => {
-                    console.log("STREAMER IS DOWN");
-                });
-            });
-        });
-
-        this.server.start();
-    }
-
-    toSeconds(metadata) {
+    static toSeconds(duration) {
         return (
-            metadata.duration.hours * 3600 +
-            metadata.duration.minutes * 60 +
-            metadata.duration.seconds
+            Number(duration.hours) * 3600 +
+            Number(duration.minutes) * 60 +
+            Number(duration.seconds)
         );
     }
 
-    listing() {
-        return new Promise((resolve, reject) => {
-            UploadDAO.search({
-                address: this.address,
-                isUploaded: true,
-                isMerged: false,
-            }).then((uploads) => {
-                if (uploads.length > 0) {
-                    this.__listing__([...uploads], [], (cids) => {
-                        PlaylistDAO.get({ address: this.address }).then(
-                            async (playlist) => {
-                                playlist.listing = cids
-                                    .sort((a, b) => {
-                                        return b.uploadedAt - a.uploadedAt;
-                                    })
-                                    .concat(playlist.listing);
-
-                                const playlistCID = await IPFS.savePlaylist(
-                                    playlist.listing,
-                                );
-
-                                if (playlistCID !== null) {
-                                    playlist.cid = playlistCID;
-
-                                    playlist.markModified("listing");
-                                    PlaylistDAO.save(playlist).then(() => {
-                                        for (const upload of uploads) {
-                                            upload.isMerged = true;
-                                            UploadDAO.save(upload);
-                                        }
-                                        resolve();
-                                    });
-                                } else {
-                                    console.log("NULL CID FOUND");
-                                    resolve();
-                                }
-                            },
-                        );
-                    });
-                } else {
-                    resolve();
-                }
-            });
-        });
+    static toDuration(iSeconds) {
+        var hours = LEADING_ZERO(Math.floor(iSeconds / 3600));
+        var minutes = LEADING_ZERO(Math.floor((iSeconds - hours * 3600) / 60));
+        var seconds = LEADING_ZERO(iSeconds - hours * 3600 - minutes * 60);
+        return { hours, minutes, seconds };
     }
 
-    __listing__(uploads, cids, callback) {
-        if (uploads.length > 0) {
-            const cid = uploads.shift().cid;
-            const url = `${IPFS_URL}/${cid}`;
-
-            Client.get(url).then((res) => {
-                this.__listing__(uploads, cids.concat(res.data), callback);
-            });
-        } else {
-            callback(cids);
-        }
-    }
-
-    __next__(playlist) {
-        let i = 0;
-        let isFound = false;
-        for (const video of playlist.listing) {
-            if (this.__isPlaying__(video, playlist.playing)) {
-                isFound = true;
-            }
-
-            if (!isFound) {
-                i++;
-            }
-        }
-
-        if (i + 1 < playlist.listing.length) {
-            playlist.playing = playlist.listing[i + 1];
-        } else {
-            playlist.playing = playlist.listing[0];
-        }
-
-        return i;
-    }
-
-    load() {
-        return new Promise((resolve, reject) => {
-            PlaylistDAO.get({ address: this.address }).then((playlist) => {
-                if (playlist.listing.length > 0) {
-                    this.cache = {};
-                    let index = 0;
-                    if (playlist.playing !== null) {
-                        index = this.__next__(playlist);
-                    }
-
-                    this.__load__(resolve, playlist, index);
-                } else {
-                    resolve([]);
-                }
-            });
-        });
-    }
-
-    __load__(resolve, playlist, index = 0, runningTime = 0, listing = []) {
-        if (index === playlist.listing.length) {
-            index = 0;
-        }
-
-        if (runningTime < TIME_BUFFER) {
-            const current = playlist.listing[index];
-            const query = {
-                cid: current.cid,
-                createdAt: current.uploadedAt,
-            };
-            VideoDAO.get(query).then((video) => {
-                runningTime += this.toSeconds(video.metadata);
-
-                if (this.cache[video.uuid] === undefined) {
-                    this.cache[video.uuid] = 0;
-                }
-                this.cache[video.uuid] += 1;
-                listing.push(video);
-                this.__load__(
-                    resolve,
-                    playlist,
-                    index + 1,
-                    runningTime,
-                    listing,
-                );
-            });
-        } else {
-            resolve(listing);
-        }
-    }
-
-    transcode(listing) {
-        return Client.post(TRANSCODER_URL, {
-            data: { listing, isLoaded: this.isLoaded },
-        });
-    }
-
-    clear(files) {
-        return new Promise((resolve, reject) => {
-            this.__delete__(resolve, files);
-        });
-    }
-
-    __delete__(resolve, files) {
-        if (files.length > 0) {
-            const current = files.shift();
-            if (FileSystem.exists(current)) {
-                FileSystem.delete(current);
-            }
-
-            this.__delete__(resolve, files);
-        } else {
-            resolve();
-        }
-    }
-
-    __isPlaying__(video, playing) {
-        return (
-            video.cid === playing.cid && video.uploadedAt === playing.uploadedAt
-        );
-    }
-
-    increment() {
-        return new Promise((resolve, reject) => {
-            PlaylistDAO.get({ address: this.address }).then((playlist) => {
-                if (playlist.playing === null) {
-                    playlist.playing = playlist.listing[0];
-                } else {
-                    this.__next__(playlist);
-                }
-
-                PlaylistDAO.save(playlist).then(() => {
-                    resolve(playlist);
-                });
-            });
-        });
-    }
-
-    PLAY() {
-        return new Promise((resolve, reject) => {
-            this.increment().then((playlist) => {
-                const payload = { data: playlist.playing };
-                Client.post(STREAMER_URL, payload)
-                    .then(resolve)
-                    .catch(() => {
-                        console.log("STREAMER IS DOWN");
-                    });
-                this.listing().then(() => {
-                    this.load().then((listing) => {
-                        this.transcode(listing).then(resolve);
-                    });
-                });
-            });
-        });
-    }
-
-    START() {
-        this.listing().then(() => {
-            this.load().then((listing) => {
-                if (listing.length > 0) {
-                    this.transcode(listing).then(() => {
-                        this.isLoaded = true;
-                    });
-                } else {
-                    console.log("WAITING 1 MINUTE");
-                    setTimeout(() => {
-                        this.START();
-                    }, 60000);
-                }
-            });
-        });
+    static toTimeKey(iSeconds) {
+        var hours = LEADING_ZERO(Math.floor(iSeconds / 3600));
+        var minutes = LEADING_ZERO(Math.floor((iSeconds - hours * 3600) / 60));
+        var seconds = LEADING_ZERO(iSeconds - hours * 3600 - minutes * 60);
+        return `${hours}:${minutes}:${seconds}`;
     }
 }
 
