@@ -135,10 +135,17 @@ class Playlist {
                     }
 
                     const last = list.pop();
-                    const clipTime =
-                        Playlist.toSeconds(last.metadata.duration) + time;
+                    const lastSeconds = Playlist.toSeconds(
+                        last.metadata.duration,
+                    );
+                    const clipTime = lastSeconds + time;
 
-                    last.boundary = Playlist.toDuration(clipTime);
+                    if (lastSeconds - clipTime > 30) {
+                        last.boundary = Playlist.toDuration(clipTime);
+                    } else {
+                        last.boundary = last.metadata.duration;
+                    }
+
                     list.push(last);
                     playlist.resumeAt = last;
                     PlaylistDAO.save(playlist).then(() => {
