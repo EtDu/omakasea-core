@@ -5,10 +5,6 @@ const IPFS_HOST = process.env.IPFS_HOST;
 const IPFS_PORT = process.env.IPFS_PORT;
 const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
 
-const VALIDATOR_HOST = process.env.VALIDATOR_HOST;
-const VALIDATOR_PORT = process.env.VALIDATOR_PORT;
-const VALIDATOR_URL = `http://${VALIDATOR_HOST}:${VALIDATOR_PORT}`;
-
 import fs from "fs";
 import axios from "axios";
 import { create } from "ipfs-http-client";
@@ -77,6 +73,7 @@ class IPFS {
                 for (const video of videos.sort(SORT_BY)) {
                     video.cid = mapping[video.uuid];
                     VideoDAO.save(video);
+                    FileSystem.delete(FileSystem.getUploadPath(video));
 
                     files.push({
                         name: video.filename,
@@ -85,8 +82,8 @@ class IPFS {
                     });
                     listing.push({
                         name: video.filename,
+                        uuid: video.uuid,
                         cid: video.cid,
-                        uploadedAt: video.createdAt,
                         metadata: video.metadata,
                     });
                 }
