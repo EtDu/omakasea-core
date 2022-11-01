@@ -167,9 +167,9 @@ class Playlist {
     }
 
     static toDuration(iSeconds) {
-        var hours = LEADING_ZERO(Math.floor(iSeconds / 3600));
-        var minutes = LEADING_ZERO(Math.floor((iSeconds - hours * 3600) / 60));
-        var seconds = LEADING_ZERO(iSeconds - hours * 3600 - minutes * 60);
+        var hours = Math.floor(iSeconds / 3600);
+        var minutes = Math.floor((iSeconds - hours * 3600) / 60);
+        var seconds = iSeconds - hours * 3600 - minutes * 60;
         return { hours, minutes, seconds };
     }
 
