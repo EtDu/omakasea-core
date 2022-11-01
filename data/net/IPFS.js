@@ -83,6 +83,7 @@ class IPFS {
                     listing.push({
                         name: video.filename,
                         uuid: video.uuid,
+                        extension: video.extension,
                         cid: video.cid,
                         createdAt: video.createdAt,
                         metadata: video.metadata,

@@ -30,18 +30,73 @@ const THIS_PORT = 4081;
 const THIS_NAME = "PLAYER";
 
 const SORT_BY = (a, b) => {
-    return b.createdAt - a.createdAt;
+    return b.uploadedAt - a.uploadedAt;
 };
 
 class Playlist {
-    static merge(upload) {
+    static async merge(upload) {
         return new Promise((resolve, reject) => {
-            PlaylistDAO.get({ address: upload.address }).then((playlist) => {
-                playlist.listing = upload.listing
-                    .concat(playlist.listing)
-                    .sort(SORT_BY);
-                playlist.markModified("listing");
-                PlaylistDAO.save(playlist).then(resolve);
+            PlaylistDAO.get({ address: upload.address }).then(
+                async (playlist) => {
+                    const listing = [];
+                    for (const video of upload.listing) {
+                        listing.push({
+                            name: video.name,
+                            cid: video.cid,
+                            uploadedAt: video.createdAt,
+                        });
+                    }
+
+                    playlist.listing = listing
+                        .concat(playlist.listing)
+                        .sort(SORT_BY);
+
+                    const playlistCID = await IPFS.savePlaylist(
+                        playlist.listing,
+                    );
+
+                    if (playlistCID !== null) {
+                        playlist.cid = playlistCID;
+
+                        playlist.markModified("listing");
+                        PlaylistDAO.save(playlist).then(resolve);
+                    } else {
+                        console.log("NULL CID FOUND");
+                        resolve();
+                    }
+                },
+            );
+        });
+    }
+
+    static increment(address) {
+        return new Promise((resolve, reject) => {
+            PlaylistDAO.get({ address }).then((playlist) => {
+                if (playlist.playing === null) {
+                    playlist.playing = playlist.listing[0];
+                } else {
+                    let i = 0;
+                    let isFound = false;
+
+                    const current = playlist.playing;
+                    for (const video of playlist.listing) {
+                        if (video.uuid === current.uuid) {
+                            isFound = true;
+                        }
+
+                        if (!isFound) {
+                            i++;
+                        }
+                    }
+
+                    if (i + 1 === playlist.playing.length) {
+                        i = 0;
+                    } else {
+                        i++;
+                    }
+                }
+
+                PlaylistDAO.save(playlist);
             });
         });
     }
