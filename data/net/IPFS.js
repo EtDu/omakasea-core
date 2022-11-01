@@ -84,6 +84,7 @@ class IPFS {
                         name: video.filename,
                         uuid: video.uuid,
                         cid: video.cid,
+                        createdAt: video.createdAt,
                         metadata: video.metadata,
                     });
                 }
