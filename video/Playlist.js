@@ -101,13 +101,13 @@ class Playlist {
                     let time = params.seconds;
 
                     if (playlist.resumeAt) {
-                        const startSecs =
+                        const clipTime =
                             Playlist.toSeconds(
                                 playlist.resumeAt.metadata.duration,
                             ) - Playlist.toSeconds(playlist.resumeAt.boundary);
 
-                        if (startSecs > 30) {
-                            time -= startSecs;
+                        if (clipTime > 30) {
+                            time -= clipTime;
                             list.push(playlist.resumeAt);
                         }
 
