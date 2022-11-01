@@ -38,8 +38,11 @@ class Playlist {
         return new Promise((resolve, reject) => {
             PlaylistDAO.get({ address: upload.address }).then(
                 async (playlist) => {
+                    const merged = upload.listing
+                        .concat(playlist.listing)
+                        .sort(SORT_BY);
                     const listing = [];
-                    for (const video of upload.listing) {
+                    for (const video of merged) {
                         listing.push({
                             name: video.name,
                             cid: video.cid,
@@ -47,13 +50,9 @@ class Playlist {
                         });
                     }
 
-                    playlist.listing = listing
-                        .concat(playlist.listing)
-                        .sort(SORT_BY);
+                    playlist.listing = merged;
 
-                    const playlistCID = await IPFS.savePlaylist(
-                        playlist.listing,
-                    );
+                    const playlistCID = await IPFS.savePlaylist(listing);
 
                     if (playlistCID !== null) {
                         playlist.cid = playlistCID;
