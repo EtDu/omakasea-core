@@ -138,12 +138,7 @@ class Playlist {
                     const clipTime =
                         Playlist.toSeconds(last.metadata.duration) + time;
 
-                    if (clipTime > 30) {
-                        last.boundary = Playlist.toDuration(clipTime);
-                    } else {
-                        last.boundary = last.metadata.duration;
-                    }
-
+                    last.boundary = Playlist.toDuration(clipTime);
                     list.push(last);
                     playlist.resumeAt = last;
                     PlaylistDAO.save(playlist).then(() => {
