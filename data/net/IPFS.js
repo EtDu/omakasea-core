@@ -13,11 +13,12 @@ import fs from "fs";
 import axios from "axios";
 import { create } from "ipfs-http-client";
 
-import UploadDAO from "../mongo/dao/UploadDAO.js";
 import VideoDAO from "../mongo/dao/VideoDAO.js";
-import FFMPEG from "../../video/FFMPEG.js";
 import FileSystem from "../../util/FileSystem.js";
-import Client from "../../http/Client.js";
+
+const SORT_BY = (a, b) => {
+    return b.createdAt - a.createdAt;
+};
 
 async function ipfsClient() {
     const config = {
@@ -67,34 +68,36 @@ class IPFS {
 
     static async upload(data, callback) {
         const ipfs = await ipfsClient();
-        const query = { address: data.address };
+        const folderUUID = data.folderUUID;
 
-        this.__upload__(ipfs, data, () => {
-            VideoDAO.search({
-                folderUUID: data.folderUUID,
-            }).then(async (videos) => {
+        this.__upload__(ipfs, data, (mapping) => {
+            VideoDAO.search({ folderUUID }).then(async (videos) => {
                 const files = [];
-                const SORT_BY = (a, b) => {
-                    return b.createdAt - a.createdAt;
-                };
-
+                const listing = [];
                 for (const video of videos.sort(SORT_BY)) {
-                    if (video.cid) {
-                        files.push({
-                            name: video.filename,
-                            cid: video.cid,
-                            uploadedAt: video.createdAt,
-                        });
-                    }
+                    video.cid = mapping[video.uuid];
+                    VideoDAO.save(video);
+
+                    files.push({
+                        name: video.filename,
+                        cid: video.cid,
+                        uploadedAt: video.createdAt,
+                    });
+                    listing.push({
+                        name: video.filename,
+                        cid: video.cid,
+                        uploadedAt: video.createdAt,
+                        metadata: video.metadata,
+                    });
                 }
+
                 const cid = await ipfs.add(JSON.stringify(files), {
                     pin: true,
                 });
 
-                data.cid = cid.path;
-                UploadDAO.save(data).then(() => {
-                    callback(data);
-                });
+                if (callback !== null) {
+                    callback({ cid: cid.path, listing });
+                }
             });
         });
     }
@@ -107,11 +110,11 @@ class IPFS {
         VideoDAO.search(query).then(async (videos) => {
             const files = [];
             const index = {};
-            const payload = [];
+            const mapping = {};
 
-            for (const video of videos) {
-                const fPath = FileSystem.getUploadPath(video);
-                const content = fs.readFileSync(fPath);
+            for (const video of data.files) {
+                const uPath = FileSystem.getUploadPath(video);
+                const content = fs.readFileSync(uPath);
 
                 files.push({
                     path: video.filename,
@@ -119,7 +122,6 @@ class IPFS {
                 });
 
                 index[video.filename] = {
-                    fPath,
                     uuid: video.uuid,
                 };
             }
@@ -131,17 +133,13 @@ class IPFS {
 
             for await (const upload of uploaded) {
                 if (upload.path.length > 0) {
-                    const cid = upload.cid.toString();
-                    const file = { cid, ...index[upload.path] };
-                    payload.push(file);
+                    mapping[index[upload.path].uuid] = upload.cid.toString();
                 }
             }
 
-            Client.post(VALIDATOR_URL, { data: payload }).then(() => {
-                if (callback !== null) {
-                    callback();
-                }
-            });
+            if (callback !== null) {
+                callback(mapping);
+            }
         });
     }
 }

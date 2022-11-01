@@ -7,5 +7,6 @@ export default {
     isValid: { type: Boolean, default: false },
     isUploaded: { type: Boolean, default: false },
     isMerged: { type: Boolean, default: false },
+    listing: { type: Object, default: [] },
     createdAt: { type: Number },
 };
