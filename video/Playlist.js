@@ -29,7 +29,23 @@ const ERROR_BUFFER_MAX = 3;
 const THIS_PORT = 4081;
 const THIS_NAME = "PLAYER";
 
+const SORT_BY = (a, b) => {
+    return b.createdAt - a.createdAt;
+};
+
 class Playlist {
+    static merge(upload) {
+        return new Promise((resolve, reject) => {
+            PlaylistDAO.get({ address: upload.address }).then((playlist) => {
+                playlist.listing = upload.listing
+                    .concat(playlist.listing)
+                    .sort(SORT_BY);
+                playlist.markModified("listing");
+                PlaylistDAO.save(playlist).then(resolve);
+            });
+        });
+    }
+
     constructor(address) {
         this.address = address;
         this.isLoaded = false;
