@@ -90,35 +90,45 @@ class Playlist {
         });
     }
 
-    static splice(data) {
+    static cycle(data) {
         return new Promise((resolve, reject) => {
             const address = data.address;
             PlaylistDAO.get({ address })
                 .then((playlist) => {
-                    let advance = 0;
-                    if (data.resume) {
-                        advance = Playlist.toSeconds(data.resume.boundary);
-                    }
                     const list = [];
 
-                    let time = data.seconds - advance;
-                    let i = Playlist.indexOf(playlist, data.resume);
+                    let i = Playlist.indexOf(playlist);
+                    let time = data.seconds;
 
-                    console.log(time);
+                    if (playlist.resumeAt) {
+                        const startSecs =
+                            Playlist.toSeconds(
+                                playlist.resumeAt.metadata.duration,
+                            ) - Playlist.toSeconds(playlist.resumeAt.boundary);
+
+                        if (startSecs > 30) {
+                            time -= startSecs;
+                            list.push(playlist.resumeAt);
+                        }
+
+                        i = Playlist.indexOf(playlist, playlist.resumeAt);
+                        if (i + 1 < playlist.listing.length) {
+                            i += 1;
+                        } else {
+                            i = 0;
+                        }
+                    }
+
                     while (time > 0) {
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
 
                         const frame = { ...current };
-                        if (advance > 0) {
-                            frame.boundary = data.resume.boundary;
-                            advance = -1;
-                        }
 
                         list.push(frame);
 
                         if (i + 1 < playlist.listing.length) {
-                            i++;
+                            i += 1;
                         } else {
                             i = 0;
                         }
@@ -131,7 +141,10 @@ class Playlist {
                     );
 
                     list.push(last);
-                    resolve(list);
+                    playlist.resumeAt = last;
+                    PlaylistDAO.save(playlist).then(() => {
+                        resolve(list);
+                    });
                 })
                 .catch(reject);
         });
