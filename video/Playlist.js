@@ -193,26 +193,12 @@ class Playlist {
                 .then((playlist) => {
                     const list = [];
 
-                    let i = Playlist.indexOf(playlist);
-                    let time = params.seconds;
-
+                    let i;
                     if (playlist.marker) {
-                        const clipTime =
-                            Playlist.toSeconds(
-                                playlist.marker.metadata.duration,
-                            ) - Playlist.toSeconds(playlist.marker.boundary);
-
-                        time -= clipTime;
-                        list.push(playlist.marker);
-
                         i = Playlist.indexOf(playlist, playlist.marker);
-                        if (i + 1 < playlist.listing.length) {
-                            i += 1;
-                        } else {
-                            i = 0;
-                        }
                     }
 
+                    let time = params.seconds;
                     while (time > 0) {
                         if (i + 1 < playlist.listing.length) {
                             i += 1;
