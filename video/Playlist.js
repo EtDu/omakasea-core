@@ -26,6 +26,8 @@ const HOURS = 3;
 const TIME_BUFFER = HOURS * 3600;
 const ERROR_BUFFER_MAX = 3;
 
+const MIN_BOUND = 10;
+
 const THIS_PORT = 4081;
 const THIS_NAME = "PLAYER";
 
@@ -106,7 +108,7 @@ class Playlist {
                                 playlist.resumeAt.metadata.duration,
                             ) - Playlist.toSeconds(playlist.resumeAt.boundary);
 
-                        if (clipTime > 30) {
+                        if (clipTime > MIN_BOUND) {
                             time -= clipTime;
                             list.push(playlist.resumeAt);
                         }
@@ -140,7 +142,7 @@ class Playlist {
                     );
                     const clipTime = lastSeconds + time;
 
-                    if (lastSeconds - clipTime > 30) {
+                    if (lastSeconds - clipTime > MIN_BOUND) {
                         last.boundary = Playlist.toDuration(clipTime);
                     } else {
                         last.boundary = last.metadata.duration;
