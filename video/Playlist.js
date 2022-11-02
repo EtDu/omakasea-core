@@ -152,11 +152,84 @@ class Playlist {
         });
     }
 
-    static increment(address) {
+    static clip(params) {
         return new Promise((resolve, reject) => {
-            PlaylistDAO.get({ address }).then((playlist) => {
-                resolve();
-            });
+            const address = params.address;
+            PlaylistDAO.get({ address })
+                .then((playlist) => {
+                    const list = [];
+
+                    let i = Playlist.indexOf(playlist);
+                    let time = params.seconds;
+
+                    while (time > 0) {
+                        const current = playlist.listing[i];
+                        time -= Playlist.toSeconds(current.metadata.duration);
+
+                        const frame = { ...current };
+
+                        list.push(frame);
+
+                        if (i + 1 < playlist.listing.length) {
+                            i += 1;
+                        } else {
+                            i = 0;
+                        }
+                    }
+
+                    const last = list.pop();
+                    const lastSeconds = Playlist.toSeconds(
+                        last.metadata.duration,
+                    );
+
+                    const clipTime = lastSeconds + time;
+                    last.boundary = Playlist.toDuration(clipTime);
+                    list.push(last);
+
+                    playlist.resumeAt = last;
+                    PlaylistDAO.save(playlist).then(() => {
+                        resolve(list);
+                    });
+                })
+                .catch(reject);
+        });
+    }
+
+    static get(params) {
+        return new Promise((resolve, reject) => {
+            const address = params.address;
+            PlaylistDAO.get({ address })
+                .then((playlist) => {
+                    const list = [];
+
+                    let i = Playlist.indexOf(playlist, playlist.resumeAt);
+                    let time = params.seconds;
+
+                    while (time > 0) {
+                        if (i + 1 < playlist.listing.length) {
+                            i += 1;
+                        } else {
+                            i = 0;
+                        }
+
+                        const current = playlist.listing[i];
+                        time -= Playlist.toSeconds(current.metadata.duration);
+
+                        const frame = { ...current };
+
+                        list.push(frame);
+                    }
+
+                    const last = list.pop();
+
+                    last.boundary = last.metadata.duration;
+                    list.push(last);
+                    playlist.resumeAt = last;
+                    PlaylistDAO.save(playlist).then(() => {
+                        resolve(list);
+                    });
+                })
+                .catch(reject);
         });
     }
 
