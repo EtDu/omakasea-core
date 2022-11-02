@@ -108,10 +108,8 @@ class Playlist {
                                 playlist.resumeAt.metadata.duration,
                             ) - Playlist.toSeconds(playlist.resumeAt.boundary);
 
-                        if (clipTime > MIN_BOUND) {
-                            time -= clipTime;
-                            list.push(playlist.resumeAt);
-                        }
+                        time -= clipTime;
+                        list.push(playlist.resumeAt);
 
                         i = Playlist.indexOf(playlist, playlist.resumeAt);
                         if (i + 1 < playlist.listing.length) {
@@ -140,15 +138,11 @@ class Playlist {
                     const lastSeconds = Playlist.toSeconds(
                         last.metadata.duration,
                     );
+
                     const clipTime = lastSeconds + time;
-
-                    if (lastSeconds - clipTime > MIN_BOUND) {
-                        last.boundary = Playlist.toDuration(clipTime);
-                    } else {
-                        last.boundary = last.metadata.duration;
-                    }
-
+                    last.boundary = Playlist.toDuration(clipTime);
                     list.push(last);
+
                     playlist.resumeAt = last;
                     PlaylistDAO.save(playlist).then(() => {
                         resolve(list);
