@@ -34,8 +34,7 @@ class ContributorDAO {
         });
     }
 
-    static get(address) {
-        const query = { address };
+    static get(query) {
         return __BaseDAO__.__get__(Contributor, query);
     }
 

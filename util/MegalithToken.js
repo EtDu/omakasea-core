@@ -17,8 +17,6 @@ const MGLTH_COMPARE = MGLTH_CONTRACT_ADDRESS.toLocaleLowerCase();
 const METADATA_URL = `${ALCHEMY_URL}/getNFTMetadata?refreshCache=false&contractAddress=${MGLTH_CONTRACT_ADDRESS}&tokenId`;
 const TOKENS_OWNED_URL = `${ALCHEMY_URL}/getContractsForOwner?owner`;
 
-const WHITE_LIST_TOKEN_ID = -1;
-
 const INVALID_TOKEN = {
     tokenId: null,
     isVandal: null,
@@ -32,7 +30,11 @@ class MegalithToken {
             ContributorDAO.get({ address, isActive: true })
                 .then((contributor) => {
                     if (contributor) {
-                        resolve({ isActive: true });
+                        resolve({
+                            isActive: true,
+                            symbol: contributor.symbol,
+                            tokenId: contributor.tokenId,
+                        });
                     } else {
                         resolve({ isActive: false });
                     }
@@ -53,7 +55,6 @@ class MegalithToken {
             };
 
             const address = getAddress(recoverPersonalSignature(signature));
-            const isAuthorized = address === data.address;
 
             let tokenId = Number(data.tokenId);
             let symbol = req.session.symbol;
@@ -61,7 +62,30 @@ class MegalithToken {
                 tokenId = null;
                 symbol = null;
             }
-            resolve({ isAuthorized, address, tokenId, symbol });
+
+            const isAuthorized = address === data.address && tokenId && symbol;
+            let result = { isAuthorized, address, tokenId, symbol };
+
+            if (isAuthorized) {
+                resolve(result);
+            } else {
+                MegalithToken.isContributor(address).then((contributor) => {
+                    result = {
+                        isAuthorized: false,
+                        address,
+                        tokenId,
+                        symbol,
+                    };
+
+                    if (contributor.isActive) {
+                        result.isAuthorized = true;
+                        result.symbol = contributor.symbol;
+                        result.tokenId = contributor.tokenId;
+                    }
+
+                    resolve(result);
+                });
+            }
         });
     }
 

@@ -4,9 +4,7 @@ dotenv.config();
 import crypto from "crypto";
 import multer from "multer";
 
-import Authentication from "../../util/Authentication.js";
 import VideoDAO from "../mongo/dao/VideoDAO.js";
-import ContributorDAO from "../mongo/dao/ContributorDAO.js";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
@@ -42,15 +40,8 @@ const UploadFS = multer({
     fileFilter: (req, file, cb) => {
         const message = req.headers.message;
         const data = JSON.parse(message);
-        const address = data.address;
-        ContributorDAO.isContributor(address).then((isValid) => {
-            if (isValid) {
-                req.authorized = true;
-                cb(null, true);
-            } else {
-                cb(null, false);
-            }
-        });
+        req.authorized = true;
+        cb(null, true);
     },
 });
 Object.freeze(UploadFS);
