@@ -39,6 +39,20 @@ const LEADING_ZERO = (number) => {
     return number < 10 ? "0" + number : number;
 };
 
+const IS_CLIPPED = (playlist) => {
+    const hEqual =
+        playlist.marker.metadata.duration.hours ===
+        playlist.marker.boundary.hours;
+    const mEqual =
+        playlist.marker.metadata.duration.minutes ===
+        playlist.marker.boundary.minutes;
+    const sEqual =
+        playlist.marker.metadata.duration.seconds ===
+        playlist.marker.boundary.seconds;
+
+    return hEqual && mEqual && sEqual;
+};
+
 class Playlist {
     static indexOf(playlist, resume = null) {
         let i = 0;
@@ -92,7 +106,7 @@ class Playlist {
         });
     }
 
-    static pauseAndResume(params) {
+    static playExactInterval(params) {
         return new Promise((resolve, reject) => {
             const address = params.address;
             PlaylistDAO.get({ address })
@@ -103,13 +117,16 @@ class Playlist {
                     let time = params.seconds;
 
                     if (playlist.marker) {
-                        const clipTime =
-                            Playlist.toSeconds(
-                                playlist.marker.metadata.duration,
-                            ) - Playlist.toSeconds(playlist.marker.boundary);
+                        if (!IS_CLIPPED(playlist)) {
+                            const clipTime =
+                                Playlist.toSeconds(
+                                    playlist.marker.metadata.duration,
+                                ) -
+                                Playlist.toSeconds(playlist.marker.boundary);
 
-                        time -= clipTime;
-                        list.push(playlist.marker);
+                            time -= clipTime;
+                            list.push(playlist.marker);
+                        }
 
                         i = Playlist.indexOf(playlist, playlist.marker);
                         if (i + 1 < playlist.listing.length) {
