@@ -61,7 +61,7 @@ class Playlist {
 
     static async merge(upload) {
         return new Promise((resolve, reject) => {
-            PlaylistDAO.get({ address: upload.address }).then(
+            PlaylistDAO.get({ tokenId: upload.tokenId }).then(
                 async (playlist) => {
                     const merged = upload.listing
                         .concat(playlist.listing)
@@ -93,8 +93,8 @@ class Playlist {
 
     static playExactInterval(params) {
         return new Promise((resolve, reject) => {
-            const address = params.address;
-            PlaylistDAO.get({ address })
+            const tokenId = params.tokenId;
+            PlaylistDAO.get({ tokenId })
                 .then((playlist) => {
                     const list = [];
 
@@ -156,8 +156,8 @@ class Playlist {
 
     static clipFromStart(params) {
         return new Promise((resolve, reject) => {
-            const address = params.address;
-            PlaylistDAO.get({ address })
+            const tokenId = params.tokenId;
+            PlaylistDAO.get({ tokenId })
                 .then((playlist) => {
                     const list = [];
 
@@ -190,8 +190,8 @@ class Playlist {
 
     static infinitePlay(params) {
         return new Promise((resolve, reject) => {
-            const address = params.address;
-            PlaylistDAO.get({ address })
+            const tokenId = params.tokenId;
+            PlaylistDAO.get({ tokenId })
                 .then((playlist) => {
                     const list = [];
 
