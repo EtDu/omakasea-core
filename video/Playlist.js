@@ -165,21 +165,11 @@ class Playlist {
                     let time = params.seconds;
                     let addFrame = true;
 
-                    while (time > 0) {
+                    while (time > 0 && i < playlist.listing.length) {
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
-
-                        const frame = { ...current };
-                        if (addFrame) {
-                            list.push(frame);
-                        }
-
-                        if (i + 1 < playlist.listing.length) {
-                            i += 1;
-                        } else {
-                            addFrame = false;
-                            i = 0;
-                        }
+                        list.push(current);
+                        i += 1;
                     }
 
                     resolve(list);
