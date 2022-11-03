@@ -25,11 +25,11 @@ const INVALID_TOKEN = {
 };
 
 class MegalithToken {
-    static check(input) {
+    static check(req) {
         return new Promise((resolve, reject) => {
-            const message = input.message;
+            const message = req.headers.message;
             const data = JSON.parse(message);
-            const sig = input.sig;
+            const sig = req.headers.sig;
 
             const signature = {
                 data: message,
@@ -38,22 +38,28 @@ class MegalithToken {
 
             const address = getAddress(recoverPersonalSignature(signature));
             const isAuthorized = address === data.address;
-            resolve({ isAuthorized, address });
+
+            let tokenId = Number(data.tokenId);
+            if (req.session.tokenId !== tokenId) {
+                tokenId = null;
+            }
+            resolve({ isAuthorized, address, tokenId });
         });
     }
 
-    static authenticate(input) {
+    static authenticate(req) {
         return new Promise((resolve, reject) => {
-            const message = input.message;
+            const message = req.body.message;
             const data = JSON.parse(message);
-            const sig = input.sig;
+            const sig = req.body.sig;
 
             const signature = {
                 data: message,
                 signature: sig,
             };
 
-            const tokenId = data.tokenId;
+            const tokenId = Number(data.tokenId);
+            console.log(tokenId);
             const address = getAddress(recoverPersonalSignature(signature));
             this.tokensOwned(address).then((tokens) => {
                 let hasToken = false;
@@ -62,6 +68,7 @@ class MegalithToken {
                         hasToken = true;
                     }
                 }
+
                 const isValid =
                     hasToken && address === data.address && tokenId !== null;
 

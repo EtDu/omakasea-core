@@ -24,12 +24,12 @@ class UploadDAO {
 
     static init(request) {
         return new Promise((resolve, reject) => {
-            const address = request.address;
+            const tokenId = request.tokenId;
             const folderUUID = crypto.randomUUID();
             const files = request.files;
             const createdAt = Date.now();
             const upload = new Upload({
-                address,
+                tokenId,
                 folderUUID,
                 files,
                 createdAt,
@@ -45,7 +45,10 @@ class UploadDAO {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(Upload, { folderUUID }).then((upload) => {
                 upload.isReady = upload.files.length === videoCount;
-                __BaseDAO__.__save__(upload);
+                if (upload.isReady) {
+                    __BaseDAO__.__save__(upload);
+                }
+
                 resolve(upload.isReady);
             });
         });

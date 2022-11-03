@@ -1,5 +1,5 @@
 export default {
-    address: { type: String },
+    tokenId: { type: Number },
     folderUUID: { type: String },
     cid: { type: String },
     files: { type: Object },

@@ -7,7 +7,7 @@ class VideoDAO {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(Video, { uuid: data.uuid }).then((video) => {
                 video.cid = data.cid;
-                __BaseDAO__.__save__(video).then(resolve);
+                __BaseDAO__.__save__(video).then(resolve).catch(reject);
             });
         });
     }
@@ -33,40 +33,42 @@ class VideoDAO {
     }
 
     static save(document) {
-        return new Promise((resolve, reject) => {
-            __BaseDAO__.__save__(document).then(() => {
-                resolve();
-            });
-        });
+        return __BaseDAO__.__save__(document);
     }
 
     static uploadComplete(details) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__.__get__(Video, { ...details }).then((doc) => {
-                doc.isUploaded = true;
-                __BaseDAO__.__save__(doc).then(() => {
-                    __BaseDAO__
-                        .__search__(
-                            Video,
-                            {
-                                folderUUID: details.folderUUID,
-                                isUploaded: true,
-                            },
-                            { isUploaded: true },
-                        )
-
-                        .then((videos) => {
-                            resolve(videos.length);
-                        });
+            const query = {
+                uuid: details.uuid,
+                folderUUID: details.folderUUID,
+            };
+            __BaseDAO__
+                .__get__(Video, query)
+                .then((doc) => {
+                    doc.isUploaded = true;
+                    doc.tokenId = details.tokenId;
+                    return __BaseDAO__.__save__(doc);
+                })
+                .then(() => {
+                    return __BaseDAO__.__search__(
+                        Video,
+                        {
+                            folderUUID: details.folderUUID,
+                            isUploaded: true,
+                        },
+                        { isUploaded: true },
+                    );
+                })
+                .then((videos) => {
+                    resolve(videos.length);
                 });
-            });
         });
     }
 
-    static account(address) {
+    static account(tokenId) {
         return new Promise((resolve, reject) => {
             const query = {
-                address,
+                tokenId,
             };
             __BaseDAO__.__search__(Video, query).then((results) => {
                 const videos = [];

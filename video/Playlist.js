@@ -2,13 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import IPFS from "../data/net/IPFS.js";
-import UploadDAO from "../data/mongo/dao/UploadDAO.js";
-import VideoDAO from "../data/mongo/dao/VideoDAO.js";
 import PlaylistDAO from "../data/mongo/dao/PlaylistDAO.js";
-import FileSystem from "../util/FileSystem.js";
-import Client from "../http/Client.js";
-import Server from "../http/Server.js";
-import FFMPEG from "../video/FFMPEG.js";
 
 const STREAMER_HOST = process.env.STREAMER_HOST;
 const STREAMER_PORT = process.env.STREAMER_PORT;
@@ -21,15 +15,6 @@ const TRANSCODER_URL = `http://${TRANSCODER_HOST}:${TRANSCODER_PORT}`;
 const IPFS_HOST = process.env.IPFS_HOST;
 const IPFS_PORT = process.env.IPFS_PORT;
 const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
-
-const HOURS = 3;
-const TIME_BUFFER = HOURS * 3600;
-const ERROR_BUFFER_MAX = 3;
-
-const MIN_BOUND = 10;
-
-const THIS_PORT = 4081;
-const THIS_NAME = "PLAYER";
 
 const SORT_BY = (a, b) => {
     return b.uploadedAt - a.uploadedAt;
