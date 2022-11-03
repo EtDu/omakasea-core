@@ -24,6 +24,15 @@ const LEADING_ZERO = (number) => {
     return number < 10 ? "0" + number : number;
 };
 
+const INCREMENT = (i, playlist) => {
+    if (i + 1 < playlist.listing.length) {
+        i += 1;
+    } else {
+        i = 0;
+    }
+    return i;
+};
+
 const IS_CLIPPED = (playlist) => {
     const hEqual =
         playlist.marker.metadata.duration.hours ===
@@ -114,11 +123,7 @@ class Playlist {
                         }
 
                         i = Playlist.indexOf(playlist, playlist.marker);
-                        if (i + 1 < playlist.listing.length) {
-                            i += 1;
-                        } else {
-                            i = 0;
-                        }
+                        i = INCREMENT(i, playlist);
                     }
 
                     while (time > 0) {
@@ -129,11 +134,7 @@ class Playlist {
 
                         list.push(frame);
 
-                        if (i + 1 < playlist.listing.length) {
-                            i += 1;
-                        } else {
-                            i = 0;
-                        }
+                        i = INCREMENT(i, playlist);
                     }
 
                     const last = list.pop();
@@ -163,7 +164,6 @@ class Playlist {
 
                     let i = 0;
                     let time = params.seconds;
-                    let addFrame = true;
 
                     while (time > 0 && i < playlist.listing.length) {
                         const current = playlist.listing[i];
@@ -192,11 +192,7 @@ class Playlist {
 
                     let time = params.seconds;
                     while (time > 0) {
-                        if (i + 1 < playlist.listing.length) {
-                            i += 1;
-                        } else {
-                            i = 0;
-                        }
+                        i = INCREMENT(i, playlist);
 
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
