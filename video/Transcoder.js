@@ -2,11 +2,13 @@ import FileSystem from "../util/FileSystem.js";
 import FFMPEG from "../video/FFMPEG.js";
 import IPFS from "../data/net/IPFS.js";
 
-const HOURS = 3;
-const TIME_BUFFER = HOURS * 3600;
-const ERROR_BUFFER_MAX = 3;
+const ERROR_BUFFER_MAX = 1;
 
 class Transcoder {
+    static synchronize(data) {
+        return new Promise((resolve, reject) => {});
+    }
+
     static download(data) {
         return new Promise((resolve, reject) => {
             const FILES = {

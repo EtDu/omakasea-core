@@ -3,7 +3,7 @@ dotenv.config();
 
 import axios from "axios";
 import { recoverPersonalSignature } from "@metamask/eth-sig-util";
-import crypto from "crypto";
+import ContributorDAO from "../data/mongo/dao/ContributorDAO.js";
 
 import ethers from "ethers";
 const getAddress = ethers.utils.getAddress;
@@ -17,6 +17,8 @@ const MGLTH_COMPARE = MGLTH_CONTRACT_ADDRESS.toLocaleLowerCase();
 const METADATA_URL = `${ALCHEMY_URL}/getNFTMetadata?refreshCache=false&contractAddress=${MGLTH_CONTRACT_ADDRESS}&tokenId`;
 const TOKENS_OWNED_URL = `${ALCHEMY_URL}/getContractsForOwner?owner`;
 
+const WHITE_LIST_TOKEN_ID = -1;
+
 const INVALID_TOKEN = {
     tokenId: null,
     isVandal: null,
@@ -25,6 +27,20 @@ const INVALID_TOKEN = {
 };
 
 class MegalithToken {
+    static isContributor(address) {
+        return new Promise((resolve, reject) => {
+            ContributorDAO.get({ address, isActive: true })
+                .then((contributor) => {
+                    if (contributor) {
+                        resolve({ isActive: true });
+                    } else {
+                        resolve({ isActive: false });
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
     static check(req) {
         return new Promise((resolve, reject) => {
             const message = req.headers.message;
@@ -40,10 +56,12 @@ class MegalithToken {
             const isAuthorized = address === data.address;
 
             let tokenId = Number(data.tokenId);
+            let symbol = req.session.symbol;
             if (req.session.tokenId !== tokenId) {
                 tokenId = null;
+                symbol = null;
             }
-            resolve({ isAuthorized, address, tokenId });
+            resolve({ isAuthorized, address, tokenId, symbol });
         });
     }
 
@@ -59,20 +77,21 @@ class MegalithToken {
             };
 
             const tokenId = Number(data.tokenId);
-            console.log(tokenId);
             const address = getAddress(recoverPersonalSignature(signature));
+            let symbol = null;
             this.tokensOwned(address).then((tokens) => {
                 let hasToken = false;
                 for (const token of tokens) {
                     if (!hasToken && token.tokenId === tokenId) {
                         hasToken = true;
+                        symbol = token.symbol;
                     }
                 }
 
                 const isValid =
                     hasToken && address === data.address && tokenId !== null;
 
-                resolve({ address, isValid, tokenId });
+                resolve({ address, isValid, tokenId, symbol });
             });
         });
     }
@@ -160,6 +179,7 @@ class MegalithToken {
                                 MegalithToken.getToken(
                                     Number(contract.tokenId),
                                 ).then((data) => {
+                                    data.symbol = contract.symbol;
                                     found.push(data);
                                     if (i === contracts.length) {
                                         resolve(found);

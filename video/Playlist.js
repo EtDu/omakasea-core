@@ -70,33 +70,34 @@ class Playlist {
 
     static async merge(upload) {
         return new Promise((resolve, reject) => {
-            PlaylistDAO.get({ tokenId: upload.tokenId }).then(
-                async (playlist) => {
-                    const merged = upload.listing
-                        .concat(playlist.listing)
-                        .sort(SORT_BY);
-                    const listing = [];
-                    for (const video of merged) {
-                        listing.push({
-                            name: video.name,
-                            cid: video.cid,
-                            uploadedAt: video.createdAt,
-                        });
-                    }
+            PlaylistDAO.get({
+                tokenId: upload.tokenId,
+                symbol: upload.symbol,
+            }).then(async (playlist) => {
+                const merged = upload.listing
+                    .concat(playlist.listing)
+                    .sort(SORT_BY);
+                const listing = [];
+                for (const video of merged) {
+                    listing.push({
+                        name: video.name,
+                        cid: video.cid,
+                        uploadedAt: video.createdAt,
+                    });
+                }
 
-                    const playlistCID = await IPFS.savePlaylist(listing);
+                const playlistCID = await IPFS.savePlaylist(listing);
 
-                    if (playlistCID !== null) {
-                        playlist.cid = playlistCID;
-                        playlist.listing = merged;
-                        playlist.markModified("listing");
-                        PlaylistDAO.save(playlist).then(resolve);
-                    } else {
-                        console.log("NULL CID FOUND");
-                        resolve();
-                    }
-                },
-            );
+                if (playlistCID !== null) {
+                    playlist.cid = playlistCID;
+                    playlist.listing = merged;
+                    playlist.markModified("listing");
+                    PlaylistDAO.save(playlist).then(resolve);
+                } else {
+                    console.log("NULL CID FOUND");
+                    resolve();
+                }
+            });
         });
     }
 
@@ -129,11 +130,7 @@ class Playlist {
                     while (time > 0) {
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
-
-                        const frame = { ...current };
-
-                        list.push(frame);
-
+                        list.push(current);
                         i = INCREMENT(i, playlist);
                     }
 

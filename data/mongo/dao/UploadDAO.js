@@ -25,10 +25,12 @@ class UploadDAO {
     static init(request) {
         return new Promise((resolve, reject) => {
             const tokenId = request.tokenId;
+            const symbol = request.symbol;
             const folderUUID = crypto.randomUUID();
             const files = request.files;
             const createdAt = Date.now();
             const upload = new Upload({
+                symbol,
                 tokenId,
                 folderUUID,
                 files,

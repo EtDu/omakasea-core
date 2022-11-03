@@ -1,4 +1,5 @@
 export default {
+    symbol: { type: String },
     tokenId: { type: Number },
     folderUUID: { type: String },
     cid: { type: String },
