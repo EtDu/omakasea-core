@@ -164,16 +164,25 @@ class MegalithToken {
 
     static getToken(tokenId) {
         return new Promise((resolve, reject) => {
-            const url = `${METADATA_URL}=${tokenId}`;
+            if (0 <= tokenId) {
+                const url = `${METADATA_URL}=${tokenId}`;
 
-            axios
-                .get(url)
-                .then((res) => {
-                    resolve(this.parse(res.data.metadata));
-                })
-                .catch((error) => {
-                    reject(error);
+                axios
+                    .get(url)
+                    .then((res) => {
+                        resolve(this.parse(res.data.metadata));
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            } else {
+                resolve({
+                    tokenId,
+                    isVandal: true,
+                    position: 1000,
+                    seconds: tokenId,
                 });
+            }
         });
     }
 

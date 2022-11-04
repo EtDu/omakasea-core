@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import __BaseDAO__ from "./__BaseDAO__.js";
 import Playlist from "../models/Playlist.js";
-
+import MegalithToken from "../../../util/MegalithToken.js";
 class PlaylistDAO {
     static save(playlist) {
         return __BaseDAO__.__save__(playlist);
@@ -13,7 +13,10 @@ class PlaylistDAO {
                 if (result !== null) {
                     resolve(result);
                 } else {
-                    resolve(new Playlist({ ...query }));
+                    MegalithToken.getToken(query.tokenId).then((token) => {
+                        query.token = token;
+                        resolve(new Playlist({ ...query }));
+                    });
                 }
             });
         });
