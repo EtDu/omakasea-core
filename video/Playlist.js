@@ -87,18 +87,6 @@ class Playlist {
         });
     }
 
-    static increment(params) {
-        return new Promise((resolve, reject) => {
-            const tokenId = params.tokenId;
-            PlaylistDAO.get({ tokenId }).then((playlist) => {
-                const played = params.played;
-                let i = Playlist.indexOf(playlist, played);
-                console.log(i);
-                resolve();
-            });
-        });
-    }
-
     static isPlaylistClipped(playlist) {
         const hEqual =
             playlist.marker.metadata.duration.hours ===
@@ -151,6 +139,8 @@ class Playlist {
 
                         i = Playlist.indexOf(playlist, playlist.marker);
                         i = INCREMENT(i, playlist);
+                    } else if (params.startsAt) {
+                        i = Playlist.indexOf(playlist, params.startsAt);
                     }
 
                     while (time > 0) {
@@ -169,10 +159,16 @@ class Playlist {
                     last.boundary = Playlist.toDuration(clipTime);
                     list.push(last);
 
-                    playlist.marker = last;
-                    PlaylistDAO.save(playlist).then(() => {
+                    if (params.saveMarker) {
+                        playlist.marker = last;
+                        playlist.markModified("marker");
+                        PlaylistDAO.save(playlist).then(() => {
+                            resolve(list);
+                        });
+                    } else {
+                        playlist.marker = null;
                         resolve(list);
-                    });
+                    }
                 })
                 .catch(reject);
         });
@@ -187,7 +183,6 @@ class Playlist {
 
                     let i = 0;
                     let time = params.seconds;
-
                     while (time > 0 && i < playlist.listing.length) {
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
@@ -208,32 +203,36 @@ class Playlist {
                 .then((playlist) => {
                     const list = [];
 
-                    let i;
+                    let i = 0;
                     if (playlist.marker) {
                         i = Playlist.indexOf(playlist, playlist.marker);
+                        i = INCREMENT(i, playlist);
+                    } else if (params.startsAt) {
+                        i = Playlist.indexOf(playlist, params.startsAt);
                     }
 
                     let time = params.seconds;
                     while (time > 0) {
-                        i = INCREMENT(i, playlist);
-
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
-
-                        const frame = { ...current };
-
-                        list.push(frame);
+                        list.push({ ...current });
+                        i = INCREMENT(i, playlist);
                     }
 
                     const lastVideo = list.pop();
                     lastVideo.boundary = lastVideo.metadata.duration;
                     list.push(lastVideo);
 
-                    playlist.marker = lastVideo;
-                    playlist.markModified("marker");
-                    PlaylistDAO.save(playlist).then(() => {
+                    if (params.saveMarker) {
+                        playlist.marker = lastVideo;
+                        playlist.markModified("marker");
+                        PlaylistDAO.save(playlist).then(() => {
+                            resolve(list);
+                        });
+                    } else {
+                        playlist.marker = null;
                         resolve(list);
-                    });
+                    }
                 })
                 .catch(reject);
         });
