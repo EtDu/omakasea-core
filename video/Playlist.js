@@ -33,20 +33,6 @@ const INCREMENT = (i, playlist) => {
     return i;
 };
 
-const IS_CLIPPED = (playlist) => {
-    const hEqual =
-        playlist.marker.metadata.duration.hours ===
-        playlist.marker.boundary.hours;
-    const mEqual =
-        playlist.marker.metadata.duration.minutes ===
-        playlist.marker.boundary.minutes;
-    const sEqual =
-        playlist.marker.metadata.duration.seconds ===
-        playlist.marker.boundary.seconds;
-
-    return hEqual && mEqual && sEqual;
-};
-
 class Playlist {
     static indexOf(playlist, resume = null) {
         let i = 0;
@@ -101,6 +87,46 @@ class Playlist {
         });
     }
 
+    static increment(params) {
+        return new Promise((resolve, reject) => {
+            const tokenId = params.tokenId;
+            PlaylistDAO.get({ tokenId }).then((playlist) => {
+                const played = params.played;
+                let i = Playlist.indexOf(playlist, played);
+                console.log(i);
+                resolve();
+            });
+        });
+    }
+
+    static isPlaylistClipped(playlist) {
+        const hEqual =
+            playlist.marker.metadata.duration.hours ===
+            playlist.marker.boundary.hours;
+        const mEqual =
+            playlist.marker.metadata.duration.minutes ===
+            playlist.marker.boundary.minutes;
+        const sEqual =
+            playlist.marker.metadata.duration.seconds ===
+            playlist.marker.boundary.seconds;
+
+        return !(hEqual && mEqual && sEqual);
+    }
+
+    static isVideoClipped(video) {
+        if (video.boundary) {
+            const hEqual =
+                video.metadata.duration.hours === video.boundary.hours;
+            const mEqual =
+                video.metadata.duration.minutes === video.boundary.minutes;
+            const sEqual =
+                video.metadata.duration.seconds === video.boundary.seconds;
+            return !(hEqual && mEqual && sEqual);
+        } else {
+            return false;
+        }
+    }
+
     static playExactInterval(params) {
         return new Promise((resolve, reject) => {
             const tokenId = params.tokenId;
@@ -112,7 +138,7 @@ class Playlist {
                     let time = params.seconds;
 
                     if (playlist.marker) {
-                        if (!IS_CLIPPED(playlist)) {
+                        if (Playlist.isPlaylistClipped(playlist)) {
                             const clipTime =
                                 Playlist.toSeconds(
                                     playlist.marker.metadata.duration,
@@ -130,7 +156,7 @@ class Playlist {
                     while (time > 0) {
                         const current = playlist.listing[i];
                         time -= Playlist.toSeconds(current.metadata.duration);
-                        list.push(current);
+                        list.push({ ...current });
                         i = INCREMENT(i, playlist);
                     }
 

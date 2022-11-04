@@ -70,19 +70,11 @@ class MegalithToken {
                 resolve(result);
             } else {
                 MegalithToken.isContributor(address).then((contributor) => {
-                    result = {
-                        isAuthorized: false,
-                        address,
-                        tokenId,
-                        symbol,
-                    };
-
                     if (contributor.isActive) {
                         result.isAuthorized = true;
                         result.symbol = contributor.symbol;
                         result.tokenId = contributor.tokenId;
                     }
-
                     resolve(result);
                 });
             }
