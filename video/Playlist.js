@@ -146,7 +146,14 @@ class Playlist {
 
             inList = i < playlist.listing.length;
             inCacheLimit = cacheLimit < params.cacheLimit;
+
             inTimeLimit = timeLimit > 0;
+        }
+
+        if (!inTimeLimit && list.length > 0) {
+            const last = list[list.length - 1];
+            const lastSeconds = Playlist.toSeconds(last.metadata.duration);
+            last.boundary = Playlist.toDuration(timeLimit + lastSeconds);
         }
 
         let seconds = 0;
