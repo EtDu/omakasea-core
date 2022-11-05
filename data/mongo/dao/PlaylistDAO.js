@@ -2,6 +2,7 @@ import crypto from "crypto";
 import __BaseDAO__ from "./__BaseDAO__.js";
 import Playlist from "../models/Playlist.js";
 import MegalithToken from "../../../util/MegalithToken.js";
+
 class PlaylistDAO {
     static save(playlist) {
         return __BaseDAO__.__save__(playlist);
@@ -22,8 +23,18 @@ class PlaylistDAO {
         });
     }
 
-    static search(query) {
-        return __BaseDAO__.__search__(Playlist, query);
+    static search(query, orderBy = {}, limit = 0) {
+        return __BaseDAO__.__search__(Playlist, query, {}, orderBy, limit);
+    }
+
+    static nextFrom(token) {
+        const query = {
+            tokenId: { $gte: token.tokenId },
+        };
+        const orderBy = {
+            "token.tokenId": 1,
+        };
+        return PlaylistDAO.search(query, orderBy, 1);
     }
 }
 

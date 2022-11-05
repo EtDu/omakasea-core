@@ -149,7 +149,9 @@ class MegalithToken {
     static getSeconds(token) {
         let seconds = this.__getAttr__("Stream Seconds", token);
         if (seconds !== null && seconds !== undefined) {
-            return Number(seconds);
+            seconds = Number(seconds);
+            seconds = seconds < 10 ? 10 : seconds;
+            return seconds;
         }
 
         return null;

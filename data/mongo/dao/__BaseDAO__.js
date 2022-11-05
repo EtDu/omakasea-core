@@ -21,10 +21,11 @@ class __BaseDAO__ {
         return fields;
     }
 
-    static __search__(Model, query, fields, orderBy = {}) {
+    static __search__(Model, query, fields = {}, orderBy = {}, limit = 0) {
         return new Promise((resolve, reject) => {
             Model.find(query)
                 .sort(orderBy)
+                .limit(limit)
                 .select(fields)
                 .exec((error, document) => {
                     if (error) {

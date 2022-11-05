@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 const whitelistedAddresses = ["0x8e3E7850b360B9C152481aDd56b7A510880495e7"];
 const signerAddress = "0xe9A347e4bFbe5A219F3497B1CA3Ac8568a99ED6c";
 const ropstenDaoDelegate = "0x5992e66c1363240BeE233d086d4c600122E759d7";
@@ -22,6 +25,9 @@ const networkMap = {
     4: "rinkeby",
 };
 
+const CACHE_HOURS = process.env.CACHE_HOURS;
+const CACHE_LIMIT = CACHE_HOURS * 60 * 60;
+
 export {
     whitelistedAddresses,
     signerAddress,
@@ -30,4 +36,5 @@ export {
     adminAddresses,
     omakaseaAddress,
     networkMap,
+    CACHE_LIMIT,
 };

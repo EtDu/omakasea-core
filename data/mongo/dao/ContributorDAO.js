@@ -24,7 +24,7 @@ class ContributorDAO {
 
     static isContributor(address) {
         return new Promise((resolve, reject) => {
-            ContributorDAO.get(address).then((result) => {
+            ContributorDAO.get({ address }).then((result) => {
                 if (result !== null) {
                     resolve(true);
                 } else {
