@@ -37,12 +37,12 @@ class Channel {
     static build(params, list, playlist) {
         params.cTokenId = playlist.token.tokenId;
 
-        const extracted = Playlist.generate(params, playlist);
-        list = list.concat(extracted.list);
-        params.cacheLimit -= extracted.seconds;
+        const generated = Playlist.generate(params, playlist);
+        list = list.concat(generated.list);
+        params.cacheLimit -= generated.seconds;
 
         const incToken =
-            !extracted.validation.inList || !extracted.validation.inTimeLimit;
+            !generated.validation.inList || !generated.validation.inTimeLimit;
         if (incToken) {
             params.cTokenId += 1;
         }
@@ -56,8 +56,12 @@ class Channel {
             params.startFrom = list[0];
 
             const counter = COUNTER++;
+
+            const data = { params, list, counter };
+            Channel.filter(data);
+
             Client.post(TRANSCODER_URL, {
-                data: { params, list, counter },
+                data,
             }).then(() => {
                 setTimeout(() => {
                     if (reboot) {
@@ -66,10 +70,56 @@ class Channel {
                         params.cacheLimit = CACHE_LIMIT;
                         Channel.assemble(params);
                     }
-                }, 1000);
+                }, 3000);
             });
         }
     }
+
+    static filter(data) {
+        const { params, list, counter } = data;
+
+        const duration = getDuration(list);
+        console.log(
+            `================ ${counter - 1}\t${Playlist.toTimeKey(
+                Playlist.toSeconds(duration),
+            )}\n`,
+        );
+        console.log(`${params.cTokenId}\t${list.length}\t${params.cTokenId}`);
+
+        let i = 0;
+        for (const video of list) {
+            let filename = `${video.uuid}.${video.extension}`;
+
+            let a = i <= list.length / 2 ? "-" : " ";
+            let b = "";
+
+            if (video.boundary) {
+                filename = `${video.uuid}.${video.extension}`;
+                b = video.boundary
+                    ? `[${Playlist.toTimeKey(
+                          Playlist.toSeconds(video.boundary),
+                      )}]`
+                    : "";
+            }
+            console.log(`\t\t${video.tokenId}\t ${a} ${filename}\t${b}`);
+            i++;
+        }
+        console.log(`\n================ ${counter}`);
+    }
+}
+
+function getDuration(frame) {
+    let seconds = 0;
+    for (const video of frame) {
+        if (video.boundary) {
+            seconds += Playlist.toSeconds(video.boundary);
+        } else {
+            seconds += Playlist.toSeconds(video.metadata.duration);
+        }
+    }
+    const duration = Playlist.toDuration(seconds);
+    duration.total = seconds;
+    return duration;
 }
 
 export default Channel;
