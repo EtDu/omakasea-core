@@ -78,20 +78,6 @@ class Playlist {
         });
     }
 
-    static isPlaylistClipped(playlist) {
-        const hEqual =
-            playlist.marker.metadata.duration.hours ===
-            playlist.marker.boundary.hours;
-        const mEqual =
-            playlist.marker.metadata.duration.minutes ===
-            playlist.marker.boundary.minutes;
-        const sEqual =
-            playlist.marker.metadata.duration.seconds ===
-            playlist.marker.boundary.seconds;
-
-        return !(hEqual && mEqual && sEqual);
-    }
-
     static isVideoClipped(video) {
         if (video.boundary) {
             const hEqual =
