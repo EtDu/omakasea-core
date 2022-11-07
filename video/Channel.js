@@ -19,7 +19,9 @@ class Channel {
     }
 
     static assemble(params, list = []) {
-        if (params.cacheLimit > 0) {
+        if (params.cacheLimit <= 0) {
+            Channel.broadcast(params, list, false);
+        } else {
             PlaylistDAO.nextFrom({ tokenId: params.cTokenId }).then(
                 (result) => {
                     if (result.length === 1) {
@@ -29,8 +31,6 @@ class Channel {
                     }
                 },
             );
-        } else {
-            Channel.broadcast(params, list, false);
         }
     }
 
@@ -51,10 +51,10 @@ class Channel {
     }
 
     static broadcast(params, list, reboot) {
-        params.cTokenId = list[0].tokenId;
-        params.startFrom = list[0];
-
         if (list.length > 0) {
+            params.cTokenId = list[0].tokenId;
+            params.startFrom = list[0];
+
             const counter = COUNTER++;
             Client.post(TRANSCODER_URL, {
                 data: { params, list, counter },
