@@ -59,6 +59,8 @@ class Channel {
 
     static broadcast(channel, list, reboot) {
         if (list.length > 0) {
+            const cache = channel.cache;
+
             channel.status.cTokenId = list[0].tokenId;
             channel.status.startFrom = list[0];
             channel.cache = list;
@@ -67,6 +69,8 @@ class Channel {
                 const data = { status: channel.status, list, counter };
                 Channel.display(data);
 
+                data.transcode = Channel.filter(cache, channel.cache);
+                console.log(data.transcode.length);
                 Client.post(TRANSCODER_URL, {
                     data,
                 }).then(() => {
@@ -74,6 +78,7 @@ class Channel {
                         if (reboot) {
                             // THIS WILL REBOOT IT
                             channel.status.startFrom = null;
+
                             ChannelDAO.save(channel).then(() => {
                                 Channel.bootstrap();
                             });
@@ -87,12 +92,20 @@ class Channel {
         }
     }
 
-    static filter(data) {
-        const { status, list, counter } = data;
+    static filter(prevCache, currCache) {
+        console.log(`--- ${currCache.length} ---`);
         const filtered = [];
+        const index = {};
 
-        for (let i = 0; i < list.length; i++) {
-            const video = list[i];
+        for (const video of prevCache) {
+            index[video.uuid] = video;
+        }
+
+        for (let i = 0; i < currCache.length; i++) {
+            const video = currCache[i];
+            if (index[video.uuid] === undefined) {
+                filtered.push(video);
+            }
         }
 
         return filtered;
