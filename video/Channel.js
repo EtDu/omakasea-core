@@ -1,82 +1,97 @@
 import Playlist from "./Playlist.js";
 import Client from "../http/Client.js";
 import PlaylistDAO from "../data/mongo/dao/PlaylistDAO.js";
+import ChannelDAO from "../data/mongo/dao/ChannelDAO.js";
 import { CACHE_LIMIT } from "../data/Constants.js";
 
 const TRANSCODER_HOST = process.env.TRANSCODER_HOST;
 const TRANSCODER_PORT = process.env.TRANSCODER_PORT;
 const TRANSCODER_URL = `http://${TRANSCODER_HOST}:${TRANSCODER_PORT}`;
 
+const BROADCAST_DELAY = 7000;
+
 let COUNTER = 1;
 
 class Channel {
     static bootstrap() {
-        const params = {
-            cTokenId: 1,
-        };
-        params.cacheLimit = CACHE_LIMIT;
-        Channel.assemble(params, []);
+        ChannelDAO.get({ name: "MEGALITH", symbol: "KEYS" }).then((channel) => {
+            channel.status.cacheLimit = CACHE_LIMIT;
+            Channel.assemble(channel, []);
+        });
     }
 
-    static assemble(params, list = []) {
-        if (params.cacheLimit <= 0) {
-            Channel.broadcast(params, list, false);
+    static assemble(channel, list = []) {
+        if (channel.status.cacheLimit <= 0) {
+            Channel.broadcast(channel, list, false);
         } else {
-            PlaylistDAO.nextFrom({ tokenId: params.cTokenId }).then(
-                (result) => {
-                    if (result.length === 1) {
-                        Channel.build(params, list, result[0]);
-                    } else {
-                        Channel.broadcast(params, list, true);
-                    }
-                },
-            );
+            const tokenId = channel.status.cTokenId;
+            PlaylistDAO.nextFrom({ tokenId }).then((result) => {
+                if (result.length === 1) {
+                    Channel.build(channel, list, result[0]);
+                } else {
+                    Channel.broadcast(channel, list, true);
+                }
+            });
         }
     }
 
-    static build(params, list, playlist) {
-        params.cTokenId = playlist.token.tokenId;
+    static build(channel, list, playlist) {
+        channel.status.cTokenId = playlist.token.tokenId;
 
-        const generated = Playlist.generate(params, playlist);
+        const generated = Playlist.generate(channel.status, playlist);
         list = list.concat(generated.list);
-        params.cacheLimit -= generated.seconds;
+        channel.status.cacheLimit -= generated.seconds;
 
         const incToken =
             !generated.validation.inList || !generated.validation.inTimeLimit;
         if (incToken) {
-            params.cTokenId += 1;
+            channel.status.cTokenId += 1;
         }
 
-        Channel.assemble(params, list);
+        ChannelDAO.save(channel).then(() => {
+            Channel.assemble(channel, list);
+        });
     }
 
-    static broadcast(params, list, reboot) {
+    static broadcast(channel, list, reboot) {
         if (list.length > 0) {
-            params.cTokenId = list[0].tokenId;
-            params.startFrom = list[0];
+            channel.status.cTokenId = list[0].tokenId;
+            channel.status.startFrom = list[0];
+            channel.cache = list;
+            ChannelDAO.save(channel).then(() => {
+                const counter = COUNTER++;
+                const data = { status: channel.status, list, counter };
+                Channel.display(data);
 
-            const counter = COUNTER++;
-
-            const data = { params, list, counter };
-            Channel.filter(data);
-
-            Client.post(TRANSCODER_URL, {
-                data,
-            }).then(() => {
-                setTimeout(() => {
-                    if (reboot) {
-                        Channel.bootstrap();
-                    } else {
-                        params.cacheLimit = CACHE_LIMIT;
-                        Channel.assemble(params);
-                    }
-                }, 3000);
+                Client.post(TRANSCODER_URL, {
+                    data,
+                }).then(() => {
+                    setTimeout(() => {
+                        if (reboot) {
+                            Channel.bootstrap();
+                        } else {
+                            channel.status.cacheLimit = CACHE_LIMIT;
+                            Channel.assemble(channel);
+                        }
+                    }, BROADCAST_DELAY);
+                });
             });
         }
     }
 
     static filter(data) {
-        const { params, list, counter } = data;
+        const { status, list, counter } = data;
+        const filtered = [];
+
+        for (let i = 0; i < list.length; i++) {
+            const video = list[i];
+        }
+
+        return filtered;
+    }
+
+    static display(data) {
+        const { status, list, counter } = data;
 
         const duration = getDuration(list);
         console.log(
@@ -84,12 +99,11 @@ class Channel {
                 Playlist.toSeconds(duration),
             )}\n`,
         );
-        console.log(`${params.cTokenId}\t${list.length}\t${params.cTokenId}`);
+        console.log(`${status.cTokenId}\t${list.length}\t${status.cTokenId}`);
 
         let i = 0;
         for (const video of list) {
             let filename = `${video.uuid}.${video.extension}`;
-
             let a = i <= list.length / 2 ? "-" : " ";
             let b = "";
 

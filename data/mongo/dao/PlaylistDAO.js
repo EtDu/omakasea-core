@@ -16,7 +16,9 @@ class PlaylistDAO {
                 } else {
                     MegalithToken.getToken(query.tokenId).then((token) => {
                         query.token = token;
-                        resolve(new Playlist({ ...query }));
+                        resolve(
+                            new Playlist({ ...query, createdAt: Date.now() }),
+                        );
                     });
                 }
             });

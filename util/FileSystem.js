@@ -11,6 +11,11 @@ const TRANSCODE_DIR = process.env.TRANSCODE_DIR;
 const EXCLUDE = [".DS_Store"];
 
 class FileSystem {
+    static createdAt(file) {
+        const { birthtime } = fs.statSync(file);
+        return birthtime;
+    }
+
     static getUploadPath(video) {
         const { uuid, extension } = video;
         return `${UPLOAD_DIR}/${uuid}.${extension}`;
