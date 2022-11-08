@@ -8,7 +8,7 @@ const TRANSCODER_HOST = process.env.TRANSCODER_HOST;
 const TRANSCODER_PORT = process.env.TRANSCODER_PORT;
 const TRANSCODER_URL = `http://${TRANSCODER_HOST}:${TRANSCODER_PORT}`;
 
-const BROADCAST_DELAY = 7000;
+const BROADCAST_DELAY = 500;
 
 let COUNTER = 1;
 
@@ -16,6 +16,10 @@ class Channel {
     static bootstrap() {
         ChannelDAO.get({ name: "MEGALITH", symbol: "KEYS" }).then((channel) => {
             channel.status.cacheLimit = CACHE_LIMIT;
+            if (channel.status.startFrom === null) {
+                channel.status.cTokenId = -1;
+                channel.cache = [];
+            }
             Channel.assemble(channel, []);
         });
     }
@@ -68,7 +72,11 @@ class Channel {
                 }).then(() => {
                     setTimeout(() => {
                         if (reboot) {
-                            Channel.bootstrap();
+                            // THIS WILL REBOOT IT
+                            channel.status.startFrom = null;
+                            ChannelDAO.save(channel).then(() => {
+                                Channel.bootstrap();
+                            });
                         } else {
                             channel.status.cacheLimit = CACHE_LIMIT;
                             Channel.assemble(channel);
