@@ -162,7 +162,8 @@ class Channel {
     }
 
     static filter(prevCache, currCache) {
-        const filtered = [];
+        const pass1 = [];
+        const pass2 = [];
         const index = {};
 
         for (const video of prevCache) {
@@ -172,11 +173,18 @@ class Channel {
         for (let i = 0; i < currCache.length; i++) {
             const video = currCache[i];
             if (index[video.uuid] === undefined) {
-                filtered.push(video);
+                video.index = i;
+                pass1.push(video);
             }
         }
 
-        return filtered;
+        for (const video of pass1) {
+            if (video.index > currCache.length / 2) {
+                pass2.push(video);
+            }
+        }
+
+        return pass2;
     }
 
     static display(data) {
