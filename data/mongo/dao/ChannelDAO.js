@@ -16,7 +16,7 @@ class ChannelDAO {
                 } else {
                     const spec = {
                         ...query,
-                        status: { cTokenId: -1 },
+                        status: { cTokenId: -1, isLoaded: false },
                         createdAt: Date.now(),
                     };
                     const channel = new Channel(spec);

@@ -8,18 +8,80 @@ const TRANSCODER_HOST = process.env.TRANSCODER_HOST;
 const TRANSCODER_PORT = process.env.TRANSCODER_PORT;
 const TRANSCODER_URL = `http://${TRANSCODER_HOST}:${TRANSCODER_PORT}`;
 
-const BROADCAST_DELAY = 500;
+const STREAMER_HOST = process.env.STREAMER_HOST;
+const STREAMER_PORT = process.env.STREAMER_PORT;
+const STREAMER_URL = `http://${STREAMER_HOST}:${STREAMER_PORT}`;
 
 let COUNTER = 1;
 
+function getDuration(frame) {
+    let seconds = 0;
+    for (const video of frame) {
+        if (video.boundary) {
+            seconds += Playlist.toSeconds(video.boundary);
+        } else {
+            seconds += Playlist.toSeconds(video.metadata.duration);
+        }
+    }
+    const duration = Playlist.toDuration(seconds);
+    duration.total = seconds;
+    return duration;
+}
+
+function toPlayable(video) {
+    return `${video.uuid}.${video.extension}`;
+}
+
+function toTranscoded(video) {
+    return {
+        name: `${video.uuid}.${video.extension}`,
+        boundary: video.boundary,
+    };
+}
+
 class Channel {
+    static next(details) {
+        ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
+            (channel) => {
+                channel.status.cacheLimit = CACHE_LIMIT;
+
+                if (channel.status.playing === null) {
+                    channel.status.isEnding = true;
+                    channel.status.isLoaded = false;
+                    channel.status.cTokenId = -1;
+                    channel.cache = [];
+                } else {
+                    channel.status.isEnding = false;
+                    channel.status.isLoaded = true;
+                }
+
+                Channel.assemble(channel, []);
+            },
+        );
+    }
+
+    static prepare(details) {
+        ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
+            (channel) => {
+                channel.status.cacheLimit = CACHE_LIMIT;
+                if (channel.status.playing === null) {
+                    channel.status.cTokenId = -1;
+                    channel.cache = [];
+                }
+
+                Channel.assemble(channel, []);
+            },
+        );
+    }
+
     static bootstrap() {
         ChannelDAO.get({ name: "MEGALITH", symbol: "KEYS" }).then((channel) => {
             channel.status.cacheLimit = CACHE_LIMIT;
-            if (channel.status.startFrom === null) {
+            if (channel.status.playing === null) {
                 channel.status.cTokenId = -1;
                 channel.cache = [];
             }
+
             Channel.assemble(channel, []);
         });
     }
@@ -62,38 +124,44 @@ class Channel {
             const cache = channel.cache;
 
             channel.status.cTokenId = list[0].tokenId;
-            channel.status.startFrom = list[0];
+            channel.status.playing = list[0];
             channel.cache = list;
             ChannelDAO.save(channel).then(() => {
                 const counter = COUNTER++;
-                const data = { status: channel.status, list, counter };
-                Channel.display(data);
+                const payload = {
+                    filename: channel.status.playing.name,
+                    playing: toPlayable(channel.status.playing),
+                    name: channel.name,
+                    symbol: channel.symbol,
+                };
 
-                data.transcode = Channel.filter(cache, channel.cache);
-                console.log(data.transcode.length);
-                Client.post(TRANSCODER_URL, {
-                    data,
-                }).then(() => {
-                    setTimeout(() => {
-                        if (reboot) {
-                            // THIS WILL REBOOT IT
-                            channel.status.startFrom = null;
+                if (reboot) {
+                    channel.status.playing = null;
+                }
 
-                            ChannelDAO.save(channel).then(() => {
-                                Channel.bootstrap();
-                            });
-                        } else {
-                            channel.status.cacheLimit = CACHE_LIMIT;
-                            Channel.assemble(channel);
-                        }
-                    }, BROADCAST_DELAY);
+                const transcode = {
+                    status: { ...channel.status },
+                    list,
+                    counter,
+                };
+
+                ChannelDAO.save(channel).then(() => {
+                    transcode.files = Channel.filter(cache, channel.cache);
+
+                    Client.post(TRANSCODER_URL, {
+                        data: { ...transcode },
+                    }).then(() => {
+                        Client.post(`${STREAMER_URL}/stream`, {
+                            data: { payload },
+                        });
+                    });
+                    Channel.display(transcode);
                 });
             });
         }
     }
 
     static filter(prevCache, currCache) {
-        console.log(`--- ${currCache.length} ---`);
         const filtered = [];
         const index = {};
 
@@ -141,20 +209,6 @@ class Channel {
         }
         console.log(`\n================ ${counter}`);
     }
-}
-
-function getDuration(frame) {
-    let seconds = 0;
-    for (const video of frame) {
-        if (video.boundary) {
-            seconds += Playlist.toSeconds(video.boundary);
-        } else {
-            seconds += Playlist.toSeconds(video.metadata.duration);
-        }
-    }
-    const duration = Playlist.toDuration(seconds);
-    duration.total = seconds;
-    return duration;
 }
 
 export default Channel;

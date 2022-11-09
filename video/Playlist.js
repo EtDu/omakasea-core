@@ -93,13 +93,13 @@ class Playlist {
     }
 
     static generate(params, playlist) {
-        const startFrom = params.startFrom;
+        const playing = params.playing;
         let i = 0;
         let cacheLimit = 0;
         let timeLimit = playlist.token.seconds;
 
-        if (startFrom) {
-            i = Playlist.indexOf(playlist, startFrom);
+        if (playing) {
+            i = Playlist.indexOf(playlist, playing);
 
             let k = 0;
             while (k < i) {
@@ -111,7 +111,7 @@ class Playlist {
             }
 
             i++;
-            params.startFrom = null;
+            params.playing = null;
         }
 
         let inList = i < playlist.listing.length;
