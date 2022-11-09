@@ -40,19 +40,30 @@ function toTranscoded(video) {
 }
 
 class Channel {
+    static proceed(details) {
+        console.log("/////////////////////////");
+        console.log("TRANSCODER LOADED");
+        console.log("/////////////////////////");
+        ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
+            (channel) => {
+                channel.status.isLoaded = true;
+                channel.status.cacheLimit = CACHE_LIMIT;
+                if (channel.status.playing === null) {
+                    channel.status.cTokenId = -1;
+                    channel.cache = [];
+                }
+
+                Channel.assemble(channel, []);
+            },
+        );
+    }
     static next(details) {
         ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
             (channel) => {
                 channel.status.cacheLimit = CACHE_LIMIT;
-
                 if (channel.status.playing === null) {
-                    channel.status.isEnding = true;
-                    channel.status.isLoaded = false;
                     channel.status.cTokenId = -1;
                     channel.cache = [];
-                } else {
-                    channel.status.isEnding = false;
-                    channel.status.isLoaded = true;
                 }
 
                 Channel.assemble(channel, []);
@@ -60,16 +71,45 @@ class Channel {
         );
     }
 
-    static prepare(details) {
+    static remaining(details) {
         ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
             (channel) => {
-                channel.status.cacheLimit = CACHE_LIMIT;
-                if (channel.status.playing === null) {
-                    channel.status.cTokenId = -1;
-                    channel.cache = [];
-                }
+                if (channel.remaining.length > 0) {
+                    const remaining = [...channel.remaining];
+                    const playing = remaining.shift();
 
-                Channel.assemble(channel, []);
+                    channel.remaining = remaining;
+                    ChannelDAO.save(channel).then(() => {
+                        const payload = {
+                            filename: playing.name,
+                            playing: toPlayable(playing),
+                            name: channel.name,
+                            symbol: channel.symbol,
+                            isEnding: channel.status.isEnding,
+                            isLoaded: channel.status.isLoaded,
+                        };
+
+                        Client.post(`${STREAMER_URL}/stream`, {
+                            data: { payload },
+                        });
+                    });
+                } else {
+                    channel.status.isEnding = false;
+                    ChannelDAO.save(channel).then(() => {
+                        const payload = {
+                            filename: channel.status.playing.name,
+                            playing: toPlayable(channel.status.playing),
+                            name: channel.name,
+                            symbol: channel.symbol,
+                            isEnding: channel.status.isEnding,
+                            isLoaded: channel.status.isLoaded,
+                        };
+
+                        Client.post(`${STREAMER_URL}/stream`, {
+                            data: { payload },
+                        });
+                    });
+                }
             },
         );
     }
@@ -133,27 +173,41 @@ class Channel {
                     playing: toPlayable(channel.status.playing),
                     name: channel.name,
                     symbol: channel.symbol,
+                    isEnding: channel.status.isEnding,
+                    isLoaded: channel.status.isLoaded,
                 };
 
                 if (reboot) {
                     channel.status.playing = null;
+                    channel.status.isEnding = true;
+                    channel.status.isLoaded = false;
+
+                    payload.isEnding = true;
+                    payload.isLoaded = false;
+
+                    channel.remaining = channel.cache;
+                    channel.cache = [];
                 }
 
                 const transcode = {
+                    name: channel.name,
+                    symbol: channel.symbol,
                     status: { ...channel.status },
                     list,
                     counter,
                 };
 
                 ChannelDAO.save(channel).then(() => {
-                    transcode.files = Channel.filter(cache, channel.cache);
+                    transcode.files = Channel.filter(channel, cache);
 
                     Client.post(TRANSCODER_URL, {
                         data: { ...transcode },
                     }).then(() => {
-                        Client.post(`${STREAMER_URL}/stream`, {
-                            data: { payload },
-                        });
+                        if (channel.status.isLoaded) {
+                            Client.post(`${STREAMER_URL}/stream`, {
+                                data: { payload },
+                            });
+                        }
                     });
                     Channel.display(transcode);
                 });
@@ -161,30 +215,34 @@ class Channel {
         }
     }
 
-    static filter(prevCache, currCache) {
+    static filter(channel, cache) {
+        const currCache = channel.cache;
         const pass1 = [];
         const pass2 = [];
         const index = {};
 
-        for (const video of prevCache) {
-            index[video.uuid] = video;
-        }
-
-        for (let i = 0; i < currCache.length; i++) {
-            const video = currCache[i];
-            if (index[video.uuid] === undefined) {
-                video.index = i;
-                pass1.push(video);
+        if (cache.length > 0) {
+            for (const video of cache) {
+                index[video.uuid] = video;
             }
-        }
 
-        for (const video of pass1) {
-            if (video.index > currCache.length / 2) {
-                pass2.push(video);
+            for (let i = 0; i < currCache.length; i++) {
+                const video = currCache[i];
+                if (index[video.uuid] === undefined) {
+                    video.index = i;
+                    pass1.push(video);
+                }
             }
-        }
 
-        return pass2;
+            for (const video of pass1) {
+                if (video.index > currCache.length / 2) {
+                    pass2.push(video);
+                }
+            }
+            return pass2;
+        } else {
+            return channel.cache;
+        }
     }
 
     static display(data) {

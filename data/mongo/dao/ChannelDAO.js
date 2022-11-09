@@ -3,8 +3,9 @@ import Channel from "../models/Channel.js";
 
 class ChannelDAO {
     static save(channel) {
-        channel.markModified("cache");
         channel.markModified("status");
+        channel.markModified("cache");
+        channel.markModified("remaining");
         return __BaseDAO__.__save__(channel);
     }
 
