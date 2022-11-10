@@ -12,6 +12,7 @@ const BROADCASTER_PORT = process.env.BROADCASTER_PORT;
 const BROADCASTER_URL = `http://${BROADCASTER_HOST}:${BROADCASTER_PORT}`;
 
 const ERROR_DELAY = 60 * 1000;
+const STREAM_DEALY = 5000;
 
 class Streamer {
     static next(data) {
@@ -19,12 +20,14 @@ class Streamer {
             if (FileSystem.exists(data.playing)) {
                 FileSystem.delete(data.playing);
             }
-            Client.post(`${BROADCASTER_URL}/next`, { data: data })
-                .then(resolve)
-                .catch(() => {
-                    console.log("\nPLAYER IS DOWN");
-                    resolve();
-                });
+            setTimeout(() => {
+                Client.post(`${BROADCASTER_URL}/next`, { data: data })
+                    .then(resolve)
+                    .catch(() => {
+                        console.log("\nPLAYER IS DOWN");
+                        resolve();
+                    });
+            }, STREAM_DEALY);
         });
     }
 
