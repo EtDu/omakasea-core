@@ -30,12 +30,8 @@ class PlaylistDAO {
     }
 
     static nextFrom(token) {
-        const query = {
-            tokenId: { $gte: token.tokenId },
-        };
-        const orderBy = {
-            "token.tokenId": 1,
-        };
+        const query = { tokenId: { $gte: token.tokenId } };
+        const orderBy = { "token.position": 1, "token.tokenId": 1 };
         return PlaylistDAO.search(query, orderBy, 1);
     }
 }
