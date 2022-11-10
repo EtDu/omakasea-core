@@ -3,6 +3,7 @@ import Client from "../http/Client.js";
 import PlaylistDAO from "../data/mongo/dao/PlaylistDAO.js";
 import ChannelDAO from "../data/mongo/dao/ChannelDAO.js";
 import { CACHE_LIMIT } from "../data/Constants.js";
+import FileSystem from "../util/FileSystem.js";
 
 const TRANSCODER_HOST = process.env.TRANSCODER_HOST;
 const TRANSCODER_PORT = process.env.TRANSCODER_PORT;
@@ -28,17 +29,6 @@ function getDuration(frame) {
     return duration;
 }
 
-function toPlayable(video) {
-    return `${video.uuid}.${video.extension}`;
-}
-
-function toTranscoded(video) {
-    return {
-        name: `${video.uuid}.${video.extension}`,
-        boundary: video.boundary,
-    };
-}
-
 class Channel {
     static proceed(details) {
         console.log("/////////////////////////");
@@ -58,17 +48,15 @@ class Channel {
         );
     }
     static next(details) {
-        ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
-            (channel) => {
-                channel.status.cacheLimit = CACHE_LIMIT;
-                if (channel.status.playing === null) {
-                    channel.status.cTokenId = -1;
-                    channel.cache = [];
-                }
+        ChannelDAO.get({ name: "MEGALITH", symbol: "KEYS" }).then((channel) => {
+            channel.status.cacheLimit = CACHE_LIMIT;
+            if (channel.status.playing === null) {
+                channel.status.cTokenId = -1;
+                channel.cache = [];
+            }
 
-                Channel.assemble(channel, []);
-            },
-        );
+            Channel.assemble(channel, []);
+        });
     }
 
     static remaining(details) {
@@ -82,7 +70,7 @@ class Channel {
                     ChannelDAO.save(channel).then(() => {
                         const payload = {
                             filename: playing.name,
-                            playing: toPlayable(playing),
+                            playing: FileSystem.getTranscodePath(playing),
                             name: channel.name,
                             symbol: channel.symbol,
                             isEnding: channel.status.isEnding,
@@ -98,7 +86,9 @@ class Channel {
                     ChannelDAO.save(channel).then(() => {
                         const payload = {
                             filename: channel.status.playing.name,
-                            playing: toPlayable(channel.status.playing),
+                            playing: FileSystem.getTranscodePath(
+                                channel.status.playing,
+                            ),
                             name: channel.name,
                             symbol: channel.symbol,
                             isEnding: channel.status.isEnding,
@@ -170,7 +160,9 @@ class Channel {
                 const counter = COUNTER++;
                 const payload = {
                     filename: channel.status.playing.name,
-                    playing: toPlayable(channel.status.playing),
+                    playing: FileSystem.getTranscodePath(
+                        channel.status.playing,
+                    ),
                     name: channel.name,
                     symbol: channel.symbol,
                     isEnding: channel.status.isEnding,
@@ -209,7 +201,6 @@ class Channel {
                             });
                         }
                     });
-                    Channel.display(transcode);
                 });
             });
         }

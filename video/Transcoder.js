@@ -1,35 +1,36 @@
 import FileSystem from "../util/FileSystem.js";
 import FFMPEG from "../video/FFMPEG.js";
 import IPFS from "../data/net/IPFS.js";
+import Playlist from "./Playlist.js";
 
 const ERROR_BUFFER_MAX = 1;
 
 class Transcoder {
-    static synchronize(data) {
-        return new Promise((resolve, reject) => {});
-    }
-
-    static download(data) {
+    static download(channel) {
         return new Promise((resolve, reject) => {
             const FILES = {
                 downloads: [],
                 transcoded: [],
             };
 
-            this.__download__(resolve, data, FILES);
+            this.__download__(resolve, channel, FILES);
         });
     }
 
-    static __download__(resolve, data, files) {
-        if (data.listing.length > 0) {
-            const video = data.listing.shift();
+    static __download__(resolve, channel, files) {
+        if (channel.list.length > 0) {
+            const video = channel.list.shift();
+            const { cid } = video;
 
             const dPath = FileSystem.getDownloadPath(video);
             const tPath = FileSystem.getTranscodePath(video);
 
             let op = "C";
 
-            if (!data.isLoaded && data.listing.length < ERROR_BUFFER_MAX) {
+            if (
+                !channel.status.isLoaded &&
+                channel.list.length < ERROR_BUFFER_MAX
+            ) {
                 FileSystem.delete(dPath);
                 FileSystem.delete(tPath);
                 op = "R";
@@ -40,27 +41,37 @@ class Transcoder {
 
             const options = {};
 
+            const errMsg = `${video.uuid} | ${FileSystem.exists(
+                dPath,
+            )} | ${FileSystem.exists(tPath)}`;
+
             if (!isDownloaded && !isTranscoded) {
                 IPFS.download(video).then(() => {
                     if (FileSystem.exists(dPath)) {
                         files.downloads.push(dPath);
-                        console.log(`${op} | ${video.uuid}`);
+                        console.log(`${op} | ${video.uuid} | ${cid}`);
+                        if (video.boundary) {
+                            options.endsAt = Playlist.toTimeKey(
+                                Playlist.toSeconds(video.boundary),
+                            );
+                        }
+
                         FFMPEG.convert(video, options)
                             .then(() => {
                                 files.transcoded.push(tPath);
                                 FileSystem.delete(dPath);
-                                this.__download__(resolve, data, files);
+                                this.__download__(resolve, channel, files);
                             })
                             .catch(() => {
-                                console.log(
-                                    `Transcoder.__download__ : !isDownloaded && !isTranscoded`,
-                                );
+                                console.log(`D * ${errMsg}`);
+
+                                FileSystem.delete(dPath);
+                                this.__download__(resolve, channel, files);
                             });
                     } else {
-                        console.log(
-                            `T * ${video.uuid} | ${FileSystem.exists(tPath)}`,
-                        );
-                        this.__download__(resolve, data, files);
+                        console.log(`T * ${errMsg}`);
+                        FileSystem.delete(dPath);
+                        this.__download__(resolve, channel, files);
                     }
                 });
             } else if (!isTranscoded) {
@@ -71,10 +82,10 @@ class Transcoder {
                         }
 
                         files.transcoded.push(tPath);
-                        this.__download__(resolve, data, files);
+                        this.__download__(resolve, channel, files);
                     })
                     .catch(() => {
-                        console.log(`Transcoder.__download__ : !isTranscoded`);
+                        console.log(`T ^ ${errMsg}`);
                     });
             } else {
                 if (isDownloaded) {
@@ -83,7 +94,7 @@ class Transcoder {
 
                 files.transcoded.push(tPath);
                 FileSystem.delete(dPath);
-                this.__download__(resolve, data, files);
+                this.__download__(resolve, channel, files);
             }
         } else {
             resolve(files);

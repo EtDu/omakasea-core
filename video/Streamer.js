@@ -7,18 +7,19 @@ import Client from "../http/Client.js";
 import FFMPEG from "../video/FFMPEG.js";
 import FileSystem from "../util/FileSystem.js";
 
-const PLAYER_HOST = process.env.PLAYER_HOST;
-const PLAYER_PORT = process.env.PLAYER_PORT;
-const PLAYER_URL = `http://${PLAYER_HOST}:${PLAYER_PORT}`;
+const BROADCASTER_HOST = process.env.BROADCASTER_HOST;
+const BROADCASTER_PORT = process.env.BROADCASTER_PORT;
+const BROADCASTER_URL = `http://${BROADCASTER_HOST}:${BROADCASTER_PORT}`;
+
+const ERROR_DELAY = 60 * 1000;
 
 class Streamer {
     static next(data) {
         return new Promise((resolve, reject) => {
-            Client.post(PLAYER_URL, {
-                data: {
-                    ...data,
-                },
-            })
+            if (FileSystem.exists(data.playing)) {
+                FileSystem.delete(data.playing);
+            }
+            Client.post(`${BROADCASTER_URL}/next`, { data: data })
                 .then(resolve)
                 .catch(() => {
                     console.log("\nPLAYER IS DOWN");
@@ -30,13 +31,15 @@ class Streamer {
     static start(video) {
         return new Promise((resolve, reject) => {
             console.log(`P > ${video.uuid}`);
-            FFMPEG.stream(video.path, RTMP_URL)
+            FFMPEG.stream(video.playing, RTMP_URL)
                 .then(() => {
                     Streamer.next(video).then(resolve);
                 })
                 .catch(() => {
                     console.log(`S * ${video.uuid}`);
-                    Streamer.next(video).then(resolve);
+                    setTimeout(() => {
+                        Streamer.next(video).then(resolve);
+                    }, ERROR_DELAY);
                 });
         });
     }
