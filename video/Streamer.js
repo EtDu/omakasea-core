@@ -12,7 +12,14 @@ const BROADCASTER_PORT = process.env.BROADCASTER_PORT;
 const BROADCASTER_URL = `http://${BROADCASTER_HOST}:${BROADCASTER_PORT}`;
 
 const ERROR_DELAY = 60 * 1000;
-const STREAM_DEALY = 5000;
+const STREAM_DELAY = 5000;
+
+function remove(video) {
+    if (FileSystem.exists(video.playing)) {
+        console.log(`D - ${video.uuid} - ${BROADCASTER_URL}/next`);
+        FileSystem.delete(video.playing);
+    }
+}
 
 class Streamer {
     static next(data) {
@@ -20,16 +27,16 @@ class Streamer {
             setTimeout(() => {
                 Client.post(`${BROADCASTER_URL}/next`, { data: data })
                     .then(() => {
-                        if (FileSystem.exists(data.playing)) {
-                            console.log(`D - ${data.uuid}`);
-                            FileSystem.delete(data.playing);
-                        }
+                        remove(data);
                     })
                     .catch(() => {
-                        console.log("\nPLAYER IS DOWN");
+                        console.log(
+                            `\nPLAYER IS DOWN WAITING ${ERROR_DELAY / 1000}s`,
+                        );
+                        remove(data);
                         resolve();
                     });
-            }, STREAM_DEALY);
+            }, STREAM_DELAY);
         });
     }
 
