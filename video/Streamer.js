@@ -17,12 +17,14 @@ const STREAM_DEALY = 5000;
 class Streamer {
     static next(data) {
         return new Promise((resolve, reject) => {
-            if (FileSystem.exists(data.playing)) {
-                FileSystem.delete(data.playing);
-            }
             setTimeout(() => {
                 Client.post(`${BROADCASTER_URL}/next`, { data: data })
-                    .then(resolve)
+                    .then(() => {
+                        if (FileSystem.exists(data.playing)) {
+                            console.log(`D - ${data.uuid}`);
+                            FileSystem.delete(data.playing);
+                        }
+                    })
                     .catch(() => {
                         console.log("\nPLAYER IS DOWN");
                         resolve();
