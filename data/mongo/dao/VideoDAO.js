@@ -70,19 +70,22 @@ class VideoDAO {
             const query = {
                 tokenId,
             };
-            __BaseDAO__.__search__(Video, query).then((results) => {
-                const videos = [];
-                for (const row of results) {
-                    const r = {};
-                    for (const key of Object.keys(VideoSchema)) {
-                        r[key] = row[key];
+            __BaseDAO__
+                .__search__(Video, query)
+                .then((results) => {
+                    const videos = [];
+                    for (const row of results) {
+                        const r = {};
+                        for (const key of Object.keys(VideoSchema)) {
+                            r[key] = row[key];
+                        }
+                        videos.push(r);
                     }
-                    videos.push(r);
-                }
 
-                resolve(videos);
-            }).catch(reject);
-        })
+                    resolve(videos);
+                })
+                .catch(reject);
+        });
     }
 }
 
