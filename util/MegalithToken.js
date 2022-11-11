@@ -63,7 +63,7 @@ class MegalithToken {
                 symbol = null;
             }
 
-            const isAuthorized = address === data.address && tokenId && symbol;
+            const isAuthorized = address === data.address;
             let result = { isAuthorized, address, tokenId, symbol };
 
             if (isAuthorized) {
