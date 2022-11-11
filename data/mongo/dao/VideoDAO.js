@@ -65,7 +65,7 @@ class VideoDAO {
         });
     }
 
-    static account(tokenId) {
+    static forToken(tokenId) {
         return new Promise((resolve, reject) => {
             const query = {
                 tokenId,
@@ -82,7 +82,7 @@ class VideoDAO {
 
                 resolve(videos);
             });
-        });
+        }).catch(reject);
     }
 }
 
