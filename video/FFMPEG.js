@@ -1,8 +1,18 @@
-import ffmpeg from "fluent-ffmpeg";
+import dotenv from "dotenv";
+dotenv.config();
 
+import ffmpeg from "fluent-ffmpeg";
 import FileSystem from "../util/FileSystem.js";
 
+const RTMP_URL = `${process.env.RELAY_RTMP_URL}=${process.env.STREAM_KEY}`;
+
 class FFMPEG {
+    static start(video) {
+        return new Promise((resolve, reject) => {
+            FFMPEG.stream(video.playing, RTMP_URL).then(resolve).catch(reject);
+        });
+    }
+
     static getResolution(inputPath) {
         return new Promise((resolve, reject) => {
             FFMPEG.getInfo(inputPath)

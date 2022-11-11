@@ -63,7 +63,7 @@ class Transcoder {
                                 this.__download__(resolve, channel, files);
                             })
                             .catch(() => {
-                                console.log(`D * ${errMsg}`);
+                                console.log(`T * ${errMsg}`);
 
                                 FileSystem.delete(dPath);
                                 this.__download__(resolve, channel, files);
