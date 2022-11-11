@@ -81,8 +81,8 @@ class VideoDAO {
                 }
 
                 resolve(videos);
-            });
-        }).catch(reject);
+            }).catch(reject);
+        })
     }
 }
 
