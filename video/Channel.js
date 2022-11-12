@@ -48,15 +48,17 @@ class Channel {
         );
     }
     static next(details) {
-        ChannelDAO.get({ name: "MEGALITH", symbol: "KEYS" }).then((channel) => {
-            channel.status.cacheLimit = CACHE_LIMIT;
-            if (channel.status.playing === null) {
-                channel.status.cTokenId = -1;
-                channel.cache = [];
-            }
+        ChannelDAO.get({ name: details.name, symbol: details.symbol }).then(
+            (channel) => {
+                channel.status.cacheLimit = CACHE_LIMIT;
+                if (channel.status.playing === null) {
+                    channel.status.cTokenId = -1;
+                    channel.cache = [];
+                }
 
-            Channel.assemble(channel, []);
-        });
+                Channel.assemble(channel, []);
+            },
+        );
     }
 
     static remaining(details) {

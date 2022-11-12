@@ -25,18 +25,23 @@ const TOKENS_OWNED_URL = `${ALCHEMY_URL}/getContractsForOwner?owner`;
 class Authentication {
     static getMetaData(tokenId) {
         return new Promise((resolve, reject) => {
-            const url = `${METADATA_URL}=${tokenId}`;
+            if (tokenId > -1) {
+                const url = `${METADATA_URL}=${tokenId}`;
 
-            axios
-                .get(url)
-                .then((res) => {
-                    if (res.data.metadata) {
-                        resolve(res.data.metadata);
-                    }
-                })
-                .catch((error) => {
-                    reject(error);
-                });
+                axios
+                    .get(url)
+                    .then((res) => {
+                        if (res.data.metadata) {
+                            resolve(res.data.metadata);
+                        }
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            } else {
+                console.log("STOPPED!");
+                reject();
+            }
         });
     }
 

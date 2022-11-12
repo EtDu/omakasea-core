@@ -4,18 +4,6 @@ dotenv.config();
 import IPFS from "../data/net/IPFS.js";
 import PlaylistDAO from "../data/mongo/dao/PlaylistDAO.js";
 
-const STREAMER_HOST = process.env.STREAMER_HOST;
-const STREAMER_PORT = process.env.STREAMER_PORT;
-const STREAMER_URL = `http://${STREAMER_HOST}:${STREAMER_PORT}`;
-
-const TRANSCODER_HOST = process.env.TRANSCODER_HOST;
-const TRANSCODER_PORT = process.env.TRANSCODER_PORT;
-const TRANSCODER_URL = `http://${TRANSCODER_HOST}:${TRANSCODER_PORT}`;
-
-const IPFS_HOST = process.env.IPFS_HOST;
-const IPFS_PORT = process.env.IPFS_PORT;
-const IPFS_URL = `http://${IPFS_HOST}:${IPFS_PORT}/ipfs`;
-
 const SORT_BY = (a, b) => {
     return b.uploadedAt - a.uploadedAt;
 };

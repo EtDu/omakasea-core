@@ -3,6 +3,13 @@ import __BaseDAO__ from "./__BaseDAO__.js";
 import Playlist from "../models/Playlist.js";
 import MegalithToken from "../../../util/MegalithToken.js";
 
+const TOKEN_ID = 9999;
+const MGLTH_TOKEN = {
+    tokenId: TOKEN_ID,
+    position: 9999,
+    isVandal: true,
+};
+
 class PlaylistDAO {
     static save(playlist) {
         return __BaseDAO__.__save__(playlist);
@@ -14,12 +21,22 @@ class PlaylistDAO {
                 if (result !== null) {
                     resolve(result);
                 } else {
-                    MegalithToken.getToken(query.tokenId).then((token) => {
-                        query.token = token;
+                    if (query.tokenId !== 9999) {
+                        MegalithToken.getToken(query.tokenId).then((token) => {
+                            query.token = token;
+                            resolve(
+                                new Playlist({
+                                    ...query,
+                                    createdAt: Date.now(),
+                                }),
+                            );
+                        });
+                    } else {
+                        query.token = MGLTH_TOKEN;
                         resolve(
                             new Playlist({ ...query, createdAt: Date.now() }),
                         );
-                    });
+                    }
                 }
             });
         });
