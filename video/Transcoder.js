@@ -25,7 +25,7 @@ class Transcoder {
             const dPath = FileSystem.getDownloadPath(video);
             const tPath = FileSystem.getTranscodePath(video);
 
-            let op = "C";
+            let op = "T";
 
             if (
                 !channel.status.isLoaded &&
