@@ -46,42 +46,48 @@ class MegalithToken {
     static check(req) {
         return new Promise((resolve, reject) => {
             const message = req.headers.message;
-            if (message.length > 0) {
-                const data = JSON.parse(message);
-                const sig = req.headers.sig;
+            if (message !== null && message !== undefined) {
+                if (message.length > 0) {
+                    const data = JSON.parse(message);
+                    const sig = req.headers.sig;
 
-                const signature = {
-                    data: message,
-                    signature: sig,
-                };
+                    const signature = {
+                        data: message,
+                        signature: sig,
+                    };
 
-                const address = getAddress(recoverPersonalSignature(signature));
+                    const address = getAddress(
+                        recoverPersonalSignature(signature),
+                    );
 
-                let tokenId = Number(data.tokenId);
-                let symbol = req.session.symbol;
-                if (req.session.tokenId !== tokenId) {
-                    tokenId = null;
-                    symbol = null;
-                }
+                    let tokenId = Number(data.tokenId);
+                    let symbol = req.session.symbol;
+                    if (req.session.tokenId !== tokenId) {
+                        tokenId = null;
+                        symbol = null;
+                    }
 
-                const isAuthorized =
-                    address === data.address && symbol !== null;
-                let result = { isAuthorized, address, tokenId, symbol };
+                    const isAuthorized =
+                        address === data.address && symbol !== null;
+                    let result = { isAuthorized, address, tokenId, symbol };
 
-                if (isAuthorized) {
-                    resolve(result);
-                } else {
-                    MegalithToken.isContributor(address).then((contributor) => {
-                        if (contributor.isActive) {
-                            result.isAuthorized = true;
-                            result.symbol = contributor.symbol;
-                            result.tokenId = contributor.tokenId;
-                        }
+                    if (isAuthorized) {
                         resolve(result);
-                    });
+                    } else {
+                        MegalithToken.isContributor(address).then(
+                            (contributor) => {
+                                if (contributor.isActive) {
+                                    result.isAuthorized = true;
+                                    result.symbol = contributor.symbol;
+                                    result.tokenId = contributor.tokenId;
+                                }
+                                resolve(result);
+                            },
+                        );
+                    }
+                } else {
+                    reject();
                 }
-            } else {
-                reject();
             }
         });
     }
