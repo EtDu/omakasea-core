@@ -1,11 +1,13 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
 import Contributor from "../models/Contributor.js";
 
+const SECONDS = 60 * 60 * 24 * 14;
 const TOKEN_ID = 9999;
 const MGLTH_TOKEN = {
     tokenId: TOKEN_ID,
     position: 9999,
     isVandal: true,
+    seconds: SECONDS,
 };
 
 class ContributorDAO {
