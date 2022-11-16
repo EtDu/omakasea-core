@@ -62,7 +62,10 @@ class MegalithToken {
 
                     let tokenId = Number(data.tokenId);
                     let symbol = req.session.symbol;
-                    if (req.session.tokenId !== tokenId) {
+
+                    if (data.tokenId === null) {
+                        tokenId = req.session.tokenId;
+                    } else if (req.session.tokenId !== tokenId) {
                         tokenId = null;
                         symbol = null;
                     }

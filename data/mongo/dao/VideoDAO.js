@@ -26,9 +26,12 @@ class VideoDAO {
                 ...upload,
                 createdAt: Date.now(),
             });
-            __BaseDAO__.__save__(video).then(() => {
-                resolve();
-            });
+            __BaseDAO__
+                .__save__(video)
+                .then(() => {
+                    resolve();
+                })
+                .catch(reject);
         });
     }
 

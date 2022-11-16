@@ -5,6 +5,7 @@ import crypto from "crypto";
 import multer from "multer";
 
 import VideoDAO from "../mongo/dao/VideoDAO.js";
+import { request } from "http";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 
@@ -13,7 +14,7 @@ const fileStorageEngine = multer.diskStorage({
         cb(null, UPLOAD_DIR);
     },
     filename: (req, file, cb) => {
-        const address = req.session.address;
+        const tokenId = req.session.tokenId;
 
         const filename = file.originalname;
         const toks = filename.split(".");
@@ -25,13 +26,18 @@ const fileStorageEngine = multer.diskStorage({
         const upload = {
             uuid: req.uuid,
             folderUUID: req.folderUUID,
-            address,
+            tokenId,
             filename,
             extension,
         };
-        VideoDAO.create(upload).then(() => {
-            cb(null, sourceFile);
-        });
+
+        VideoDAO.create(upload)
+            .then(() => {
+                cb(null, sourceFile);
+            })
+            .catch(() => {
+                console.log(upload);
+            });
     },
 });
 
@@ -39,9 +45,14 @@ const UploadFS = multer({
     storage: fileStorageEngine,
     fileFilter: (req, file, cb) => {
         const message = req.headers.message;
-        const data = JSON.parse(message);
-        req.authorized = true;
-        cb(null, true);
+
+        if (message !== null && message !== undefined) {
+            req.authorized = true;
+            cb(null, true);
+        } else {
+            req.authorized = false;
+            cb(null, false);
+        }
     },
 });
 Object.freeze(UploadFS);
