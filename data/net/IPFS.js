@@ -53,12 +53,16 @@ class IPFS {
                 url,
                 method: "GET",
                 responseType: "stream",
-            }).then((response) => {
-                response.data.pipe(writer);
+            })
+                .then((response) => {
+                    response.data.pipe(writer);
 
-                writer.on("finish", resolve);
-                writer.on("error", reject);
-            });
+                    writer.on("finish", resolve);
+                    writer.on("error", reject);
+                })
+                .catch(() => {
+                    console.log(`T * ${video.uuid}`);
+                });
         });
     }
 
