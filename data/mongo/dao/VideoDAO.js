@@ -78,11 +78,10 @@ class VideoDAO {
                 .then((results) => {
                     const videos = [];
                     for (const row of results) {
-                        const r = {};
-                        for (const key of Object.keys(VideoSchema)) {
-                            r[key] = row[key];
-                        }
-                        videos.push(r);
+                        videos.push({
+                            isValid: row.isValid,
+                            filename: row.filename,
+                        });
                     }
 
                     resolve(videos);

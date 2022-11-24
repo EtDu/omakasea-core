@@ -11,6 +11,10 @@ const TRANSCODE_DIR = process.env.TRANSCODE_DIR;
 const EXCLUDE = [".DS_Store"];
 
 class FileSystem {
+    static getInfo(file) {
+        return fs.statSync(file);
+    }
+
     static open(file) {
         return JSON.parse(fs.readFileSync(file));
     }

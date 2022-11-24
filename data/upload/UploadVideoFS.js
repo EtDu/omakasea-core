@@ -5,7 +5,6 @@ import crypto from "crypto";
 import multer from "multer";
 
 import VideoDAO from "../mongo/dao/VideoDAO.js";
-import { request } from "http";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR;
 

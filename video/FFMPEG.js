@@ -43,9 +43,6 @@ class FFMPEG {
                         }
                     });
             } catch (error) {
-                console.log("==============");
-                console.log(error);
-                console.log("==============");
                 reject(error);
             }
         });
@@ -147,22 +144,13 @@ class FFMPEG {
                                     });
                                 })
                                 .catch((error) => {
-                                    console.log("=========");
-                                    console.log(error);
-                                    console.log("=========");
                                     reject(error);
                                 });
                         } catch (error) {
-                            console.log("=========");
-                            console.log(error);
-                            console.log("=========");
                             reject();
                         }
                     })
                     .on("error", (error) => {
-                        console.log("=========");
-                        console.log(error);
-                        console.log("=========");
                         reject();
                     })
                     .output(outputPath, (stdout, stderr) => {
@@ -170,9 +158,6 @@ class FFMPEG {
                     })
                     .run();
             } catch (error) {
-                console.log("=========");
-                console.log(error);
-                console.log("=========");
                 reject();
             }
         });
@@ -194,9 +179,6 @@ class FFMPEG {
                 .on("start", (command) => {})
                 .on("end", resolve)
                 .on("error", (error) => {
-                    console.log("=========");
-                    console.log(error);
-                    console.log("=========");
                     reject();
                 })
                 .output(rtmpUrl, (stdout, stderr) => {})
@@ -220,16 +202,10 @@ class FFMPEG {
                         try {
                             resolve(stdout);
                         } catch (error) {
-                            console.log("=========");
-                            console.log(error);
-                            console.log("=========");
                             reject();
                         }
                     })
                     .on("error", (error) => {
-                        console.log("=========");
-                        console.log(error);
-                        console.log("=========");
                         reject();
                     })
                     .output(outputPath, (stdout, stderr) => {
@@ -256,9 +232,6 @@ class FFMPEG {
 
                 __CONVERTER__.run();
             } catch (error) {
-                console.log("=========");
-                console.log(error);
-                console.log("=========");
                 reject();
             }
         });

@@ -80,8 +80,8 @@ class Playlist {
         }
     }
 
-    static generate(params, playlist) {
-        const playing = params.playing;
+    static generate(status, playlist) {
+        const playing = status.playing;
         let i = 0;
         let cacheLimit = 0;
         let timeLimit = playlist.token.seconds;
@@ -99,11 +99,11 @@ class Playlist {
             }
 
             i++;
-            params.playing = null;
+            status.playing = null;
         }
 
         let inList = i < playlist.listing.length;
-        let inCacheLimit = cacheLimit < params.cacheLimit;
+        let inCacheLimit = cacheLimit < status.cacheLimit;
         let inTimeLimit = timeLimit > 0;
 
         const list = [];
@@ -119,8 +119,7 @@ class Playlist {
             i++;
 
             inList = i < playlist.listing.length;
-            inCacheLimit = cacheLimit < params.cacheLimit;
-
+            inCacheLimit = cacheLimit < status.cacheLimit;
             inTimeLimit = timeLimit > 0;
         }
 

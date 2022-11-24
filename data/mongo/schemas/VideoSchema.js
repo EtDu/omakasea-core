@@ -1,6 +1,7 @@
 export default {
     tokenId: { type: Number },
     isUploaded: { type: Boolean, default: false },
+    isValid: { type: Boolean, default: true },
     folderUUID: { type: String },
     uuid: { type: String },
     cid: { type: String },
