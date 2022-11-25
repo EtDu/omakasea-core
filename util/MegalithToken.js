@@ -46,9 +46,6 @@ class MegalithToken {
     static check(req) {
         return new Promise((resolve, reject) => {
             const message = req.headers.message;
-            console.log("================");
-            console.log(message);
-            console.log("================");
             if (message !== null && message !== undefined) {
                 if (message.length > 0) {
                     const data = JSON.parse(message);
@@ -102,9 +99,6 @@ class MegalithToken {
         return new Promise((resolve, reject) => {
             const message = req.body.message;
             const data = JSON.parse(message);
-            console.log("===============");
-            console.log(data);
-            console.log("===============");
             const sig = req.body.sig;
 
             const signature = {
@@ -116,8 +110,6 @@ class MegalithToken {
             const address = getAddress(recoverPersonalSignature(signature));
             let symbol = null;
             this.tokensOwned(address).then((tokens) => {
-                console.log(tokens);
-
                 let hasToken = false;
                 for (const token of tokens) {
                     if (!hasToken && token.tokenId === tokenId) {
@@ -213,6 +205,7 @@ class MegalithToken {
     static tokensOwned(address) {
         return new Promise((resolve, reject) => {
             const url = `${TOKENS_OWNED_URL}=${address}`;
+
             axios
                 .get(url)
                 .then((res) => {
@@ -220,32 +213,29 @@ class MegalithToken {
 
                     let i = 0;
                     const found = [];
-                    if (contracts.length > 0) {
-                        while (i < contracts.length) {
-                            let contract = contracts[i];
-                            i++;
-                            if (contract.address === MGLTH_COMPARE) {
-                                MegalithToken.getToken(
-                                    Number(contract.tokenId),
-                                ).then((data) => {
-                                    data.symbol = contract.symbol;
-                                    found.push(data);
-                                    if (i === contracts.length) {
-                                        resolve(found);
-                                    }
-                                });
-                            } else if (i === contracts.length) {
-                                resolve(found);
-                            }
+                    for (const contract of contracts) {
+                        if (contract.address === MGLTH_COMPARE) {
+                            found.push(contract);
                         }
-                    } else {
-                        resolve(found);
                     }
+
+                    this.__tokenDetails__(resolve, found);
                 })
-                .catch((error) => {
-                    console.log(error);
-                });
+                .catch(reject);
         });
+    }
+
+    static __tokenDetails__(resolve, found, details = []) {
+        if (found.length > 0) {
+            const contract = found.shift();
+            MegalithToken.getToken(Number(contract.tokenId)).then((data) => {
+                data.symbol = contract.symbol;
+                details.push(data);
+                this.__tokenDetails__(resolve, found, details);
+            });
+        } else {
+            resolve(details);
+        }
     }
 
     static __getAttr__(key, token) {
