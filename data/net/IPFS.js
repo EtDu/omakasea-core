@@ -100,10 +100,12 @@ class IPFS {
                         const cid = await ipfs.add(JSON.stringify(files), {
                             pin: true,
                         });
-                    }
 
-                    if (callback !== null) {
-                        callback({ cid: cid.path, listing });
+                        if (callback !== null) {
+                            callback({ cid: cid.path, listing });
+                        }
+                    } else if (callback !== null) {
+                        callback(null);
                     }
                 },
             );
