@@ -46,6 +46,9 @@ class MegalithToken {
     static check(req) {
         return new Promise((resolve, reject) => {
             const message = req.headers.message;
+            console.log("================");
+            console.log(message);
+            console.log("================");
             if (message !== null && message !== undefined) {
                 if (message.length > 0) {
                     const data = JSON.parse(message);

@@ -53,6 +53,11 @@ class PlaylistDAO {
         const orderBy = { "token.position": 1, "token.tokenId": 1 };
         return PlaylistDAO.search(query, orderBy, 1);
     }
+
+    static forToken(tokenId) {
+        const query = { tokenId };
+        return PlaylistDAO.search(query);
+    }
 }
 
 export default PlaylistDAO;
