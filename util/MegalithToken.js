@@ -116,6 +116,8 @@ class MegalithToken {
             const address = getAddress(recoverPersonalSignature(signature));
             let symbol = null;
             this.tokensOwned(address).then((tokens) => {
+                console.log(tokens);
+
                 let hasToken = false;
                 for (const token of tokens) {
                     if (!hasToken && token.tokenId === tokenId) {
