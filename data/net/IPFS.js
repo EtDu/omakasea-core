@@ -71,37 +71,42 @@ class IPFS {
         const folderUUID = data.folderUUID;
 
         this.__upload__(ipfs, data, (mapping) => {
-            VideoDAO.search({ folderUUID }).then(async (videos) => {
-                const files = [];
-                const listing = [];
-                for (const video of videos.sort(SORT_BY)) {
-                    video.cid = mapping[video.uuid];
-                    VideoDAO.save(video);
-                    FileSystem.delete(FileSystem.getUploadPath(video));
+            VideoDAO.search({ folderUUID, isValid: true }).then(
+                async (videos) => {
+                    const files = [];
+                    const listing = [];
+                    for (const video of videos.sort(SORT_BY)) {
+                        video.cid = mapping[video.uuid];
+                        video.isIPFS = true;
+                        VideoDAO.save(video);
+                        FileSystem.delete(FileSystem.getUploadPath(video));
 
-                    files.push({
-                        name: video.filename,
-                        cid: video.cid,
-                        uploadedAt: video.createdAt,
-                    });
-                    listing.push({
-                        name: video.filename,
-                        uuid: video.uuid,
-                        extension: video.extension,
-                        cid: video.cid,
-                        createdAt: video.createdAt,
-                        metadata: video.metadata,
-                    });
-                }
+                        files.push({
+                            name: video.filename,
+                            cid: video.cid,
+                            uploadedAt: video.createdAt,
+                        });
+                        listing.push({
+                            name: video.filename,
+                            uuid: video.uuid,
+                            extension: video.extension,
+                            cid: video.cid,
+                            createdAt: video.createdAt,
+                            metadata: video.metadata,
+                        });
+                    }
 
-                const cid = await ipfs.add(JSON.stringify(files), {
-                    pin: true,
-                });
+                    if (files.length > 0) {
+                        const cid = await ipfs.add(JSON.stringify(files), {
+                            pin: true,
+                        });
+                    }
 
-                if (callback !== null) {
-                    callback({ cid: cid.path, listing });
-                }
-            });
+                    if (callback !== null) {
+                        callback({ cid: cid.path, listing });
+                    }
+                },
+            );
         });
     }
 
