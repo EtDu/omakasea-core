@@ -102,6 +102,9 @@ class MegalithToken {
         return new Promise((resolve, reject) => {
             const message = req.body.message;
             const data = JSON.parse(message);
+            console.log("===============");
+            console.log(data);
+            console.log("===============");
             const sig = req.body.sig;
 
             const signature = {
