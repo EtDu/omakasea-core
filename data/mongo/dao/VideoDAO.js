@@ -73,6 +73,7 @@ class VideoDAO {
             const query = {
                 tokenId,
                 isUploaded: true,
+                isIPFS: false,
             };
             __BaseDAO__
                 .__search__(Video, query)
