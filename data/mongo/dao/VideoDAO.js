@@ -72,6 +72,7 @@ class VideoDAO {
         return new Promise((resolve, reject) => {
             const query = {
                 tokenId,
+                isUploaded: true,
             };
             __BaseDAO__
                 .__search__(Video, query)
