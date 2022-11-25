@@ -68,10 +68,34 @@ class VideoDAO {
         });
     }
 
-    static forToken(tokenId) {
+    static forTokenServer(tokenId) {
         return new Promise((resolve, reject) => {
             const query = {
                 tokenId,
+                isUploaded: true,
+            };
+            __BaseDAO__
+                .__search__(Video, query)
+                .then((results) => {
+                    const videos = [];
+                    for (const row of results) {
+                        videos.push({
+                            isValid: row.isValid,
+                            filename: row.filename,
+                        });
+                    }
+
+                    resolve(videos);
+                })
+                .catch(reject);
+        });
+    }
+
+    static forTokenIPFS(tokenId) {
+        return new Promise((resolve, reject) => {
+            const query = {
+                tokenId,
+
                 isIPFS: true,
             };
             __BaseDAO__
