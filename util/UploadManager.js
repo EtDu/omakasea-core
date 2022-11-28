@@ -14,11 +14,16 @@ function reply(req, status, message) {
     };
 }
 
+function transformName(uuid, fileName) {
+    return `${uuid}.${FileSystem.getExtension(fileName)}`;
+}
+
 class UploadManager {
     static parseVideoUpload(req) {
         return new Promise((resolve, reject) => {
             const contentRange = req.headers["content-range"];
             const uploadId = req.headers["x-file-id"];
+            const uuid = req.headers["x-file-uuid"];
             const sig = req.headers["signature"];
 
             if (!contentRange) {
@@ -52,6 +57,7 @@ class UploadManager {
 
             resolve({
                 sig,
+                uuid,
                 uploadId,
                 rangeStart,
             });
@@ -61,10 +67,11 @@ class UploadManager {
     static upload(req, details) {
         return new Promise((resolve, reject) => {
             const busboy = Busboy({ headers: req.headers });
-            const { uploadId, rangeStart } = details;
+            const { uploadId, rangeStart, uuid } = details;
 
-            busboy.on("file", (fullPath, file) => {
-                const uploadPath = `${UPLOAD_DIR}/${uploadId}/${fullPath}`;
+            busboy.on("file", (fileName, file) => {
+                const filePath = transformName(uuid, fileName);
+                const uploadPath = `${UPLOAD_DIR}/${uploadId}/${filePath}`;
                 FileSystem.createParentDir(uploadPath);
 
                 const __FILE_SUCCESS__ = (stats) => {
@@ -108,15 +115,18 @@ class UploadManager {
     }
 
     static canStart(req) {
-        return req.body && req.body.filePath;
+        return req.body && req.body.fileName && req.body.uuid;
     }
 
     static startUpload(req) {
         return new Promise((resolve, reject) => {
             if (this.canStart(req)) {
                 const uploadId = req.body.uploadId;
-                const fullPath = req.body.filePath;
-                const uploadPath = `${UPLOAD_DIR}/${uploadId}/${fullPath}`;
+                const fileName = req.body.fileName;
+                const uuid = req.body.uuid;
+                const filePath = transformName(uuid, fileName);
+
+                const uploadPath = `${UPLOAD_DIR}/${uploadId}/${filePath}`;
 
                 FileSystem.createParentDir(uploadPath);
                 fs.createWriteStream(uploadPath, {
@@ -130,13 +140,21 @@ class UploadManager {
     }
 
     static canResume(req) {
-        return req.query && req.query.filePath && req.query.uploadId;
+        return (
+            req.query &&
+            req.query.fileName &&
+            req.query.uploadId &&
+            req.query.uuid
+        );
     }
 
     static resumeUpload(req) {
-        const uploadId = req.body.uploadId;
-        const fullPath = req.body.filePath;
-        const uploadPath = `${UPLOAD_DIR}/${uploadId}/${fullPath}`;
+        const uploadId = req.query.uploadId;
+        const fileName = req.query.fileName;
+        const uuid = req.query.uuid;
+
+        const filePath = transformName(uuid, fileName);
+        const uploadPath = `${UPLOAD_DIR}/${uploadId}/${filePath}`;
         FileSystem.createParentDir(uploadPath);
 
         return new Promise((resolve, reject) => {
@@ -144,7 +162,6 @@ class UploadManager {
                 this.__getFileDetails__(uploadPath)
                     .then((result) => resolve(result))
                     .catch((error) => {
-                        console.error(error);
                         reject(reply(req, 400, "File not found"));
                     });
             } else {

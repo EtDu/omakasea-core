@@ -24,6 +24,11 @@ class FileSystem {
         return birthtime;
     }
 
+    static getExtension(file) {
+        const toks = file.split(".");
+        return toks[toks.length - 1];
+    }
+
     static getUploadPath(video) {
         const { uuid, extension } = video;
         return `${UPLOAD_DIR}/${uuid}.${extension}`;
@@ -84,7 +89,7 @@ class FileSystem {
             fullPath.substring(0, fullPath.lastIndexOf("/") + 1),
         );
 
-        FileSystem.createDir(targetDir);
+        FileSystem.createDir(`/${targetDir}`);
     }
 
     static exists(fullPath) {
