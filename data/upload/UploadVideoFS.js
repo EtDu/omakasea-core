@@ -30,6 +30,8 @@ const fileStorageEngine = multer.diskStorage({
             extension,
         };
 
+        console.log(upload);
+
         VideoDAO.create(upload)
             .then(() => {
                 cb(null, sourceFile);
