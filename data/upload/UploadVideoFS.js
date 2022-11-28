@@ -54,6 +54,5 @@ const UploadFS = multer({
         }
     },
 });
-Object.freeze(UploadFS);
 
 export default UploadFS;
