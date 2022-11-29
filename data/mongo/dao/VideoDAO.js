@@ -45,26 +45,11 @@ class VideoDAO {
                 uuid: details.uuid,
                 folderUUID: details.folderUUID,
             };
-            __BaseDAO__
-                .__get__(Video, query)
-                .then((doc) => {
-                    doc.isUploaded = true;
-                    doc.tokenId = details.tokenId;
-                    return __BaseDAO__.__save__(doc);
-                })
-                .then(() => {
-                    return __BaseDAO__.__search__(
-                        Video,
-                        {
-                            folderUUID: details.folderUUID,
-                            isUploaded: true,
-                        },
-                        { isUploaded: true },
-                    );
-                })
-                .then((videos) => {
-                    resolve(videos.length);
-                });
+            __BaseDAO__.__get__(Video, query).then((doc) => {
+                doc.isUploaded = true;
+                doc.tokenId = details.tokenId;
+                __BaseDAO__.__save__(doc).then(resolve);
+            });
         });
     }
 
