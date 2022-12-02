@@ -48,8 +48,8 @@ class PlaylistDAO {
         return __BaseDAO__.__search__(Playlist, query, {}, orderBy, limit);
     }
 
-    static nextFrom(token) {
-        const query = { tokenId: { $gte: token.tokenId } };
+    static nextFrom(position) {
+        const query = { "token.position": { $gte: position } };
         const orderBy = { "token.position": 1, "token.tokenId": 1 };
         return PlaylistDAO.search(query, orderBy, 1);
     }

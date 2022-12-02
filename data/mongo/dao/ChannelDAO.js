@@ -18,7 +18,7 @@ class ChannelDAO {
                     const spec = {
                         ...query,
                         status: {
-                            cTokenId: -1,
+                            position: -1,
                             isLoaded: false,
                             isEnding: false,
                         },

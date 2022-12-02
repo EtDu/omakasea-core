@@ -114,7 +114,7 @@ class Playlist {
 
             cacheLimit += seconds;
             timeLimit -= seconds;
-            list.push({ ...current, tokenId: playlist.token.tokenId });
+            list.push({ ...current, position: playlist.token.position });
 
             i++;
 

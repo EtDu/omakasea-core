@@ -39,7 +39,7 @@ class Channel {
                 channel.status.isLoaded = true;
                 channel.status.cacheLimit = CACHE_LIMIT;
                 if (channel.status.playing === null) {
-                    channel.status.cTokenId = -1;
+                    channel.status.position = -1;
                     channel.cache = [];
                 }
 
@@ -52,7 +52,7 @@ class Channel {
             (channel) => {
                 channel.status.cacheLimit = CACHE_LIMIT;
                 if (channel.status.playing === null) {
-                    channel.status.cTokenId = -1;
+                    channel.status.position = -1;
                     channel.cache = [];
                 }
 
@@ -110,7 +110,7 @@ class Channel {
         ChannelDAO.get({ name: "MEGALITH", symbol: "KEYS" }).then((channel) => {
             channel.status.cacheLimit = CACHE_LIMIT;
             if (channel.status.playing === null) {
-                channel.status.cTokenId = -1;
+                channel.status.position = -1;
                 channel.cache = [];
             }
 
@@ -122,8 +122,8 @@ class Channel {
         if (channel.status.cacheLimit <= 0) {
             Channel.broadcast(channel, list, false);
         } else {
-            const tokenId = channel.status.cTokenId;
-            PlaylistDAO.nextFrom({ tokenId }).then((result) => {
+            const position = channel.status.position;
+            PlaylistDAO.nextFrom(position).then((result) => {
                 if (result.length === 1) {
                     Channel.build(channel, list, result[0]);
                 } else {
@@ -134,7 +134,7 @@ class Channel {
     }
 
     static build(channel, list, playlist) {
-        channel.status.cTokenId = playlist.token.tokenId;
+        channel.status.position = playlist.token.position;
 
         const generated = Playlist.generate(channel.status, playlist);
         list = list.concat(generated.list);
@@ -143,7 +143,7 @@ class Channel {
         const incToken =
             !generated.validation.inList || !generated.validation.inTimeLimit;
         if (incToken) {
-            channel.status.cTokenId += 1;
+            channel.status.position += 1;
         }
 
         ChannelDAO.save(channel).then(() => {
@@ -155,7 +155,7 @@ class Channel {
         if (list.length > 0) {
             const cache = channel.cache;
 
-            channel.status.cTokenId = list[0].tokenId;
+            channel.status.position = list[0].position;
             channel.status.playing = list[0];
             channel.cache = list;
             ChannelDAO.save(channel).then(() => {
@@ -236,37 +236,6 @@ class Channel {
         } else {
             return channel.cache;
         }
-    }
-
-    static display(data) {
-        const { status, list, counter } = data;
-
-        const duration = getDuration(list);
-        console.log(
-            `================ ${counter - 1}\t${Playlist.toTimeKey(
-                Playlist.toSeconds(duration),
-            )}\n`,
-        );
-        console.log(`${status.cTokenId}\t${list.length}\t${status.cTokenId}`);
-
-        let i = 0;
-        for (const video of list) {
-            let filename = `${video.uuid}.${video.extension}`;
-            let a = i <= list.length / 2 ? "-" : " ";
-            let b = "";
-
-            if (video.boundary) {
-                filename = `${video.uuid}.${video.extension}`;
-                b = video.boundary
-                    ? `[${Playlist.toTimeKey(
-                          Playlist.toSeconds(video.boundary),
-                      )}]`
-                    : "";
-            }
-            console.log(`\t\t${video.tokenId}\t ${a} ${filename}\t${b}`);
-            i++;
-        }
-        console.log(`\n================ ${counter}`);
     }
 }
 
