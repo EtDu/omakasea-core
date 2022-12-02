@@ -86,6 +86,7 @@ class Transcoder {
                     })
                     .catch(() => {
                         console.log(`T ^ ${errMsg}`);
+                        this.__download__(resolve, channel, files);
                     });
             } else {
                 if (isDownloaded) {
