@@ -128,9 +128,9 @@ class MegalithToken {
                     let isValid = false;
                     if (result.owners.length > 0) {
                         isValid = result.owners[0] === address.toLowerCase();
-                        resolve({ address, isValid, tokenId });
+                        resolve({ address, isValid, tokenId, symbol: "KEYS" });
                     } else {
-                        resolve({ address, isValid, tokenId });
+                        resolve({ address, isValid, tokenId, symbol: "KEYS" });
                     }
                 });
         });
