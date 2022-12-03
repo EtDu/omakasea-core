@@ -110,12 +110,18 @@ class MegalithToken {
             const tokenId = Number(data.tokenId);
             const address = getAddress(recoverPersonalSignature(signature));
 
-            const config = {
+            MegalithToken.hasToken(address, tokenId)
+                .then(resolve)
+                .catch(reject);
+        });
+    }
+
+    static hasToken(address, tokenId) {
+        return new Promise((resolve, reject) => {
+            const alchemy = new Alchemy({
                 apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID,
                 network: Network.ETH_MAINNET,
-            };
-
-            const alchemy = new Alchemy(config);
+            });
             alchemy.nft
                 .getOwnersForNft(MGLTH_CONTRACT_ADDRESS, tokenId)
                 .then((result) => {
