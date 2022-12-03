@@ -4,6 +4,7 @@ dotenv.config();
 import axios from "axios";
 import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 import ContributorDAO from "../data/mongo/dao/ContributorDAO.js";
+import { Alchemy, Network } from "alchemy-sdk";
 
 import ethers from "ethers";
 const getAddress = ethers.utils.getAddress;
@@ -108,21 +109,24 @@ class MegalithToken {
 
             const tokenId = Number(data.tokenId);
             const address = getAddress(recoverPersonalSignature(signature));
-            let symbol = null;
-            this.tokensOwned(address).then((tokens) => {
-                let hasToken = false;
-                for (const token of tokens) {
-                    if (!hasToken && token.tokenId === tokenId) {
-                        hasToken = true;
-                        symbol = token.symbol;
+
+            const config = {
+                apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID,
+                network: Network.ETH_MAINNET,
+            };
+
+            const alchemy = new Alchemy(config);
+            alchemy.nft
+                .getOwnersForNft(MGLTH_CONTRACT_ADDRESS, tokenId)
+                .then((result) => {
+                    let isValid = false;
+                    if (result.owners.length > 0) {
+                        isValid = result.owners[0] === address.toLowerCase();
+                        resolve({ address, isValid, tokenId });
+                    } else {
+                        resolve({ address, isValid, tokenId });
                     }
-                }
-
-                const isValid =
-                    hasToken && address === data.address && tokenId !== null;
-
-                resolve({ address, isValid, tokenId, symbol });
-            });
+                });
         });
     }
 
