@@ -26,6 +26,10 @@ class Responses {
         this.app.set("views", dir);
         this.app.set("view engine", engine);
     }
+
+    setPublic(dir) {
+        this.app.use(express.static(dir));
+    }
 }
 
 export default Responses;
