@@ -21,6 +21,11 @@ class Responses {
             console.log(`${this.name} :: ${this.port}`);
         });
     }
+
+    setViews(dir, engine) {
+        this.app.set("views", dir);
+        this.app.set("view engine", engine);
+    }
 }
 
 export default Responses;
