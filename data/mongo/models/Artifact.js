@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import ArtifactSchema from "../schemas/ArtifactSchema.js";
 
-const artifactSchema = new mongoose.Schema(ArtifactSchema);
-const NFT = mongoose.model("Artifact", artifactSchema);
+const schema = new mongoose.Schema(ArtifactSchema);
+const NFT = mongoose.model("Artifact", schema);
 
 export default NFT;
