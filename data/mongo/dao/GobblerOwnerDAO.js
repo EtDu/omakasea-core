@@ -21,19 +21,22 @@ class GobblerOwnerDAO {
             );
 
             resolve({ address, message });
-        }).catch((err) => console.log(err))
+        }).catch((err) => console.log(err));
     }
 
     static get(query) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__.__get__(GobblerOwner, query).then((document) => {
-                if (document !== null) {
-                    resolve(document);
-                } else {
-                    reject();
-                }
-            }).catch((err) => console.log(err))
-        }).catch((err) => console.log(err))
+            __BaseDAO__
+                .__get__(GobblerOwner, query)
+                .then((document) => {
+                    if (document !== null) {
+                        resolve(document);
+                    } else {
+                        reject();
+                    }
+                })
+                .catch((err) => console.log(err));
+        }).catch((err) => console.log(err));
     }
 
     static search(query, fields = {}) {
@@ -41,7 +44,7 @@ class GobblerOwnerDAO {
     }
 
     static save(document) {
-      return __BaseDAO__.__save__(document)
+        return __BaseDAO__.__save__(document);
     }
 
     static createLinks(address) {
@@ -71,33 +74,35 @@ class GobblerOwnerDAO {
     }
 
     static seed(address) {
-      return new Promise((resolve, reject) => {
-        const createdAt = Date.now();
+        return new Promise((resolve, reject) => {
+            const createdAt = Date.now();
 
-        let i = 0
-        while (i < 50) {
-          const nice = {
-            side: "nice",
-            inviteID: ShortHash(crypto.randomUUID()),
-            originator: address,
-            createdAt,
-          }
-          const naughty = {
-            side: "naughty",
-            inviteID: ShortHash(crypto.randomUUID()),
-            originator: address,
-            createdAt,
-          }
-          __BaseDAO__.__save__(new GobblerOwner(nice)).then(() => {
-            __BaseDAO__.__save__(new GobblerOwner(naughty)).then(() => {
-              
-            });
-          });
-          i++
-          
-        }
-        // resolve()
-      })
+            let count = 0;
+
+            for (let i = 0; i < 50; i++) {
+                const nice = {
+                    side: "nice",
+                    inviteID: ShortHash(crypto.randomUUID()),
+                    originator: address,
+                    createdAt,
+                };
+                const naughty = {
+                    side: "naughty",
+                    inviteID: ShortHash(crypto.randomUUID()),
+                    originator: address,
+                    createdAt,
+                };
+
+                __BaseDAO__.__save__(new GobblerOwner(nice)).then(() => {
+                    __BaseDAO__.__save__(new GobblerOwner(naughty)).then(() => {
+                        count++;
+                        if (count === 50) {
+                            resolve();
+                        }
+                    });
+                });
+            }
+        });
     }
 }
 
