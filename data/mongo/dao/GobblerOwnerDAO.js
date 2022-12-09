@@ -77,9 +77,8 @@ class GobblerOwnerDAO {
         return new Promise((resolve, reject) => {
             const createdAt = Date.now();
 
-            let count = 0;
-
-            for (let i = 0; i < 50; i++) {
+            let i = 0;
+            while (i < 50) {
                 const nice = {
                     side: "nice",
                     inviteID: ShortHash(crypto.randomUUID()),
@@ -92,18 +91,14 @@ class GobblerOwnerDAO {
                     originator: address,
                     createdAt,
                 };
-
                 __BaseDAO__.__save__(new GobblerOwner(nice)).then(() => {
-                    console.log(nice);
-                    __BaseDAO__.__save__(new GobblerOwner(naughty)).then(() => {
-                        console.log(naughty);
-                        count++;
-                        if (count === 50) {
-                            resolve();
-                        }
-                    });
+                    __BaseDAO__
+                        .__save__(new GobblerOwner(naughty))
+                        .then(() => {});
                 });
+                i++;
             }
+            // resolve()
         });
     }
 }
