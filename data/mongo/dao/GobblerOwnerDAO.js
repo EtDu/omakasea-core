@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import ShortHash from "short-hash";
+import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 
 import ethers from "ethers";
 const getAddress = ethers.utils.getAddress;
@@ -11,7 +12,7 @@ class GobblerOwnerDAO {
     static readSignature(req) {
         return new Promise((resolve, reject) => {
             const sig = req.body.sig;
-            const message = JSON.parse(req.body.message);
+            const message = req.body.message;
             const address = getAddress(
                 recoverPersonalSignature({
                     data: message,
@@ -37,6 +38,10 @@ class GobblerOwnerDAO {
 
     static search(query, fields = {}) {
         return __BaseDAO__.__search__(GobblerOwner, query, fields);
+    }
+
+    static save(document) {
+      return __BaseDAO__.__save__(document)
     }
 
     static createLinks(address) {
