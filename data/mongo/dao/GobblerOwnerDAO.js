@@ -94,7 +94,9 @@ class GobblerOwnerDAO {
                 };
 
                 __BaseDAO__.__save__(new GobblerOwner(nice)).then(() => {
+                    console.log(nice);
                     __BaseDAO__.__save__(new GobblerOwner(naughty)).then(() => {
+                        console.log(naughty);
                         count++;
                         if (count === 50) {
                             resolve();
