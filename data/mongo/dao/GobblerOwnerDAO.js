@@ -7,7 +7,6 @@ const getAddress = ethers.utils.getAddress;
 
 import __BaseDAO__ from "./__BaseDAO__.js";
 import GobblerOwner from "../models/GobblerOwner.js";
-import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 
 class GobblerOwnerDAO {
     static readSignature(req) {
