@@ -21,7 +21,7 @@ class GobblerOwnerDAO {
             );
 
             resolve({ address, message });
-        });
+        }).catch((err) => console.log(err))
     }
 
     static get(query) {
@@ -32,8 +32,8 @@ class GobblerOwnerDAO {
                 } else {
                     reject();
                 }
-            });
-        });
+            }).catch((err) => console.log(err))
+        }).catch((err) => console.log(err))
     }
 
     static search(query, fields = {}) {
