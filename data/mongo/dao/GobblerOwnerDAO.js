@@ -76,7 +76,7 @@ class GobblerOwnerDAO {
     static seed(address) {
         return new Promise((resolve, reject) => {
             const createdAt = Date.now();
-
+            const links = []
             let i = 0;
             while (i < 50) {
                 const nice = {
@@ -91,10 +91,16 @@ class GobblerOwnerDAO {
                     originator: address,
                     createdAt,
                 };
-                __BaseDAO__.__save__(new GobblerOwner(nice)).then(() => {
+                __BaseDAO__.__save__(new GobblerOwner(nice)).then((doc) => {
+                    links.push(`https://xmas.omakasea.com/list/${doc.inviteID}`)
                     __BaseDAO__
                         .__save__(new GobblerOwner(naughty))
-                        .then(() => {});
+                        .then((doc) => {
+                          links.push(`https://xmas.omakasea.com/list/${doc.inviteID}`)
+                          if (links.length === 100) {
+                            resolve(links)
+                          }
+                        });
                 });
                 i++;
             }
