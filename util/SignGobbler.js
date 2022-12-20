@@ -50,7 +50,7 @@ class SignGobbler {
                         HTTP_PROVIDER,
                     );
                     SIGNER.signMessage(messageHash).then((signature) => {
-                        resolve(signature);
+                        resolve({ messageHash, signature });
                     });
                 });
             });
