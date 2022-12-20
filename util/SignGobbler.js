@@ -35,9 +35,7 @@ class SignGobbler {
 
             ETHERS_CONTRACT.signatureNonce(senderAddress).then((res) => {
                 const sigNonce = res._hex;
-                const fnNameSig = Number(
-                    utils.keccak256(utils.toUtf8Bytes(fnName)).substring(0, 10),
-                );
+                const fnNameSig = utils.hexlify(utils.toUtf8Bytes("mint"))
 
                 const messageHash = utils.solidityKeccak256(
                     ["address", "address", "bytes4", "uint256"],
