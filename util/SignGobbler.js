@@ -39,12 +39,10 @@ class SignGobbler {
                     utils.keccak256(utils.toUtf8Bytes(fnName)).substring(0, 10),
                 );
 
-                ethers.utils
-                    .hashMessage(
-                        senderAddress,
-                        CONTRACT_ADDRESS,
-                        fnNameSig,
-                        sigNonce,
+                utils
+                    .solidityKeccak256(
+                        ["address", "address", "bytes4", "uint256"],
+                        [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
                     )
                     .then((messageHash) => {
                         const SIGNER = new ethers.Wallet(
