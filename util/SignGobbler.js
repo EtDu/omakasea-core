@@ -16,21 +16,21 @@ const HTTP_PROVIDER = new ethers.providers.JsonRpcProvider(
     BLOCKCHAIN_NETWORK,
 );
 
-const ETHERS_CONTRACT = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
+const ETHERS_CONTRACT = new ethers.Contract(CONTRACT_ADDRESS, ABI, HTTP_PROVIDER);
 
 class SignGobbler {
     static listen() {
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, HTTP_PROVIDER);
 
         contract.on("Broadcast", (event) => {
             console.log(event);
         });
     }
 
-    static sign(fnName, signature) {
+    static sign(fnName, signature, message) {
         return new Promise((resolve, reject) => {
-            const senderAddress = getAddress(
-                recoverPersonalSignature(signature),
+            const senderAddress = ethers.utils.getAddress(
+                recoverPersonalSignature({data: message, signature}),
             );
 
             ETHERS_CONTRACT.signatureNonce(senderAddress).then((res) => {
