@@ -39,20 +39,17 @@ class SignGobbler {
                     utils.keccak256(utils.toUtf8Bytes(fnName)).substring(0, 10),
                 );
 
-                utils
-                    .solidityKeccak256(
-                        ["address", "address", "bytes4", "uint256"],
-                        [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
-                    )
-                    .then((messageHash) => {
-                        const SIGNER = new ethers.Wallet(
-                            process.env.PRIVATE_KEY,
-                            HTTP_PROVIDER,
-                        );
-                        SIGNER.signMessage(messageHash).then((signature) => {
-                            resolve({ messageHash, signature });
-                        });
-                    });
+                const messageHash = utils.solidityKeccak256(
+                    ["address", "address", "bytes4", "uint256"],
+                    [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
+                );
+                const SIGNER = new ethers.Wallet(
+                    process.env.PRIVATE_KEY,
+                    HTTP_PROVIDER,
+                );
+                SIGNER.signMessage(messageHash).then((signature) => {
+                    resolve({ messageHash, signature });
+                });
             });
         });
     }
