@@ -45,7 +45,8 @@ class SignGobbler {
                     process.env.PRIVATE_KEY,
                     HTTP_PROVIDER,
                 );
-                SIGNER.signMessage(messageHash).then((signature) => {
+
+                SIGNER.signMessage(utils.arrayify(messageHash)).then((signature) => {
                     resolve({ messageHash, signature });
                 });
             });
