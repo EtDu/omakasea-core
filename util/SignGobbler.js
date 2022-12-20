@@ -39,20 +39,22 @@ class SignGobbler {
                     utils.keccak256(utils.toUtf8Bytes(fnName)).substring(0, 10),
                 );
 
-                ETHERS_CONTRACT.hashMessage(
-                    senderAddress,
-                    CONTRACT_ADDRESS,
-                    fnNameSig,
-                    sigNonce,
-                ).then((messageHash) => {
-                    const SIGNER = new ethers.Wallet(
-                        process.env.PRIVATE_KEY,
-                        HTTP_PROVIDER,
-                    );
-                    SIGNER.signMessage(messageHash).then((signature) => {
-                        resolve({ messageHash, signature });
+                ethers.utils
+                    .hashMessage(
+                        senderAddress,
+                        CONTRACT_ADDRESS,
+                        fnNameSig,
+                        sigNonce,
+                    )
+                    .then((messageHash) => {
+                        const SIGNER = new ethers.Wallet(
+                            process.env.PRIVATE_KEY,
+                            HTTP_PROVIDER,
+                        );
+                        SIGNER.signMessage(messageHash).then((signature) => {
+                            resolve({ messageHash, signature });
+                        });
                     });
-                });
             });
         });
     }
