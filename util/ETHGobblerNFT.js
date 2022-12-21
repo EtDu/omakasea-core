@@ -54,7 +54,8 @@ class ETHGobblerNFT {
 
             contract.signatureNonce(senderAddress).then((res) => {
                 const sigNonce = res._hex;
-                const fnNameSig = utils.hexlify(utils.toUtf8Bytes("mint"));
+                const byteArray = utils.toUtf8Bytes(fnName);
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4))
 
                 const messageHash = utils.solidityKeccak256(
                     ["address", "address", "bytes4", "uint256"],
