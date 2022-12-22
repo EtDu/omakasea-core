@@ -145,13 +145,17 @@ class ETHGobblerNFT {
         );
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-        contract.on("Transfer", (from, to, value, event) => {
-            let info = {
-                from: from,
-                to: to,
-                value: ethers.utils.formatUnits(value, 6),
-                data: event,
-            };
+        contract.on("Transfer", (from, to, value) => {
+            GobblerOwnerDAO.find({ owner: to }).then((gobblerOwner) => {
+                const tokenData = {
+                    from,
+                    to,
+                    value,
+                };
+
+                gobblerOwner.tokenData = tokenData;
+                GobblerOwnerDAO.save(gobblerOwner);
+            });
         });
 
         provider._websocket.on("close", (code) => {
