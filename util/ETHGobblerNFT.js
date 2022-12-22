@@ -15,6 +15,51 @@ const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 
 class ETHGobblerNFT {
+    static getActionSignature(fnName, signature, message) {
+        return new Promise((resolve, reject) => {
+            const provider = new ethers.providers.JsonRpcProvider(
+                HTTP_RPC_URL,
+                BLOCKCHAIN_NETWORK,
+            );
+
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                provider,
+            );
+
+            const senderAddress = ethers.utils.getAddress(
+                recoverPersonalSignature({ data: message, signature }),
+            );
+
+            contract.signatureNonce(senderAddress).then((res) => {
+                const sigNonce = res._hex;
+                const byteArray = utils.toUtf8Bytes(fnName);
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
+
+                const messageHash = utils.solidityKeccak256(
+                    ["address", "address", "bytes4", "uint256"],
+                    [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
+                );
+                const SIGNER = new ethers.Wallet(
+                    process.env.PRIVATE_KEY,
+                    provider,
+                );
+
+                SIGNER.signMessage(utils.arrayify(messageHash))
+                    .then((signature) => {
+                        const mintData = {
+                            messageHash,
+                            signature,
+                        };
+
+                        resolve(mintData);
+                    })
+                    .catch(reject);
+            });
+        });
+    }
+
     static getMintSignature(signature, message) {
         return new Promise((resolve, reject) => {
             const provider = new ethers.providers.JsonRpcProvider(
@@ -36,7 +81,7 @@ class ETHGobblerNFT {
                 .then((gobblerOwner) => {
                     if (gobblerOwner) {
                         if (!gobblerOwner.mintData) {
-                            ETHGobblerNFT.createSignature(
+                            ETHGobblerNFT.createMintSignature(
                                 senderAddress,
                                 provider,
                                 gobblerOwner,
@@ -55,12 +100,17 @@ class ETHGobblerNFT {
         });
     }
 
-    static createSignature(senderAddress, provider, gobblerOwner, contract) {
+    static createMintSignature(
+        senderAddress,
+        provider,
+        gobblerOwner,
+        contract,
+    ) {
         return new Promise((resolve, reject) => {
             contract.signatureNonce(senderAddress).then((res) => {
                 const sigNonce = res._hex;
-                const byteArray = utils.toUtf8Bytes(fnName);
-                const fnNameSig = utils.hexlify(byteArray.slice(0, 4))
+                const byteArray = utils.toUtf8Bytes("mint");
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
 
                 const messageHash = utils.solidityKeccak256(
                     ["address", "address", "bytes4", "uint256"],
