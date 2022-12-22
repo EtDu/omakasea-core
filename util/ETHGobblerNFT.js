@@ -152,6 +152,7 @@ class ETHGobblerNFT {
                     data,
                 };
 
+                gobblerOwner.hasMinted = true;
                 gobblerOwner.tokenData = tokenData;
                 GobblerOwnerDAO.save(gobblerOwner);
             });
