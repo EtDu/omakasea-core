@@ -21,7 +21,7 @@ class GobblerOwnerDAO {
             );
 
             resolve({ address, message });
-        }).catch((err) => console.log(err));
+        });
     }
 
     static get(query) {
@@ -35,8 +35,8 @@ class GobblerOwnerDAO {
                         reject();
                     }
                 })
-                .catch((err) => console.log(err));
-        }).catch((err) => console.log(err));
+                .catch(reject);
+        });
     }
 
     static search(query, fields = {}) {
@@ -76,7 +76,7 @@ class GobblerOwnerDAO {
     static seed(address) {
         return new Promise((resolve, reject) => {
             const createdAt = Date.now();
-            const links = []
+            const links = [];
             let i = 0;
             while (i < 50) {
                 const nice = {
@@ -85,21 +85,27 @@ class GobblerOwnerDAO {
                     originator: address,
                     createdAt,
                 };
+
                 const naughty = {
                     side: "naughty",
                     inviteID: ShortHash(crypto.randomUUID()),
                     originator: address,
                     createdAt,
                 };
+
                 __BaseDAO__.__save__(new GobblerOwner(nice)).then((doc) => {
-                    links.push(`https://xmas.omakasea.com/list/${doc.inviteID}`)
+                    links.push(
+                        `https://xmas.omakasea.com/list/${doc.inviteID}`,
+                    );
                     __BaseDAO__
                         .__save__(new GobblerOwner(naughty))
                         .then((doc) => {
-                          links.push(`https://xmas.omakasea.com/list/${doc.inviteID}`)
-                          if (links.length === 100) {
-                            resolve(links)
-                          }
+                            links.push(
+                                `https://xmas.omakasea.com/list/${doc.inviteID}`,
+                            );
+                            if (links.length === 100) {
+                                resolve(links);
+                            }
                         });
                 });
                 i++;
