@@ -8,6 +8,7 @@ import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 import { ABI } from "../../../blockchain/EthGobblersABI.js";
 
 import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
+import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -207,13 +208,19 @@ class ETHGobblerNFT {
                 GobblerOwnerDAO.get({ owner: to })
                     .then((gobblerOwner) => {
                         const tokenData = {
-                            tokenId: Number(ethers.utils.formatUnits(data, 0)),
+                            tokenID: Number(ethers.utils.formatUnits(data, 0)),
                             data,
                         };
 
                         gobblerOwner.hasMinted = true;
                         gobblerOwner.tokenData = tokenData;
-                        GobblerOwnerDAO.save(gobblerOwner);
+                        GobblerOwnerDAO.save(gobblerOwner).then(() => {
+                            const spec = {
+                                tokenID: tokenData.tokenID,
+                                disposition: gobblerOwner.side,
+                            };
+                            ETHGobblerDAO.create(spec);
+                        });
                     })
                     .catch((error) => {
                         console.log(error);
