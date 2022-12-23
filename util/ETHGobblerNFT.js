@@ -11,11 +11,13 @@ import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+const BURN_ADDRESS = process.env.BURN_ADDRESS;
 const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 
 class ETHGobblerNFT {
     static getBurySignature(fnName, signature, message, tokenID) {
+        console.log(`${fnName}, ${signature}, ${message}, ${tokenID}`);
         return new Promise((resolve, reject) => {
             const provider = new ethers.providers.JsonRpcProvider(
                 HTTP_RPC_URL,
@@ -200,17 +202,23 @@ class ETHGobblerNFT {
         });
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-        contract.on("Transfer", (from, to, data, event) => {
-            GobblerOwnerDAO.get({ owner: to }).then((gobblerOwner) => {
-                const tokenData = {
-                    tokenId: Number(ethers.utils.formatUnits(data, 0)),
-                    data,
-                };
+        contract.on("Transfer", (from, to, data) => {
+            if (to !== BURN_ADDRESS) {
+                GobblerOwnerDAO.get({ owner: to })
+                    .then((gobblerOwner) => {
+                        const tokenData = {
+                            tokenId: Number(ethers.utils.formatUnits(data, 0)),
+                            data,
+                        };
 
-                gobblerOwner.hasMinted = true;
-                gobblerOwner.tokenData = tokenData;
-                GobblerOwnerDAO.save(gobblerOwner);
-            });
+                        gobblerOwner.hasMinted = true;
+                        gobblerOwner.tokenData = tokenData;
+                        GobblerOwnerDAO.save(gobblerOwner);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            }
         });
 
         contract.on("Feed", (tokenID, amount, owner) => {
