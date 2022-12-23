@@ -28,6 +28,10 @@ class ETHGobblerDAO {
     }
 
     static get(query) {
+        return __BaseDAO__.__get__(ETHGobbler, query);
+    }
+
+    static fetch(query) {
         return new Promise((resolve, reject) => {
             __BaseDAO__
                 .__get__(ETHGobbler, query)
