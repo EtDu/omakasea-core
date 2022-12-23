@@ -144,11 +144,15 @@ class ETHGobblerNFT {
             BLOCKCHAIN_NETWORK,
         );
 
+        provider._websocket.on("close", (code) => {
+            ETHGobblerNFT.listen();
+        });
+
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
         contract.on("Transfer", (from, to, data, event) => {
             GobblerOwnerDAO.get({ owner: to }).then((gobblerOwner) => {
                 const tokenData = {
-                    tokenId: ethers.utils.formatUnits(data, 0),
+                    tokenId: Number(ethers.utils.formatUnits(data, 0)),
                     data,
                 };
 
@@ -158,9 +162,51 @@ class ETHGobblerNFT {
             });
         });
 
-        provider._websocket.on("close", (code) => {
-            ETHGobblerNFT.listen();
+        contract.on("Feed", (tokenID, amount, owner) => {
+            console.log("Feed -------------------");
+            console.log({ tokenID, amount, owner });
         });
+
+        contract.on("Groom", (tokenID, amount, owner) => {
+            console.log("Groom -------------------");
+            console.log({ tokenID, amount, owner });
+        });
+
+        contract.on("Sleep", (tokenID, owner) => {
+            console.log("Sleep -------------------");
+            console.log({ tokenID, owner });
+        });
+
+        contract.on("Bury", (tokenID, owner) => {
+            console.log("Bury -------------------");
+            console.log({ tokenID, owner });
+        });
+
+        contract.on("Mitosis", (parentTokenID, newTokenID, owner) => {
+            console.log("Mitosis -------------------");
+            console.log({ parentTokenID, newTokenID, owner });
+        });
+
+        contract.on("ConfigureTraits", (tokenID, traitIDs) => {
+            console.log("ConfigureTraits -------------------");
+            console.log({ tokenID, traitIDs });
+        });
+
+        contract.on(
+            "TraitUnlocked",
+            (parentGobblerID, newTraitTokenID, owner) => {
+                console.log("TraitUnlocked -------------------");
+                console.log({ parentGobblerID, newTraitTokenID, owner });
+            },
+        );
+
+        contract.on(
+            "GobblerGobbled",
+            (parentGobblerID, victimID, newGobblerGobblerID) => {
+                console.log("GobblerGobbled -------------------");
+                console.log({ parentGobblerID, victimID, newGobblerGobblerID });
+            },
+        );
     }
 }
 
