@@ -15,6 +15,57 @@ const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 
 class ETHGobblerNFT {
+    static getBurySignature(fnName, signature, message, tokenID) {
+        return new Promise((resolve, reject) => {
+            const provider = new ethers.providers.JsonRpcProvider(
+                HTTP_RPC_URL,
+                BLOCKCHAIN_NETWORK,
+            );
+
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                provider,
+            );
+
+            const senderAddress = ethers.utils.getAddress(
+                recoverPersonalSignature({ data: message, signature }),
+            );
+
+            contract.signatureNonce(senderAddress).then((res) => {
+                const sigNonce = res._hex;
+                const byteArray = utils.toUtf8Bytes(fnName);
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
+
+                const messageHash = utils.solidityKeccak256(
+                    ["address", "address", "bytes4", "uint256", "uint256"],
+                    [
+                        senderAddress,
+                        CONTRACT_ADDRESS,
+                        fnNameSig,
+                        tokenID,
+                        sigNonce,
+                    ],
+                );
+                const SIGNER = new ethers.Wallet(
+                    process.env.PRIVATE_KEY,
+                    provider,
+                );
+
+                SIGNER.signMessage(utils.arrayify(messageHash))
+                    .then((signature) => {
+                        const data = {
+                            messageHash,
+                            signature,
+                        };
+
+                        resolve(data);
+                    })
+                    .catch(reject);
+            });
+        });
+    }
+
     static getActionSignature(fnName, signature, message) {
         return new Promise((resolve, reject) => {
             const provider = new ethers.providers.JsonRpcProvider(
@@ -48,12 +99,12 @@ class ETHGobblerNFT {
 
                 SIGNER.signMessage(utils.arrayify(messageHash))
                     .then((signature) => {
-                        const mintData = {
+                        const data = {
                             messageHash,
                             signature,
                         };
 
-                        resolve(mintData);
+                        resolve(data);
                     })
                     .catch(reject);
             });
