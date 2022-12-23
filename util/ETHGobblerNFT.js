@@ -220,6 +220,7 @@ class ETHGobblerNFT {
                         GobblerOwnerDAO.save(gobblerOwner).then(() => {
                             const spec = {
                                 tokenID: tokenData.tokenID,
+                                generation: 1,
                                 disposition: gobblerOwner.side,
                             };
                             ETHGobblerDAO.create(spec);
@@ -285,6 +286,10 @@ class ETHGobblerNFT {
                 console.log({ parentGobblerID, victimID, newGobblerGobblerID });
             },
         );
+    }
+
+    static updateHealth() {
+        // decrease health randomly between 3 - 7
     }
 }
 
