@@ -207,8 +207,11 @@ class ETHGobblerNFT {
             if (to !== BURN_ADDRESS) {
                 GobblerOwnerDAO.get({ owner: to })
                     .then((gobblerOwner) => {
+                        const tokenID = Number(
+                            ethers.utils.formatUnits(data, 0),
+                        );
                         const tokenData = {
-                            tokenID: Number(ethers.utils.formatUnits(data, 0)),
+                            tokenID,
                             data,
                         };
 
