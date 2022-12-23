@@ -218,6 +218,15 @@ class ETHGobblerNFT {
                     .catch((error) => {
                         console.log(error);
                     });
+            } else {
+                GobblerOwnerDAO.get({ owner: from })
+                    .then((gobblerOwner) => {
+                        gobblerOwner.hasBuried = true;
+                        GobblerOwnerDAO.save(gobblerOwner);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
             }
         });
 

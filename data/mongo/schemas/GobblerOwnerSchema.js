@@ -6,6 +6,7 @@ export default {
     mintData: { type: Object, default: null },
     tokenData: { type: Object, default: null },
     hasMinted: { type: Boolean, default: false },
+    hasBuried: { type: Boolean, default: false },
     twitterHandle: { type: String, default: null },
     createdAt: { type: Number },
 };
