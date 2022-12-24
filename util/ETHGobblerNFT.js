@@ -141,24 +141,17 @@ class ETHGobblerNFT {
 
             GobblerOwnerDAO.get({ owner: senderAddress })
                 .then((gobblerOwner) => {
-                    if (gobblerOwner) {
-                        if (!gobblerOwner.mintData) {
-                            ETHGobblerNFT.createMintSignature(
-                                senderAddress,
-                                provider,
-                                gobblerOwner,
-                                contract,
-                            )
-                                .then(resolve)
-                                .catch(reject);
-                        } else {
-                            if (!gobblerOwner.hasMinted) {
-                                resolve(gobblerOwner.mintData)
-                            }
-                            reject("already minted");
-                        }
+                    if (!gobblerOwner.mintData) {
+                        ETHGobblerNFT.createMintSignature(
+                            senderAddress,
+                            provider,
+                            gobblerOwner,
+                            contract,
+                        )
+                            .then(resolve)
+                            .catch(reject);
                     } else {
-                        reject("not on list");
+                        resolve(gobblerOwner.mintData);
                     }
                 })
                 .catch((err) => reject(err || "not on list"));
