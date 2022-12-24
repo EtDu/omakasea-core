@@ -158,7 +158,7 @@ class ETHGobblerNFT {
                         reject("not on list");
                     }
                 })
-                .catch(reject);
+                .catch(reject("not on list"));
         });
     }
 
