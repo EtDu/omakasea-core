@@ -152,13 +152,16 @@ class ETHGobblerNFT {
                                 .then(resolve)
                                 .catch(reject);
                         } else {
+                            if (!gobblerOwner.hasMinted) {
+                                resolve(gobblerOwner.mintData)
+                            }
                             reject("already minted");
                         }
                     } else {
                         reject("not on list");
                     }
                 })
-                .catch(reject("not on list"));
+                .catch((err) => reject(err || "not on list"));
         });
     }
 
