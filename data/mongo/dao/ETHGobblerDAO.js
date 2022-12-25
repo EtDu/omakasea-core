@@ -38,7 +38,7 @@ class ETHGobblerDAO {
                 .then((doc) => {
                     if (doc !== null) {
                         const tokenID = doc.tokenID;
-                        const name = `Gobbler #${tokenID}`;
+                        const name = `Gooey #${tokenID}`;
                         const description =
                             "ETH Gobblers, a Christmas project by Omakasea.";
                         const image = getImageURL(tokenID);
