@@ -34,9 +34,11 @@ class ETHGobblerDAO {
     static fetch(query) {
         return new Promise((resolve, reject) => {
             __BaseDAO__
-                .__get__(ETHGobbler, query)
-                .then((doc) => {
-                    if (doc !== null) {
+                .search(ETHGobbler, query)
+                .then((result) => {
+                    if (result.length > 0) {
+                        const doc = result[0];
+
                         const tokenID = doc.tokenID;
                         const name = `Gooey #${tokenID}`;
                         const description =
