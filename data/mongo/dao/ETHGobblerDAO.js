@@ -75,8 +75,8 @@ class ETHGobblerDAO {
         });
     }
 
-    static search(query, fields = {}) {
-        return __BaseDAO__.__search__(ETHGobbler, query, fields);
+    static search(query, orderBy = {}) {
+        return __BaseDAO__.__search__(ETHGobbler, query, {}, orderBy);
     }
 
     static save(doc) {
