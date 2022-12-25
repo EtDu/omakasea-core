@@ -34,7 +34,7 @@ class ETHGobblerDAO {
     static fetch(query) {
         return new Promise((resolve, reject) => {
             __BaseDAO__
-                .__search__(ETHGobbler, query)
+                .__search__(ETHGobbler, query, {}, { tokenID: 1, createdAt: 1 })
                 .then((results) => {
                     if (results.length > 0) {
                         const doc = results[0];
