@@ -158,7 +158,7 @@ class ETHGobblerNFT {
                         reject("already minted");
                     }
                 })
-                .catch((err) => reject(err || "not on list"));
+                .catch(() => reject("not on list"));
         });
     }
 
