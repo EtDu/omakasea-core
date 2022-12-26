@@ -319,17 +319,21 @@ class ETHGobblerNFT {
 
     static __update__(data) {
         ETHGobblerDAO.get({ tokenID: data.tokenID }).then((gobbler) => {
-            if (data.action === "feed") {
-                gobbler.health += data.amount;
-            } else if (data.action === "groom") {
-                gobbler.health += data.amount;
-            } else if (data.action === "sleep") {
-                gobbler.health = 100;
-            }
+            if (gobbler) {
+                if (data.action === "feed") {
+                    gobbler.health += data.amount;
+                } else if (data.action === "groom") {
+                    gobbler.health += data.amount;
+                } else if (data.action === "sleep") {
+                    gobbler.health = 100;
+                }
 
-            ETHGobblerDAO.save(gobbler).then(() => {
+                ETHGobblerDAO.save(gobbler).then(() => {
+                    console.log(data);
+                });
+            } else {
                 console.log(data);
-            });
+            }
         });
     }
 
