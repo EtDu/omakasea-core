@@ -359,7 +359,9 @@ class ETHGobblerNFT {
         const amount = toInt(res);
 
         if (amount > 0) {
+            console.log(res);
             console.log(`${tokenID}\t${amount}`);
+            console.log("====================");
         }
         // ETHGobblerDAO.get({ tokenID }).then((gobbler) => {});
     }
