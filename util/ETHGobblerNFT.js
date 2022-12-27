@@ -460,18 +460,13 @@ class ETHGobblerNFT {
                 if (address === owner) {
                     ETHGobblerTraitDAO.search({ gobblerID: tokenID })
                         .then((results) => {
-                            const inbox = {
-                                locked: 0,
-                                unlocked: 0,
-                            };
+                            let unlocked = 0;
                             for (const row of results) {
-                                if (row.traitID) {
-                                    inbox.unlocked += 1;
-                                } else {
-                                    inbox.locked += 1;
+                                if (row.traitID === null) {
+                                    unlocked++;
                                 }
                             }
-                            resolve(inbox);
+                            resolve({ unlocked });
                         })
                         .catch(reject);
                 }
