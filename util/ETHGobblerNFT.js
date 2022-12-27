@@ -176,6 +176,50 @@ class ETHGobblerNFT {
         });
     }
 
+    static getTestMint(signature, message) {
+        return new Promise((resolve, reject) => {
+            const provider = new ethers.providers.JsonRpcProvider(
+                HTTP_RPC_URL,
+                BLOCKCHAIN_NETWORK,
+            );
+
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                provider,
+            );
+
+            const senderAddress = ethers.utils.getAddress(
+                recoverPersonalSignature({ data: message, signature }),
+            );
+
+            contract.signatureNonce(senderAddress).then((res) => {
+                const sigNonce = res._hex;
+                const byteArray = utils.toUtf8Bytes("mint");
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
+
+                const messageHash = utils.solidityKeccak256(
+                    ["address", "address", "bytes4", "uint256"],
+                    [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
+                );
+                const SIGNER = new ethers.Wallet(
+                    process.env.PRIVATE_KEY,
+                    provider,
+                );
+
+                SIGNER.signMessage(utils.arrayify(messageHash))
+                    .then((signature) => {
+                        const mintData = {
+                            messageHash,
+                            signature,
+                        };
+                        resolve(mintData);
+                    })
+                    .catch(reject);
+            });
+        });
+    }
+
     static getMintSignature(signature, message) {
         return new Promise((resolve, reject) => {
             const provider = new ethers.providers.JsonRpcProvider(
