@@ -1,7 +1,7 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobblerAction from "../models/ETHGobblerAction.js";
 
-class ETHGobblerDAO {
+class ETHGobblerActionDAO {
     static get(query) {
         return __BaseDAO__.__get__(ETHGobblerAction, query);
     }
@@ -10,9 +10,13 @@ class ETHGobblerDAO {
         return __BaseDAO__.__search__(ETHGobblerAction, query, {}, orderBy);
     }
 
+    static create(action) {
+        return __BaseDAO__.__save__(new ETHGobblerAction(action));
+    }
+
     static save(doc) {
         return __BaseDAO__.__save__(doc);
     }
 }
 
-export default ETHGobblerDAO;
+export default ETHGobblerActionDAO;

@@ -1,7 +1,10 @@
 export default {
     tokenID: { type: Number },
-    action: { type: String, default: null },
+    owner: { type: String, default: null },
+    fnName: { type: String, default: null },
+    actionName: { type: String, default: null },
     amount: { type: Number, default: 0 },
-    signature: { type: String, default: null },
+    sig: { type: Object, default: null },
+    ackState: { type: Number, default: 0 },
     createdAt: { type: Number },
 };

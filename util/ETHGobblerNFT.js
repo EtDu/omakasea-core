@@ -18,12 +18,24 @@ const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
 
+const GROOM_INCREASE = 45;
+
 function toInt(hex) {
     return Number(ethers.utils.formatUnits(hex, 0));
 }
 
 function randomInt(max) {
     return Math.floor(Math.random() * max) + 1;
+}
+
+function getAction(index) {
+    if (index === 0) {
+        return "feed";
+    } else if (index === 1) {
+        return "groom";
+    } else if (index === 2) {
+        return "sleep";
+    }
 }
 
 class ETHGobblerNFT {
@@ -80,6 +92,10 @@ class ETHGobblerNFT {
 
     static getActionSignature(payload) {
         return new Promise((resolve, reject) => {
+            const { fnName, signature, message, action, tokenID, amount } =
+                payload;
+            const actionName = getAction(action);
+
             const provider = new ethers.providers.JsonRpcProvider(
                 HTTP_RPC_URL,
                 BLOCKCHAIN_NETWORK,
@@ -91,13 +107,73 @@ class ETHGobblerNFT {
                 provider,
             );
 
-            const senderAddress = ethers.utils.getAddress(
+            const owner = ethers.utils.getAddress(
                 recoverPersonalSignature({ data: message, signature }),
             );
 
-            contract.ownerOf(tokenID).then((res) => {
-                console.log(res);
-                resolve(payload);
+            contract.ownerOf(tokenID).then((address) => {
+                if (address === owner) {
+                    ETHGobblerActionDAO.get({
+                        tokenID,
+                        fnName,
+                        actionName,
+                        owner,
+                        ackState: 0,
+                    }).then((gobblerAction) => {
+                        if (gobblerAction === null) {
+                            const action = {
+                                tokenID,
+                                fnName,
+                                actionName,
+                                owner,
+                            };
+                            this.createActionSignature(
+                                provider,
+                                contract,
+                                owner,
+                                action,
+                            )
+                                .then((sig) => {
+                                    action.sig = sig;
+                                    ETHGobblerActionDAO.create(action).then(
+                                        () => {
+                                            resolve(sig);
+                                        },
+                                    );
+                                })
+                                .catch(reject);
+                        } else {
+                            resolve(gobblerAction.sig);
+                        }
+                    });
+                } else {
+                    reject();
+                }
+            });
+        });
+    }
+
+    static createActionSignature(provider, contract, owner, action) {
+        return new Promise((resolve, reject) => {
+            contract.signatureNonce(owner).then((res) => {
+                const sigNonce = res._hex;
+                const byteArray = utils.toUtf8Bytes(action.fnName);
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
+
+                const messageHash = utils.solidityKeccak256(
+                    ["address", "address", "bytes4", "uint256"],
+                    [owner, CONTRACT_ADDRESS, fnNameSig, sigNonce],
+                );
+                const SIGNER = new ethers.Wallet(
+                    process.env.PRIVATE_KEY,
+                    provider,
+                );
+
+                SIGNER.signMessage(utils.arrayify(messageHash))
+                    .then((signature) => {
+                        resolve({ signature, messageHash });
+                    })
+                    .catch(reject);
             });
         });
     }
@@ -218,25 +294,25 @@ class ETHGobblerNFT {
             }
         });
 
-        contract.on("Feed", (tokenID, amount, owner) => {
+        contract.on("Feed", (token, amount, owner) => {
             console.log("Feed -------------------");
-            this.__update__({ action: "feed", tokenID, amount, owner });
+            this.__updateAction__({ action: "feed", token, amount, owner });
         });
 
-        contract.on("Groom", (tokenID, amount, owner) => {
+        contract.on("Groom", (token, amount, owner) => {
             console.log("Groom -------------------");
-            this.__update__({ action: "groom", tokenID, amount, owner });
+            this.__updateAction__({ action: "groom", token, amount, owner });
         });
 
-        contract.on("Sleep", (tokenID, owner) => {
+        contract.on("Sleep", (token, owner) => {
             console.log("Sleep -------------------");
-            this.__update__({ action: "sleep", tokenID, owner });
+            this.__updateAction__({ action: "sleep", token, owner });
         });
 
-        contract.on("Bury", (tokenID, owner) => {
+        contract.on("Bury", (token, owner) => {
             console.log("Bury -------------------");
-
-            ETHGobblerDAO.get({ tokenID: toInt(tokenID) })
+            const tokenID = toInt(token);
+            ETHGobblerDAO.get({ tokenID })
                 .then((gobbler) => {
                     gobbler.isAwake = false;
                     gobbler.isBuried = true;
@@ -297,22 +373,40 @@ class ETHGobblerNFT {
         );
     }
 
-    static __update__(data) {
-        ETHGobblerDAO.get({ tokenID: data.tokenID }).then((gobbler) => {
-            if (gobbler) {
-                if (data.action === "feed") {
-                    gobbler.health += data.amount;
-                } else if (data.action === "groom") {
-                    gobbler.health += data.amount;
-                } else if (data.action === "sleep") {
-                    gobbler.health = 100;
-                }
+    static __updateAction__(data) {
+        const tokenID = toInt(data.token);
+        const query = {
+            tokenID,
+            action: data.action,
+            owner: data.owner,
+            ackState: 0,
+        };
 
-                ETHGobblerDAO.save(gobbler).then(() => {
-                    console.log(data);
+        ETHGobblerActionDAO.get(query).then((action) => {
+            if (action) {
+                action.ackState = 2;
+                action.amount = data.amount ? data.amount : 0;
+                ETHGobblerActionDAO.save(action).then(() => {
+                    ETHGobblerDAO.get({ tokenID }).then((gobbler) => {
+                        if (gobbler) {
+                            if (data.action === "feed") {
+                                gobbler.health += data.amount;
+                            } else if (data.action === "groom") {
+                                if (gobbler.health + GROOM_INCREASE < 100) {
+                                    gobbler.health += GROOM_INCREASE;
+                                } else {
+                                    gobbler.health = 100;
+                                }
+                            } else if (data.action === "sleep") {
+                                gobbler.health = 100;
+                            }
+
+                            ETHGobblerDAO.save(gobbler);
+                        } else {
+                            console.log(data);
+                        }
+                    });
                 });
-            } else {
-                console.log(data);
             }
         });
     }
