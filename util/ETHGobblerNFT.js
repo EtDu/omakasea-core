@@ -9,6 +9,7 @@ import { ABI } from "../../../blockchain/EthGobblersABI.js";
 
 import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";
+import ETHGobblerActionDAO from "../data/mongo/dao/ETHGobblerActionDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -77,7 +78,7 @@ class ETHGobblerNFT {
         });
     }
 
-    static getActionSignature(fnName, signature, message) {
+    static getActionSignature(payload) {
         return new Promise((resolve, reject) => {
             const provider = new ethers.providers.JsonRpcProvider(
                 HTTP_RPC_URL,
@@ -94,30 +95,9 @@ class ETHGobblerNFT {
                 recoverPersonalSignature({ data: message, signature }),
             );
 
-            contract.signatureNonce(senderAddress).then((res) => {
-                const sigNonce = res._hex;
-                const byteArray = utils.toUtf8Bytes(fnName);
-                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
-
-                const messageHash = utils.solidityKeccak256(
-                    ["address", "address", "bytes4", "uint256"],
-                    [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
-                );
-                const SIGNER = new ethers.Wallet(
-                    process.env.PRIVATE_KEY,
-                    provider,
-                );
-
-                SIGNER.signMessage(utils.arrayify(messageHash))
-                    .then((signature) => {
-                        const data = {
-                            messageHash,
-                            signature,
-                        };
-
-                        resolve(data);
-                    })
-                    .catch(reject);
+            contract.ownerOf(tokenID).then((res) => {
+                console.log(res);
+                resolve(payload);
             });
         });
     }
