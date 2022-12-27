@@ -15,7 +15,6 @@ import ETHGobblerTraitDAO from "../data/mongo/dao/ETHGobblerTraitDAO.js";
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 const BURN_ADDRESS = process.env.BURN_ADDRESS;
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
@@ -238,27 +237,26 @@ class ETHGobblerNFT {
                 recoverPersonalSignature({ data: message, signature }),
             );
 
-            ETHGobblerNFT.createMintSignature(
-                senderAddress,
-                provider,
-                gobblerOwner,
-                contract,
-            )
-                .then(resolve)
-                .catch(reject);
-
-            // GobblerOwnerDAO.get({ owner: senderAddress })
-            //     .then((gobblerOwner) => {
-            //         if (!gobblerOwner.hasMinted) {
-            //             if (!gobblerOwner.mintData) {
-            //             } else {
-            //                 resolve(gobblerOwner.mintData);
-            //             }
-            //         } else {
-            //             reject("already minted");
-            //         }
-            //     })
-            //     .catch(() => reject("not on list"));
+            GobblerOwnerDAO.get({ owner: senderAddress })
+                .then((gobblerOwner) => {
+                    if (!gobblerOwner.hasMinted) {
+                        if (!gobblerOwner.mintData) {
+                            ETHGobblerNFT.createMintSignature(
+                                senderAddress,
+                                provider,
+                                gobblerOwner,
+                                contract,
+                            )
+                                .then(resolve)
+                                .catch(reject);
+                        } else {
+                            resolve(gobblerOwner.mintData);
+                        }
+                    } else {
+                        reject("already minted");
+                    }
+                })
+                .catch(() => reject("not on list"));
         });
     }
 
@@ -312,30 +310,29 @@ class ETHGobblerNFT {
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
         contract.on("Transfer", (from, to, data) => {
-            if (to !== BURN_ADDRESS && from == ZERO_ADDRESS) {
-                const tokenID = toInt(data);
-                const spec = {
-                    tokenID: tokenID,
-                    generation: 1,
-                    disposition: "nice",
-                };
-                ETHGobblerDAO.create(spec);
+            if (to !== BURN_ADDRESS) {
+                GobblerOwnerDAO.get({ owner: to })
+                    .then((gobblerOwner) => {
+                        const tokenID = toInt(data);
+                        const tokenData = {
+                            tokenID,
+                            data,
+                        };
 
-                // GobblerOwnerDAO.get({ owner: to })
-                //     .then((gobblerOwner) => {
-                //         const tokenData = {
-                //             tokenID,
-                //             data,
-                //         };
-
-                //         gobblerOwner.hasMinted = true;
-                //         gobblerOwner.tokenData = tokenData;
-                //         GobblerOwnerDAO.save(gobblerOwner).then(() => {
-                //         });
-                //     })
-                //     .catch((error) => {
-                //         console.log("BURY ERROR");
-                //     });
+                        gobblerOwner.hasMinted = true;
+                        gobblerOwner.tokenData = tokenData;
+                        GobblerOwnerDAO.save(gobblerOwner).then(() => {
+                            const spec = {
+                                tokenID: tokenData.tokenID,
+                                generation: 1,
+                                disposition: gobblerOwner.side,
+                            };
+                            ETHGobblerDAO.create(spec);
+                        });
+                    })
+                    .catch((error) => {
+                        console.log("BURY ERROR");
+                    });
             }
         });
 
