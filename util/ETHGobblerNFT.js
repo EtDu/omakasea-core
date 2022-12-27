@@ -10,6 +10,7 @@ import { ABI } from "../../../blockchain/EthGobblersABI.js";
 import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";
 import ETHGobblerActionDAO from "../data/mongo/dao/ETHGobblerActionDAO.js";
+import ETHGobblerTraitDAO from "../data/mongo/dao/ETHGobblerTraitDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -19,6 +20,7 @@ const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
 
 const GROOM_INCREASE = 45;
+const TRAIT_UNLOCK_MINIMUM = 0.05;
 
 function toInt(hex) {
     return Number(ethers.utils.formatUnits(hex, 0));
@@ -399,13 +401,77 @@ class ETHGobblerNFT {
                                 gobbler.health = 100;
                             }
 
-                            ETHGobblerDAO.save(gobbler);
+                            ETHGobblerDAO.save(gobbler).then(() => {
+                                ETHGobblerNFT.__updateUnlock__(tokenID);
+                            });
                         } else {
                             console.log(data);
                         }
                     });
                 });
             }
+        });
+    }
+
+    static __updateUnlock__(tokenID) {
+        const provider = new ethers.providers.JsonRpcProvider(
+            HTTP_RPC_URL,
+            BLOCKCHAIN_NETWORK,
+        );
+
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+        contract.ETHGobbled(tokenID).then((wei) => {
+            ETHGobblerTraitDAO.search({ tokenID }).then((results) => {
+                const totalUnlocks = Math.floor(
+                    ethers.utils.formatEther(wei) / TRAIT_UNLOCK_MINIMUM,
+                );
+
+                const unlocks = totalUnlocks - results.length;
+                for (let i = 0; i < unlocks; i++) {
+                    ETHGobblerTraitDAO.create({
+                        gobblerID: tokenID,
+                    });
+                }
+            });
+        });
+    }
+
+    static inbox(payload) {
+        return new Promise((resolve, reject) => {
+            const { message, signature, tokenID } = payload;
+
+            const provider = new ethers.providers.JsonRpcProvider(
+                HTTP_RPC_URL,
+                BLOCKCHAIN_NETWORK,
+            );
+
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                provider,
+            );
+
+            const owner = ethers.utils.getAddress(
+                recoverPersonalSignature({ data: message, signature }),
+            );
+
+            contract.ownerOf(tokenID).then((address) => {
+                if (address === owner) {
+                    ETHGobblerTraitDAO.search({ gobblerID: tokenID })
+                        .then((results) => {
+                            const traits = [];
+                            for (const row of results) {
+                                traits.push({
+                                    gobblerID: row.gobblerID,
+                                    traitID: row.traitID,
+                                });
+                            }
+                            resolve(traits);
+                        })
+                        .catch(reject);
+                }
+            });
         });
     }
 
