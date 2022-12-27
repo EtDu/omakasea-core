@@ -92,9 +92,7 @@ class ETHGobblerNFT {
 
     static getActionSignature(payload) {
         return new Promise((resolve, reject) => {
-            const { fnName, signature, message, action, tokenID, amount } =
-                payload;
-            const actionName = getAction(action);
+            const { fnName, signature, message, tokenID } = payload;
 
             const provider = new ethers.providers.JsonRpcProvider(
                 HTTP_RPC_URL,
@@ -116,7 +114,6 @@ class ETHGobblerNFT {
                     ETHGobblerActionDAO.get({
                         tokenID,
                         fnName,
-                        actionName,
                         owner,
                         ackState: 0,
                     }).then((gobblerAction) => {
@@ -124,7 +121,6 @@ class ETHGobblerNFT {
                             const action = {
                                 tokenID,
                                 fnName,
-                                actionName,
                                 owner,
                             };
                             this.createActionSignature(
@@ -377,13 +373,15 @@ class ETHGobblerNFT {
         const tokenID = toInt(data.token);
         const query = {
             tokenID,
-            action: data.action,
+            fnName: "actionAlive",
             owner: data.owner,
             ackState: 0,
+            actionName: null,
         };
 
         ETHGobblerActionDAO.get(query).then((action) => {
             if (action) {
+                action.actionName = data.action;
                 action.ackState = 2;
                 action.amount = data.amount ? data.amount : 0;
                 ETHGobblerActionDAO.save(action).then(() => {
