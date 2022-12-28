@@ -20,10 +20,11 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
+const ETH_DEDUCTION_THRESHOLD = process.env.ETH_DEDUCTION_THRESHOLD;
 
 const GROOM_INCREASE = 45;
 const TRAIT_UNLOCK_THRESHOLD = {
-    amount: "0.025",
+    amount: ETH_DEDUCTION_THRESHOLD,
     from: "ether",
 };
 const TRAIT_UNLOCK_WEI_BN = EthersUtil.toWeiBN(TRAIT_UNLOCK_THRESHOLD);
@@ -461,18 +462,9 @@ class ETHGobblerNFT {
                         amount: unlock.amountETH,
                         from: "ether",
                     });
-                    const eth1 = EthersUtil.fromWeiBN({
-                        amount: reduceWEI,
-                        to: "ether",
-                    });
 
                     if (EthersUtil.gteWeiBN(reduceWEI, traitBN) && !overLimit) {
                         reduceWEI = EthersUtil.diffWeiBN([reduceWEI, traitBN]);
-                        const eth2 = EthersUtil.fromWeiBN({
-                            amount: reduceWEI,
-                            to: "ether",
-                        });
-                        console.log(`${eth1} -> ${eth2}`);
                     } else {
                         overLimit = true;
                     }
@@ -482,8 +474,6 @@ class ETHGobblerNFT {
                     reduceWEI,
                     TRAIT_UNLOCK_WEI_BN,
                 );
-
-                console.log(`new traits === ${unlockCount}`);
 
                 for (let i = 0; i < unlockCount; i++) {
                     ETHGobblerTraitDAO.create({

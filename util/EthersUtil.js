@@ -81,9 +81,9 @@ class EthersUtil {
 
     static evDivWeiBN(total, unit) {
         let div = 0;
-        let inc = total;
-        while (EthersUtil.gteWeiBN(inc, unit)) {
-            inc = EthersUtil.diffWeiBN([inc, unit]);
+        let dec = total;
+        while (EthersUtil.gtWeiBN(dec, unit)) {
+            dec = EthersUtil.diffWeiBN([dec, unit]);
             div++;
         }
         return div;
