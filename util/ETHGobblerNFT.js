@@ -11,6 +11,7 @@ import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";
 import ETHGobblerActionDAO from "../data/mongo/dao/ETHGobblerActionDAO.js";
 import ETHGobblerTraitDAO from "../data/mongo/dao/ETHGobblerTraitDAO.js";
+import EthersUtil from "./EthersUtil.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -21,7 +22,10 @@ const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
 
 const GROOM_INCREASE = 45;
-const TRAIT_UNLOCK_MINIMUM = 0.05;
+const TRAIT_UNLOCK_WEI_BN = EthersUtil.toWeiBN({
+    amount: "0.5",
+    from: "ether",
+});
 
 function toInt(hex) {
     return Number(ethers.utils.formatUnits(hex, 0));
@@ -443,19 +447,18 @@ class ETHGobblerNFT {
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-        contract.ETHGobbled(tokenID).then((wei) => {
-            ETHGobblerTraitDAO.search({ tokenID }).then((results) => {
-                const totalUnlocks = Math.floor(
-                    ethers.utils.formatEther(wei) / TRAIT_UNLOCK_MINIMUM,
-                );
-
-                const unlocks = totalUnlocks - results.length;
-                for (let i = 0; i < unlocks; i++) {
-                    ETHGobblerTraitDAO.create({
-                        gobblerID: tokenID,
-                    });
-                }
-            });
+        contract.ETHGobbled(tokenID).then((spentWEI) => {
+            // ETHGobblerTraitDAO.search({ tokenID }).then((results) => {
+            //     const totalUnlocks = Math.floor(
+            //         ethers.utils.formatEther(wei) / TRAIT_UNLOCK_MINIMUM,
+            //     );
+            //     const unlocks = totalUnlocks - results.length;
+            //     for (let i = 0; i < unlocks; i++) {
+            //         ETHGobblerTraitDAO.create({
+            //             gobblerID: tokenID,
+            //         });
+            //     }
+            // });
         });
     }
 
