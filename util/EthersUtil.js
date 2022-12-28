@@ -51,32 +51,39 @@ class EthersUtil {
         return div;
     }
 
-    static gtWeiBN(gt, lt) {
-        if (typeof gt != "object" || typeof lt != "object")
+    static gtWeiBN(op1, op2) {
+        if (typeof op1 != "object" || typeof op2 != "object")
             throw new Error("input values must be Big Numbers!");
 
-        return gt.gt(lt);
+        return op1.gt(op2);
     }
 
-    static ltWeiBN(lt, gt) {
-        if (typeof lt != "object" || typeof gt != "object")
+    static ltWeiBN(op1, op2) {
+        if (typeof op1 != "object" || typeof op2 != "object")
             throw new Error("input values must be Big Numbers!");
 
-        return lt.lt(gt);
+        return op1.lt(op2);
     }
 
-    static gteWeiBN(gte, lt) {
-        if (typeof gte != "object" || typeof lt != "object")
+    static gteWeiBN(op1, op2) {
+        if (typeof op1 != "object" || typeof op2 != "object")
             throw new Error("input values must be Big Numbers!");
 
-        return gte.gte(lt);
+        return op1.gte(op2);
     }
 
-    static lteWeiBN(lte, gt) {
-        if (typeof lte != "object" || typeof gt != "object")
+    static lteWeiBN(op1, op2) {
+        if (typeof op1 != "object" || typeof op2 != "object")
             throw new Error("input values must be Big Numbers!");
 
-        return lte.lte(gt);
+        return op1.lte(op2);
+    }
+
+    static eqWeiBN(op1, op2) {
+        if (typeof op1 != "object" || typeof op2 != "object")
+            throw new Error("input values must be Big Numbers!");
+
+        return op1.eq(op2);
     }
 
     static evDivWeiBN(total, unit) {
@@ -86,6 +93,11 @@ class EthersUtil {
             dec = EthersUtil.diffWeiBN([dec, unit]);
             div++;
         }
+
+        if (EthersUtil.eqWeiBN(dec, unit)) {
+            div++;
+        }
+
         return div;
     }
 }

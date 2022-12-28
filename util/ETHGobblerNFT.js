@@ -454,7 +454,7 @@ class ETHGobblerNFT {
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
         contract.ETHGobbled(gobblerID).then((spentWEI) => {
-            let reduceWEI = spentWEI;
+            let remWEI = spentWEI;
             let overLimit = false;
             ETHGobblerTraitDAO.search({ gobblerID }).then((unlocks) => {
                 for (const unlock of unlocks) {
@@ -463,15 +463,15 @@ class ETHGobblerNFT {
                         from: "ether",
                     });
 
-                    if (EthersUtil.gteWeiBN(reduceWEI, traitBN) && !overLimit) {
-                        reduceWEI = EthersUtil.diffWeiBN([reduceWEI, traitBN]);
+                    if (EthersUtil.gteWeiBN(remWEI, traitBN) && !overLimit) {
+                        remWEI = EthersUtil.diffWeiBN([remWEI, traitBN]);
                     } else {
                         overLimit = true;
                     }
                 }
 
                 const unlockCount = EthersUtil.evDivWeiBN(
-                    reduceWEI,
+                    remWEI,
                     TRAIT_UNLOCK_WEI_BN,
                 );
 
