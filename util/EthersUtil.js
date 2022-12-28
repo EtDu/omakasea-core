@@ -50,6 +50,38 @@ class EthersUtil {
         const div = division.reduce((acc, current) => acc.div(current));
         return div;
     }
+
+    static gtWeiBN(gt, lt) {
+        if (typeof gt != "object" || typeof lt != "object")
+            throw new Error("input values must be Big Numbers!");
+
+        const isGT = gt.gt(lt)
+        return isGT;
+    }
+
+    static ltWeiBN(lt, gt) {
+        if (typeof lt != "object" || typeof gt != "object")
+            throw new Error("input values must be Big Numbers!");
+
+        const isLT = lt.lt(gt)
+        return isLT;
+    }
+
+    static gteWeiBN(gte, lt) {
+        if (typeof gte != "object" || typeof lt != "object")
+            throw new Error("input values must be Big Numbers!");
+
+        const isGTE = gte.gte(lt)
+        return isGTE;
+    }
+
+    static lteWeiBN(lte, gt) {
+        if (typeof lte != "object" || typeof gt != "object")
+            throw new Error("input values must be Big Numbers!");
+
+        const isLTE = lte.lte(gt)
+        return isLTE;
+    }
 }
 
 export default EthersUtil;
