@@ -5,7 +5,7 @@ import utils from "ethers/lib/utils.js";
 import ethers from "ethers";
 import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 
-import { ABI } from "../../../blockchain/EthGobblersABI.js";
+import ABI from "../../blockchain/EthGobblersABI.js";
 
 import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";

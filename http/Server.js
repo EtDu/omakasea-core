@@ -1,9 +1,11 @@
 import express from "express";
+import logger from "morgan";
 
 class Responses {
     constructor(name, port) {
         this.app = express();
         this.app.use(express.json());
+        this.app.use(logger("dev"));
         this.name = name;
         this.port = port;
     }
