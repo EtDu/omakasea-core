@@ -112,41 +112,33 @@ class ETHGobblerNFT {
                 recoverPersonalSignature({ data: message, signature }),
             );
 
-            contract.ownerOf(tokenID).then((address) => {
-                if (address === owner) {
-                    ETHGobblerActionDAO.get({
+            ETHGobblerActionDAO.get({
+                tokenID,
+                fnName,
+                owner,
+                ackState: 0,
+            }).then((gobblerAction) => {
+                if (gobblerAction === null) {
+                    const action = {
                         tokenID,
                         fnName,
                         owner,
-                        ackState: 0,
-                    }).then((gobblerAction) => {
-                        if (gobblerAction === null) {
-                            const action = {
-                                tokenID,
-                                fnName,
-                                owner,
-                            };
-                            this.createActionSignature(
-                                provider,
-                                contract,
-                                owner,
-                                action,
-                            )
-                                .then((sig) => {
-                                    action.sig = sig;
-                                    ETHGobblerActionDAO.create(action).then(
-                                        () => {
-                                            resolve(sig);
-                                        },
-                                    );
-                                })
-                                .catch(reject);
-                        } else {
-                            resolve(gobblerAction.sig);
-                        }
-                    });
+                    };
+                    this.createActionSignature(
+                        provider,
+                        contract,
+                        owner,
+                        action,
+                    )
+                        .then((sig) => {
+                            action.sig = sig;
+                            ETHGobblerActionDAO.create(action).then(() => {
+                                resolve(sig);
+                            });
+                        })
+                        .catch(reject);
                 } else {
-                    reject();
+                    resolve(gobblerAction.sig);
                 }
             });
         });
