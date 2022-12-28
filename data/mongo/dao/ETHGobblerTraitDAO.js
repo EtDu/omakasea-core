@@ -11,6 +11,7 @@ class ETHGobblerActionDAO {
     }
 
     static create(trait) {
+        trait.createdAt = Date.now();
         return __BaseDAO__.__save__(new ETHGobblerTrait(trait));
     }
 

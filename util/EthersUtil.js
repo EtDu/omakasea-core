@@ -55,32 +55,38 @@ class EthersUtil {
         if (typeof gt != "object" || typeof lt != "object")
             throw new Error("input values must be Big Numbers!");
 
-        const isGT = gt.gt(lt)
-        return isGT;
+        return gt.gt(lt);
     }
 
     static ltWeiBN(lt, gt) {
         if (typeof lt != "object" || typeof gt != "object")
             throw new Error("input values must be Big Numbers!");
 
-        const isLT = lt.lt(gt)
-        return isLT;
+        return lt.lt(gt);
     }
 
     static gteWeiBN(gte, lt) {
         if (typeof gte != "object" || typeof lt != "object")
             throw new Error("input values must be Big Numbers!");
 
-        const isGTE = gte.gte(lt)
-        return isGTE;
+        return gte.gte(lt);
     }
 
     static lteWeiBN(lte, gt) {
         if (typeof lte != "object" || typeof gt != "object")
             throw new Error("input values must be Big Numbers!");
 
-        const isLTE = lte.lte(gt)
-        return isLTE;
+        return lte.lte(gt);
+    }
+
+    static evDivWeiBN(total, unit) {
+        let div = 0;
+        let inc = total;
+        while (EthersUtil.gteWeiBN(inc, unit)) {
+            inc = EthersUtil.diffWeiBN([inc, unit]);
+            div++;
+        }
+        return div;
     }
 }
 

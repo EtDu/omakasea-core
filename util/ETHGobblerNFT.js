@@ -22,9 +22,14 @@ const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
 
 const GROOM_INCREASE = 45;
-const TRAIT_UNLOCK_WEI_BN = EthersUtil.toWeiBN({
-    amount: "0.5",
+const TRAIT_UNLOCK_THRESHOLD = {
+    amount: "0.025",
     from: "ether",
+};
+const TRAIT_UNLOCK_WEI_BN = EthersUtil.toWeiBN(TRAIT_UNLOCK_THRESHOLD);
+const TRAIT_UNLOCK_ETH_STR = EthersUtil.fromWeiBN({
+    amount: TRAIT_UNLOCK_WEI_BN,
+    to: "ether",
 });
 
 function toInt(hex) {
@@ -439,7 +444,7 @@ class ETHGobblerNFT {
         });
     }
 
-    static __updateUnlock__(tokenID) {
+    static __updateUnlock__(gobblerID) {
         const provider = new ethers.providers.JsonRpcProvider(
             HTTP_RPC_URL,
             BLOCKCHAIN_NETWORK,
@@ -447,18 +452,46 @@ class ETHGobblerNFT {
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-        contract.ETHGobbled(tokenID).then((spentWEI) => {
-            // ETHGobblerTraitDAO.search({ tokenID }).then((results) => {
-            //     const totalUnlocks = Math.floor(
-            //         ethers.utils.formatEther(wei) / TRAIT_UNLOCK_MINIMUM,
-            //     );
-            //     const unlocks = totalUnlocks - results.length;
-            //     for (let i = 0; i < unlocks; i++) {
-            //         ETHGobblerTraitDAO.create({
-            //             gobblerID: tokenID,
-            //         });
-            //     }
-            // });
+        contract.ETHGobbled(gobblerID).then((spentWEI) => {
+            let reduceWEI = spentWEI;
+            let overLimit = false;
+            ETHGobblerTraitDAO.search({ gobblerID }).then((unlocks) => {
+                for (const unlock of unlocks) {
+                    const traitBN = EthersUtil.toWeiBN({
+                        amount: unlock.amountETH,
+                        from: "ether",
+                    });
+                    const eth1 = EthersUtil.fromWeiBN({
+                        amount: reduceWEI,
+                        to: "ether",
+                    });
+
+                    if (EthersUtil.gteWeiBN(reduceWEI, traitBN) && !overLimit) {
+                        reduceWEI = EthersUtil.diffWeiBN([reduceWEI, traitBN]);
+                        const eth2 = EthersUtil.fromWeiBN({
+                            amount: reduceWEI,
+                            to: "ether",
+                        });
+                        console.log(`${eth1} -> ${eth2}`);
+                    } else {
+                        overLimit = true;
+                    }
+                }
+
+                const unlockCount = EthersUtil.evDivWeiBN(
+                    reduceWEI,
+                    TRAIT_UNLOCK_WEI_BN,
+                );
+
+                console.log(`new traits === ${unlockCount}`);
+
+                for (let i = 0; i < unlockCount; i++) {
+                    ETHGobblerTraitDAO.create({
+                        gobblerID,
+                        amountETH: TRAIT_UNLOCK_ETH_STR,
+                    });
+                }
+            });
         });
     }
 
