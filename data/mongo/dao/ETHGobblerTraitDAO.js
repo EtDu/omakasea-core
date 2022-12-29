@@ -1,7 +1,7 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobblerTrait from "../models/ETHGobblerTrait.js";
 
-class ETHGobblerActionDAO {
+class ETHGobblerTraitDAO {
     static get(query) {
         return __BaseDAO__.__get__(ETHGobblerTrait, query);
     }
@@ -20,4 +20,4 @@ class ETHGobblerActionDAO {
     }
 }
 
-export default ETHGobblerActionDAO;
+export default ETHGobblerTraitDAO;

@@ -11,6 +11,7 @@ import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";
 import ETHGobblerActionDAO from "../data/mongo/dao/ETHGobblerActionDAO.js";
 import ETHGobblerTraitDAO from "../data/mongo/dao/ETHGobblerTraitDAO.js";
+import ETHGobblerMitosisDAO from "../data/mongo/dao/ETHGobblerMitosisDAO.js";
 import EthersUtil from "./EthersUtil.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
@@ -20,16 +21,23 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
-const ETH_DEDUCTION_THRESHOLD = process.env.ETH_DEDUCTION_THRESHOLD;
 
 const GROOM_INCREASE = 45;
+
+const ETH_TRAIT_THRESHOLD = process.env.ETH_TRAIT_THRESHOLD;
 const TRAIT_UNLOCK_THRESHOLD = {
-    amount: ETH_DEDUCTION_THRESHOLD,
+    amount: ETH_TRAIT_THRESHOLD,
     from: "ether",
 };
 const TRAIT_UNLOCK_WEI_BN = EthersUtil.toWeiBN(TRAIT_UNLOCK_THRESHOLD);
 const TRAIT_UNLOCK_ETH_STR = EthersUtil.fromWeiBN({
     amount: TRAIT_UNLOCK_WEI_BN,
+    to: "ether",
+});
+
+const MITOSIS_WEI_BN = EthersUtil.toWeiBN(MITOSIS_THRESHOLD);
+const MITOSIS_ETH_STR = EthersUtil.fromWeiBN({
+    amount: MITOSIS_WEI_BN,
     to: "ether",
 });
 
@@ -472,13 +480,53 @@ class ETHGobblerNFT {
 
                 const unlockCount = EthersUtil.evDivWeiBN(
                     remWEI,
-                    TRAIT_UNLOCK_WEI_BN,
+                    MITOSIS_WEI_BN,
                 );
 
                 for (let i = 0; i < unlockCount; i++) {
                     ETHGobblerTraitDAO.create({
                         gobblerID,
                         amountETH: TRAIT_UNLOCK_ETH_STR,
+                    });
+                }
+            });
+        });
+    }
+
+    __updateMitosis__(parentID) {
+        const provider = new ethers.providers.JsonRpcProvider(
+            HTTP_RPC_URL,
+            BLOCKCHAIN_NETWORK,
+        );
+
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+        contract.ETHGobbled(parentID).then((spentWEI) => {
+            let remWEI = spentWEI;
+            let overLimit = false;
+            ETHGobblerMitosisDAO.search({ parentID }).then((duplicates) => {
+                for (const duplicate of duplicates) {
+                    const dupeBN = EthersUtil.toWeiBN({
+                        amount: duplicate.amountETH,
+                        from: "ether",
+                    });
+
+                    if (EthersUtil.gteWeiBN(remWEI, dupeBN) && !overLimit) {
+                        remWEI = EthersUtil.diffWeiBN([remWEI, dupeBN]);
+                    } else {
+                        overLimit = true;
+                    }
+                }
+
+                const dupeCount = EthersUtil.evDivWeiBN(
+                    remWEI,
+                    TRAIT_UNLOCK_WEI_BN,
+                );
+
+                for (let i = 0; i < dupeCount; i++) {
+                    ETHGobblerMitosisDAO.create({
+                        parentID,
+                        amountETH: MITOSIS_ETH_STR,
                     });
                 }
             });
