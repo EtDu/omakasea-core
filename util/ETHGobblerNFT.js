@@ -35,7 +35,12 @@ const TRAIT_UNLOCK_ETH_STR = EthersUtil.fromWeiBN({
     to: "ether",
 });
 
-const MITOSIS_WEI_BN = EthersUtil.toWeiBN(MITOSIS_THRESHOLD);
+const MITOSIS_THRESHOLD = process.env.MITOSIS_THRESHOLD;
+const MITOSIS_TRIGGER_THRESHOLD = {
+    amount: MITOSIS_THRESHOLD,
+    from: "ether",
+};
+const MITOSIS_WEI_BN = EthersUtil.toWeiBN(MITOSIS_TRIGGER_THRESHOLD);
 const MITOSIS_ETH_STR = EthersUtil.fromWeiBN({
     amount: MITOSIS_WEI_BN,
     to: "ether",
