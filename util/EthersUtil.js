@@ -1,6 +1,15 @@
 import utils from "ethers/lib/utils.js";
+import { BigNumber } from "ethers";
 
 class EthersUtil {
+    static toBN(amount) {
+        if (typeof amount != "string" && typeof amount != "number")
+            throw new Error("amount must be a string or number");
+
+        const value = BigNumber.from(amount);
+        return value;
+    }
+
     static toWeiBN({ amount, from }) {
         if (typeof amount != "string")
             throw new Error("amount must be a string");
