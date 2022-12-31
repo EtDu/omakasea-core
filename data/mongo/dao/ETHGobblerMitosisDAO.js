@@ -19,8 +19,12 @@ class ETHGobblerMitosisDAO {
         return __BaseDAO__.__save__(doc);
     }
 
-    static fetch(query) {
+    static fetch(tokenID) {
         return new Promise((resolve, reject) => {
+            const query = {
+                parentID: tokenID,
+                childID: null,
+            };
             __BaseDAO__
                 .__search__(
                     ETHGobblerMitosis,
