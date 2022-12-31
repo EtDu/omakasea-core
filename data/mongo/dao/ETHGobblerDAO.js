@@ -61,15 +61,15 @@ class ETHGobblerDAO {
                             });
                         }
 
-                        resolve(
-                            {
+                        resolve({
+                            meta: {
                                 name,
                                 description,
                                 image,
                                 attributes,
                             },
-                            isAwake,
-                        );
+                            isAwake: doc.isAwake,
+                        });
                     } else {
                         reject();
                     }
