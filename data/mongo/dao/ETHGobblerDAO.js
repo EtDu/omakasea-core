@@ -33,46 +33,40 @@ class ETHGobblerDAO {
 
     static fetch(query) {
         return new Promise((resolve, reject) => {
-            __BaseDAO__
-                .__search__(ETHGobbler, query, {}, { tokenID: 1, createdAt: 1 })
-                .then((results) => {
-                    if (results.length > 0) {
-                        const doc = results[0];
-                        const tokenID = doc.tokenID;
-                        const name = `Gooey #${tokenID}`;
-                        const description =
-                            "ETH Gobblers, a Christmas project by Omakasea.";
-                        const image = getImageURL(tokenID);
-                        const attributes = [];
+            this.get(query)
+                .then((gobbler) => {
+                    const tokenID = gobbler.tokenID;
+                    const name = `Gooey #${tokenID}`;
+                    const description =
+                        "ETH Gobblers, a Christmas project by Omakasea.";
+                    const image = getImageURL(tokenID);
+                    const attributes = [];
 
-                        const attrObj = {
-                            generation: doc.generation,
-                            health: doc.health,
-                            disposition: doc.disposition,
-                            age: getAge(doc.createdAt),
-                            isAwake: doc.isAwake,
-                            isBuried: doc.isBuried,
-                        };
+                    const attrObj = {
+                        generation: gobbler.generation,
+                        health: gobbler.health,
+                        disposition: gobbler.disposition,
+                        age: getAge(gobbler.createdAt),
+                        isAwake: gobbler.isAwake,
+                        isBuried: gobbler.isBuried,
+                    };
 
-                        for (const key of Object.keys(attrObj)) {
-                            attributes.push({
-                                trait_type: key,
-                                value: attrObj[key],
-                            });
-                        }
-
-                        resolve({
-                            meta: {
-                                name,
-                                description,
-                                image,
-                                attributes,
-                            },
-                            isAwake: doc.isAwake,
+                    for (const key of Object.keys(attrObj)) {
+                        attributes.push({
+                            trait_type: key,
+                            value: attrObj[key],
                         });
-                    } else {
-                        reject();
                     }
+
+                    resolve({
+                        meta: {
+                            name,
+                            description,
+                            image,
+                            attributes,
+                        },
+                        isAwake: gobbler.isAwake,
+                    });
                 })
                 .catch(reject);
         });
