@@ -11,6 +11,7 @@ class ETHGobblerActionDAO {
     }
 
     static create(action) {
+        action.createdAt = Date.now();
         return __BaseDAO__.__save__(new ETHGobblerAction(action));
     }
 

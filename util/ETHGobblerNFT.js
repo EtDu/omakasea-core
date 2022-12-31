@@ -5,20 +5,46 @@ import utils from "ethers/lib/utils.js";
 import ethers from "ethers";
 import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 
-import { ABI } from "../../../blockchain/EthGobblersABI.js";
+import ABI from "../../blockchain/EthGobblersABI.js";
 
 import GobblerOwnerDAO from "../data/mongo/dao/GobblerOwnerDAO.js";
 import ETHGobblerDAO from "../data/mongo/dao/ETHGobblerDAO.js";
 import ETHGobblerActionDAO from "../data/mongo/dao/ETHGobblerActionDAO.js";
+import ETHGobblerTraitDAO from "../data/mongo/dao/ETHGobblerTraitDAO.js";
+import ETHGobblerMitosisDAO from "../data/mongo/dao/ETHGobblerMitosisDAO.js";
+import EthersUtil from "./EthersUtil.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 const BURN_ADDRESS = process.env.BURN_ADDRESS;
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 const WS_RPC_URL = process.env.WS_RPC_URL;
 const HEALTH_DEDUCTION_MAX = process.env.HEALTH_DEDUCTION_MAX;
 
 const GROOM_INCREASE = 45;
+
+const ETH_TRAIT_THRESHOLD = process.env.ETH_TRAIT_THRESHOLD;
+const TRAIT_UNLOCK_THRESHOLD = {
+    amount: ETH_TRAIT_THRESHOLD,
+    from: "ether",
+};
+const TRAIT_UNLOCK_WEI_BN = EthersUtil.toWeiBN(TRAIT_UNLOCK_THRESHOLD);
+const TRAIT_UNLOCK_ETH_STR = EthersUtil.fromWeiBN({
+    amount: TRAIT_UNLOCK_WEI_BN,
+    to: "ether",
+});
+
+const MITOSIS_THRESHOLD = process.env.MITOSIS_THRESHOLD;
+const MITOSIS_TRIGGER_THRESHOLD = {
+    amount: MITOSIS_THRESHOLD,
+    from: "ether",
+};
+const MITOSIS_WEI_BN = EthersUtil.toWeiBN(MITOSIS_TRIGGER_THRESHOLD);
+const MITOSIS_ETH_STR = EthersUtil.fromWeiBN({
+    amount: MITOSIS_WEI_BN,
+    to: "ether",
+});
 
 function toInt(hex) {
     return Number(ethers.utils.formatUnits(hex, 0));
@@ -109,41 +135,33 @@ class ETHGobblerNFT {
                 recoverPersonalSignature({ data: message, signature }),
             );
 
-            contract.ownerOf(tokenID).then((address) => {
-                if (address === owner) {
-                    ETHGobblerActionDAO.get({
+            ETHGobblerActionDAO.get({
+                tokenID,
+                fnName,
+                owner,
+                ackState: 0,
+            }).then((gobblerAction) => {
+                if (gobblerAction === null) {
+                    const action = {
                         tokenID,
                         fnName,
                         owner,
-                        ackState: 0,
-                    }).then((gobblerAction) => {
-                        if (gobblerAction === null) {
-                            const action = {
-                                tokenID,
-                                fnName,
-                                owner,
-                            };
-                            this.createActionSignature(
-                                provider,
-                                contract,
-                                owner,
-                                action,
-                            )
-                                .then((sig) => {
-                                    action.sig = sig;
-                                    ETHGobblerActionDAO.create(action).then(
-                                        () => {
-                                            resolve(sig);
-                                        },
-                                    );
-                                })
-                                .catch(reject);
-                        } else {
-                            resolve(gobblerAction.sig);
-                        }
-                    });
+                    };
+                    this.createActionSignature(
+                        provider,
+                        contract,
+                        owner,
+                        action,
+                    )
+                        .then((sig) => {
+                            action.sig = sig;
+                            ETHGobblerActionDAO.create(action).then(() => {
+                                resolve(sig);
+                            });
+                        })
+                        .catch(reject);
                 } else {
-                    reject();
+                    resolve(gobblerAction.sig);
                 }
             });
         });
@@ -168,6 +186,50 @@ class ETHGobblerNFT {
                 SIGNER.signMessage(utils.arrayify(messageHash))
                     .then((signature) => {
                         resolve({ signature, messageHash });
+                    })
+                    .catch(reject);
+            });
+        });
+    }
+
+    static getTestMint(signature, message) {
+        return new Promise((resolve, reject) => {
+            const provider = new ethers.providers.JsonRpcProvider(
+                HTTP_RPC_URL,
+                BLOCKCHAIN_NETWORK,
+            );
+
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                provider,
+            );
+
+            const senderAddress = ethers.utils.getAddress(
+                recoverPersonalSignature({ data: message, signature }),
+            );
+
+            contract.signatureNonce(senderAddress).then((res) => {
+                const sigNonce = res._hex;
+                const byteArray = utils.toUtf8Bytes("mint");
+                const fnNameSig = utils.hexlify(byteArray.slice(0, 4));
+
+                const messageHash = utils.solidityKeccak256(
+                    ["address", "address", "bytes4", "uint256"],
+                    [senderAddress, CONTRACT_ADDRESS, fnNameSig, sigNonce],
+                );
+                const SIGNER = new ethers.Wallet(
+                    process.env.PRIVATE_KEY,
+                    provider,
+                );
+
+                SIGNER.signMessage(utils.arrayify(messageHash))
+                    .then((signature) => {
+                        const mintData = {
+                            messageHash,
+                            signature,
+                        };
+                        resolve(mintData);
                     })
                     .catch(reject);
             });
@@ -264,29 +326,14 @@ class ETHGobblerNFT {
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
         contract.on("Transfer", (from, to, data) => {
-            if (to !== BURN_ADDRESS) {
-                GobblerOwnerDAO.get({ owner: to })
-                    .then((gobblerOwner) => {
-                        const tokenID = toInt(data);
-                        const tokenData = {
-                            tokenID,
-                            data,
-                        };
-
-                        gobblerOwner.hasMinted = true;
-                        gobblerOwner.tokenData = tokenData;
-                        GobblerOwnerDAO.save(gobblerOwner).then(() => {
-                            const spec = {
-                                tokenID: tokenData.tokenID,
-                                generation: 1,
-                                disposition: gobblerOwner.side,
-                            };
-                            ETHGobblerDAO.create(spec);
-                        });
-                    })
-                    .catch((error) => {
-                        console.log("BURY ERROR");
-                    });
+            if (to !== BURN_ADDRESS && from == ZERO_ADDRESS) {
+                const tokenID = toInt(data);
+                const spec = {
+                    tokenID: tokenID,
+                    generation: 1,
+                    disposition: "nice",
+                };
+                ETHGobblerDAO.create(spec);
             }
         });
 
@@ -399,13 +446,132 @@ class ETHGobblerNFT {
                                 gobbler.health = 100;
                             }
 
-                            ETHGobblerDAO.save(gobbler);
+                            ETHGobblerDAO.save(gobbler).then(() => {
+                                ETHGobblerNFT.__updateUnlock__(tokenID);
+                            });
                         } else {
                             console.log(data);
                         }
                     });
                 });
             }
+        });
+    }
+
+    static __updateUnlock__(gobblerID) {
+        const provider = new ethers.providers.JsonRpcProvider(
+            HTTP_RPC_URL,
+            BLOCKCHAIN_NETWORK,
+        );
+
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+        contract.ETHGobbled(gobblerID).then((spentWEI) => {
+            let remWEI = spentWEI;
+            let overLimit = false;
+            ETHGobblerTraitDAO.search({ gobblerID }).then((unlocks) => {
+                for (const unlock of unlocks) {
+                    const traitBN = EthersUtil.toWeiBN({
+                        amount: unlock.amountETH,
+                        from: "ether",
+                    });
+
+                    if (EthersUtil.gteWeiBN(remWEI, traitBN) && !overLimit) {
+                        remWEI = EthersUtil.diffWeiBN([remWEI, traitBN]);
+                    } else {
+                        overLimit = true;
+                    }
+                }
+
+                const unlockCount = EthersUtil.evDivWeiBN(
+                    remWEI,
+                    MITOSIS_WEI_BN,
+                );
+
+                for (let i = 0; i < unlockCount; i++) {
+                    ETHGobblerTraitDAO.create({
+                        gobblerID,
+                        amountETH: TRAIT_UNLOCK_ETH_STR,
+                    });
+                }
+            });
+        });
+    }
+
+    __updateMitosis__(parentID) {
+        const provider = new ethers.providers.JsonRpcProvider(
+            HTTP_RPC_URL,
+            BLOCKCHAIN_NETWORK,
+        );
+
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+        contract.ETHGobbled(parentID).then((spentWEI) => {
+            let remWEI = spentWEI;
+            let overLimit = false;
+            ETHGobblerMitosisDAO.search({ parentID }).then((duplicates) => {
+                for (const duplicate of duplicates) {
+                    const dupeBN = EthersUtil.toWeiBN({
+                        amount: duplicate.amountETH,
+                        from: "ether",
+                    });
+
+                    if (EthersUtil.gteWeiBN(remWEI, dupeBN) && !overLimit) {
+                        remWEI = EthersUtil.diffWeiBN([remWEI, dupeBN]);
+                    } else {
+                        overLimit = true;
+                    }
+                }
+
+                const dupeCount = EthersUtil.evDivWeiBN(
+                    remWEI,
+                    TRAIT_UNLOCK_WEI_BN,
+                );
+
+                for (let i = 0; i < dupeCount; i++) {
+                    ETHGobblerMitosisDAO.create({
+                        parentID,
+                        amountETH: MITOSIS_ETH_STR,
+                    });
+                }
+            });
+        });
+    }
+
+    static inbox(payload) {
+        return new Promise((resolve, reject) => {
+            const { message, signature, tokenID } = payload;
+
+            const provider = new ethers.providers.JsonRpcProvider(
+                HTTP_RPC_URL,
+                BLOCKCHAIN_NETWORK,
+            );
+
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                provider,
+            );
+
+            const owner = ethers.utils.getAddress(
+                recoverPersonalSignature({ data: message, signature }),
+            );
+
+            contract.ownerOf(tokenID).then((address) => {
+                if (address === owner) {
+                    ETHGobblerTraitDAO.search({ gobblerID: tokenID })
+                        .then((results) => {
+                            let unlocked = 0;
+                            for (const row of results) {
+                                if (row.traitID === null) {
+                                    unlocked++;
+                                }
+                            }
+                            resolve({ unlocked });
+                        })
+                        .catch(reject);
+                }
+            });
         });
     }
 
