@@ -61,12 +61,15 @@ class ETHGobblerDAO {
                             });
                         }
 
-                        resolve({
-                            name,
-                            description,
-                            image,
-                            attributes,
-                        });
+                        resolve(
+                            {
+                                name,
+                                description,
+                                image,
+                                attributes,
+                            },
+                            isAwake,
+                        );
                     } else {
                         reject();
                     }
