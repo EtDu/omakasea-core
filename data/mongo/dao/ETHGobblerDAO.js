@@ -62,10 +62,13 @@ class ETHGobblerDAO {
                         }
 
                         resolve({
-                            name,
-                            description,
-                            image,
-                            attributes,
+                            meta: {
+                                name,
+                                description,
+                                image,
+                                attributes,
+                            },
+                            isAwake: doc.isAwake,
                         });
                     } else {
                         reject();
