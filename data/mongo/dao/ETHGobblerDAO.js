@@ -3,6 +3,7 @@ dotenv.config();
 
 import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobbler from "../models/ETHGobbler.js";
+import ETHGobblerImageDAO from "./ETHGobblerImageDAO.js";
 
 const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
@@ -31,42 +32,48 @@ class ETHGobblerDAO {
         return __BaseDAO__.__get__(ETHGobbler, query);
     }
 
-    static fetch(query) {
+    static metadata(query) {
         return new Promise((resolve, reject) => {
             this.get(query)
                 .then((gobbler) => {
-                    const tokenID = gobbler.tokenID;
-                    const name = `Gooey #${tokenID}`;
-                    const description =
-                        "ETH Gobblers, a Christmas project by Omakasea.";
-                    const image = getImageURL(tokenID);
-                    const attributes = [];
+                    ETHGobblerImageDAO.get(query)
+                        .then((gobImage) => {
+                            const body = gobImage.body;
+                            const tokenID = gobbler.tokenID;
+                            const name = `Gooey #${tokenID}`;
+                            const description =
+                                "ETH Gobblers, a Christmas project by Omakasea.";
+                            const image = getImageURL(tokenID);
+                            const attributes = [];
 
-                    const attrObj = {
-                        generation: gobbler.generation,
-                        health: gobbler.health,
-                        disposition: gobbler.disposition,
-                        age: getAge(gobbler.createdAt),
-                        isAwake: gobbler.isAwake,
-                        isBuried: gobbler.isBuried,
-                    };
+                            const attrObj = {
+                                generation: gobbler.generation,
+                                health: gobbler.health,
+                                disposition: gobbler.disposition,
+                                age: getAge(gobbler.createdAt),
+                                isAwake: gobbler.isAwake,
+                                isBuried: gobbler.isBuried,
+                                body,
+                            };
 
-                    for (const key of Object.keys(attrObj)) {
-                        attributes.push({
-                            trait_type: key,
-                            value: attrObj[key],
-                        });
-                    }
+                            for (const key of Object.keys(attrObj)) {
+                                attributes.push({
+                                    trait_type: key,
+                                    value: attrObj[key],
+                                });
+                            }
 
-                    resolve({
-                        meta: {
-                            name,
-                            description,
-                            image,
-                            attributes,
-                        },
-                        isAwake: gobbler.isAwake,
-                    });
+                            resolve({
+                                meta: {
+                                    name,
+                                    description,
+                                    image,
+                                    attributes,
+                                },
+                                isAwake: gobbler.isAwake,
+                            });
+                        })
+                        .catch(reject);
                 })
                 .catch(reject);
         });
