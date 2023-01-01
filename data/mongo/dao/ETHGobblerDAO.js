@@ -36,44 +36,79 @@ class ETHGobblerDAO {
         return new Promise((resolve, reject) => {
             this.get(query)
                 .then((gobbler) => {
-                    ETHGobblerImageDAO.get(query)
-                        .then((gobImage) => {
-                            const body = gobImage.body;
-                            const tokenID = gobbler.tokenID;
-                            const name = `Gooey #${tokenID}`;
-                            const description =
-                                "ETH Gobblers, a Christmas project by Omakasea.";
-                            const image = getImageURL(tokenID);
-                            const attributes = [];
+                    if (gobbler.tokenID < 2000) {
+                        ETHGobblerImageDAO.get(query)
+                            .then((gobImage) => {
+                                const body = gobImage.body;
+                                const tokenID = gobbler.tokenID;
+                                const name = `Gooey #${tokenID}`;
+                                const description =
+                                    "ETH Gobblers, a Christmas project by Omakasea.";
+                                const image = getImageURL(tokenID);
+                                const attributes = [];
 
-                            const attrObj = {
-                                generation: gobbler.generation,
-                                health: gobbler.health,
-                                disposition: gobbler.disposition,
-                                age: getAge(gobbler.createdAt),
-                                isAwake: gobbler.isAwake,
-                                isBuried: gobbler.isBuried,
-                                body,
-                            };
+                                const attrObj = {
+                                    generation: gobbler.generation,
+                                    health: gobbler.health,
+                                    disposition: gobbler.disposition,
+                                    age: getAge(gobbler.createdAt),
+                                    isAwake: gobbler.isAwake,
+                                    isBuried: gobbler.isBuried,
+                                    body,
+                                };
 
-                            for (const key of Object.keys(attrObj)) {
-                                attributes.push({
-                                    trait_type: key,
-                                    value: attrObj[key],
+                                for (const key of Object.keys(attrObj)) {
+                                    attributes.push({
+                                        trait_type: key,
+                                        value: attrObj[key],
+                                    });
+                                }
+
+                                resolve({
+                                    meta: {
+                                        name,
+                                        description,
+                                        image,
+                                        attributes,
+                                    },
+                                    isAwake: gobbler.isAwake,
                                 });
-                            }
+                            })
+                            .catch(reject);
+                    } else {
+                        const tokenID = gobbler.tokenID;
+                        const name = `Gooey #${tokenID}`;
+                        const description =
+                            "ETH Gobblers, a Christmas project by Omakasea.";
+                        const image = getImageURL(tokenID);
+                        const attributes = [];
 
-                            resolve({
-                                meta: {
-                                    name,
-                                    description,
-                                    image,
-                                    attributes,
-                                },
-                                isAwake: gobbler.isAwake,
+                        const attrObj = {
+                            generation: gobbler.generation,
+                            health: gobbler.health,
+                            disposition: gobbler.disposition,
+                            age: getAge(gobbler.createdAt),
+                            isAwake: gobbler.isAwake,
+                            isBuried: gobbler.isBuried,
+                        };
+
+                        for (const key of Object.keys(attrObj)) {
+                            attributes.push({
+                                trait_type: key,
+                                value: attrObj[key],
                             });
-                        })
-                        .catch(reject);
+                        }
+
+                        resolve({
+                            meta: {
+                                name,
+                                description,
+                                image,
+                                attributes,
+                            },
+                            isAwake: gobbler.isAwake,
+                        });
+                    }
                 })
                 .catch(reject);
         });
