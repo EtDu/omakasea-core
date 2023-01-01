@@ -16,27 +16,15 @@ class ETHGobblerPriceDAO {
                             updatedAt,
                         );
                         if (hoursSince > 1) {
-                            console.log("updating prices...");
-                            const res =
-                                await ContractPrices.calculateMitosisThreshold();
-                            const feedAmount =
-                                await ContractPrices.getFeedAmount();
-                            price.data.ethFloorPrice = res.thresholdETH;
-                            price.data.feedAmount = feedAmount;
-                            price.updatedAt = updatedAt;
+                            price.data = await ContractPrices.getPrices();
                             this.save(price);
                         }
 
                         resolve(price);
                     } else {
-                        const res =
-                            await ContractPrices.calculateMitosisThreshold();
-                        const feedAmount = await ContractPrices.getFeedAmount();
+                        const data = await ContractPrices.getPrices();
                         this.create({
-                            data: {
-                                ethFloorPrice: res.thresholdETH,
-                                feedAmount,
-                            },
+                            data,
                             updatedAt,
                         })
                             .then((doc) => {
