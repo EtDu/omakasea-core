@@ -8,7 +8,7 @@ const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 function getImageURL(tokenID) {
-    return `${CURRENT_HOST}/image/${tokenID}.gif`;
+    return `${CURRENT_HOST}/image/${tokenID}`;
 }
 
 function getAge(createdAt) {
