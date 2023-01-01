@@ -10,6 +10,10 @@ class EthersUtil {
         return value;
     }
 
+    static fromBN(number) {
+        return number.toNumber();
+    }
+
     static toWeiBN({ amount, from }) {
         if (typeof amount != "string")
             throw new Error("amount must be a string");
@@ -97,9 +101,10 @@ class EthersUtil {
 
     static evDivWeiBN(total, unit) {
         let div = 0;
-        let dec = total;
-        while (EthersUtil.gteWeiBN(dec, unit)) {
-            dec = EthersUtil.diffWeiBN([dec, unit]);
+        let inc = total;
+
+        while (EthersUtil.gteWeiBN(inc, unit)) {
+            inc = EthersUtil.diffWeiBN([inc, unit]);
             div++;
         }
 
