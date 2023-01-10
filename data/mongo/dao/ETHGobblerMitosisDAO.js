@@ -2,6 +2,10 @@ import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobblerMitosis from "../models/ETHGobblerMitosis.js";
 
 class ETHGobblerMitosisDAO {
+    static async count(query) {
+        return ETHGobblerMitosis.countDocuments(query).exec();
+    }
+
     static get(query) {
         return __BaseDAO__.__get__(ETHGobblerMitosis, query);
     }
