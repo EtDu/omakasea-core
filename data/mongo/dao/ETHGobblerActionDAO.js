@@ -15,6 +15,10 @@ class ETHGobblerActionDAO {
         return __BaseDAO__.__save__(new ETHGobblerAction(action));
     }
 
+    static insert(action) {
+        return __BaseDAO__.__save__(new ETHGobblerAction(action));
+    }
+
     static save(doc) {
         return __BaseDAO__.__save__(doc);
     }
