@@ -25,16 +25,16 @@ class TimeUtil {
     }
 
     static diffSeconds(start, end) {
-        return Math.floor((end - start) / MILS_SECOND) + 1;
+        return Math.floor((end - start) / MILS_SECOND);
     }
     static diffMinutes(start, end) {
-        return Math.floor((end - start) / MILS_MINUTE) + 1;
+        return Math.floor((end - start) / MILS_MINUTE);
     }
     static diffHours(start, end) {
-        return Math.floor((end - start) / MILS_HOUR) + 1;
+        return Math.floor((end - start) / MILS_HOUR);
     }
     static diffDays(start, end) {
-        return Math.floor((end - start) / MILS_DAY) + 1;
+        return Math.floor((end - start) / MILS_DAY);
     }
 
     static roundToSecond(utime) {
