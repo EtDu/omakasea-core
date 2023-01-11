@@ -102,6 +102,12 @@ class FileSystem {
         }
     }
 
+    static deleteDir(fullPath) {
+        if (fs.existsSync(fullPath)) {
+            fs.rmdirSync(fullPath);
+        }
+    }
+
     static getFiles(dir, files = []) {
         fs.readdirSync(dir).forEach((file) => {
             if (fs.statSync(dir + path.sep + file).isDirectory()) {
