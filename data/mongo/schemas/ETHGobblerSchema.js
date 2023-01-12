@@ -1,7 +1,6 @@
 export default {
     tokenID: { type: Number },
     parentTokenID: { type: Number, default: null },
-    traitTokenIDs: { type: Object, default: [] },
     disposition: { type: String },
     health: { type: Number, default: 100 },
     mitosisCount: { type: Number, default: 0 },

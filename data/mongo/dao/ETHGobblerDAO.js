@@ -56,6 +56,7 @@ class ETHGobblerDAO {
                                     isBuried: gobbler.isBuried,
                                     body,
                                     mitosisCredits: gobbler.mitosisCount,
+                                    parentID: gobbler.parentTokenID,
                                 };
 
                                 for (const key of Object.keys(attrObj)) {
@@ -91,6 +92,8 @@ class ETHGobblerDAO {
                             age: getAge(gobbler.createdAt),
                             isAwake: gobbler.isAwake,
                             isBuried: gobbler.isBuried,
+                            mitosisCredits: gobbler.mitosisCount,
+                            parentID: gobbler.parentTokenID,
                         };
 
                         for (const key of Object.keys(attrObj)) {
