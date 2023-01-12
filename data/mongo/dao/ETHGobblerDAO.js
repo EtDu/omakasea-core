@@ -55,6 +55,7 @@ class ETHGobblerDAO {
                                     isAwake: gobbler.isAwake,
                                     isBuried: gobbler.isBuried,
                                     body,
+                                    mitosisCredits: gobbler.mitosisCredits,
                                 };
 
                                 for (const key of Object.keys(attrObj)) {
