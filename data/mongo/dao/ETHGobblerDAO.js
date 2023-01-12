@@ -58,8 +58,8 @@ class ETHGobblerDAO {
                                     mitosisCredits: gobbler.mitosisCount,
                                 };
 
-                                if (gobbler.parentID) {
-                                    attrObj.parent = gobbler.parentID;
+                                if (gobbler.parentTokenID) {
+                                    attrObj.parent = gobbler.parentTokenID;
                                 }
 
                                 for (const key of Object.keys(attrObj)) {
