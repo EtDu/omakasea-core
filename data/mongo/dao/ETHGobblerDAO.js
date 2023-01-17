@@ -73,11 +73,11 @@ class ETHGobblerDAO {
     }
 
     static async page(tokenID) {
-        const query = { tokenID: { $gt: tokenID }, isBuried: false };
+        const query = { tokenID: { $gte: tokenID }, isBuried: false };
         const fields = {};
         const orderBy = { tokenID: 1 };
         const limit = 100;
-        const results = __BaseDAO__.__search__(
+        const results = await __BaseDAO__.__search__(
             ETHGobbler,
             query,
             fields,
@@ -85,21 +85,21 @@ class ETHGobblerDAO {
             limit,
         );
 
-        const metadata = [];
+        const allMeta = [];
         for (const row of results) {
             if (row.tokenID < 2000) {
                 const image = ETHGobblerImageDAO.get({ tokenID });
                 const metadata = baseMetadata(row, image);
                 metadata.tokenID = row.tokenID;
-                metadata.push(metadata);
+                allMeta.push(metadata);
             } else {
                 const metadata = baseMetadata(row, image);
                 metadata.tokenID = row.tokenID;
-                metadata.push(metadata);
+                allMeta.push(metadata);
             }
         }
 
-        return metadata;
+        return allMeta;
     }
 
     static metadata(query) {
