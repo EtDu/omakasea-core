@@ -8,6 +8,8 @@ import ETHGobblerImageDAO from "./ETHGobblerImageDAO.js";
 const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
+const PAGE_LIMIT = 28;
+
 function getImageURL(tokenID) {
     return `${CURRENT_HOST}/image/${tokenID}`;
 }
@@ -76,7 +78,7 @@ class ETHGobblerDAO {
         const query = { tokenID: { $gt: tokenID }, isBuried: false };
         const fields = {};
         const orderBy = { tokenID: 1 };
-        const limit = 100;
+        const limit = PAGE_LIMIT;
         const results = await __BaseDAO__.__search__(
             ETHGobbler,
             query,
