@@ -89,9 +89,13 @@ class ETHGobblerDAO {
         for (const row of results) {
             if (row.tokenID < 2000) {
                 const image = ETHGobblerImageDAO.get({ tokenID });
-                metadata.push(baseMetadata(row, image));
+                const metadata = baseMetadata(row, image);
+                metadata.tokenID = row.tokenID;
+                metadata.push(metadata);
             } else {
-                metadata.push(baseMetadata(row));
+                const metadata = baseMetadata(row, image);
+                metadata.tokenID = row.tokenID;
+                metadata.push(metadata);
             }
         }
 
