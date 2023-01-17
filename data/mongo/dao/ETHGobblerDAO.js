@@ -64,6 +64,19 @@ function baseMetadata(gobbler, gobImage = null) {
 }
 
 class ETHGobblerDAO {
+    static async addName(spec) {
+        const { tokenID, name } = spec;
+        const gobbler = await ETHGobblerDAO.get({ tokenID, name: null });
+
+        if (gobbler !== null) {
+            gobbler.name = name;
+            await ETHGobblerDAO.save(gobbler);
+            return true;
+        }
+
+        return false;
+    }
+
     static create(spec) {
         spec.createdAt = Date.now();
         const gobbler = new ETHGobbler(spec);
