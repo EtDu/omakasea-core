@@ -21,7 +21,7 @@ function getAge(createdAt) {
     return `${days} days`;
 }
 
-function baseMetadata(gobbler) {
+function baseMetadata(gobbler, gobImage = null) {
     const tokenID = gobbler.tokenID;
     const name = `Gooey #${tokenID}`;
     const description = "ETH Gobblers, a Christmas project by Omakasea.";
@@ -38,6 +38,10 @@ function baseMetadata(gobbler) {
         mitosisCredits: gobbler.mitosisCount,
         parentID: gobbler.parentTokenID,
     };
+
+    if (gobImage !== null) {
+        attrObj.body = gobImage.body;
+    }
 
     for (const key of Object.keys(attrObj)) {
         attributes.push({
@@ -68,6 +72,32 @@ class ETHGobblerDAO {
         return __BaseDAO__.__get__(ETHGobbler, query);
     }
 
+    static async page(tokenID) {
+        const query = { tokenID: { $gt: tokenID }, isBuried: false };
+        const fields = {};
+        const orderBy = { tokenID: 1 };
+        const limit = 100;
+        const results = __BaseDAO__.__search__(
+            ETHGobbler,
+            query,
+            fields,
+            orderBy,
+            limit,
+        );
+
+        const metadata = [];
+        for (const row of results) {
+            if (row.tokenID < 2000) {
+                const image = ETHGobblerImageDAO.get({ tokenID });
+                metadata.push(baseMetadata(row, image));
+            } else {
+                metadata.push(baseMetadata(row));
+            }
+        }
+
+        return metadata;
+    }
+
     static metadata(query) {
         return new Promise((resolve, reject) => {
             this.get(query)
@@ -75,8 +105,10 @@ class ETHGobblerDAO {
                     if (gobbler.tokenID < 2000) {
                         ETHGobblerImageDAO.get(query)
                             .then((gobImage) => {
-                                const metadata = baseMetadata(gobbler);
-                                metadata.body = gobImage.body;
+                                const metadata = baseMetadata(
+                                    gobbler,
+                                    gobImage,
+                                );
                                 resolve(metadata);
                             })
                             .catch(reject);
