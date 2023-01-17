@@ -73,7 +73,7 @@ class ETHGobblerDAO {
     }
 
     static async page(tokenID) {
-        const query = { tokenID: { $gte: tokenID }, isBuried: false };
+        const query = { tokenID: { $gt: tokenID }, isBuried: false };
         const fields = {};
         const orderBy = { tokenID: 1 };
         const limit = 100;
