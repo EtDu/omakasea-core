@@ -11,6 +11,6 @@ export default {
     generation: { type: Number, default: null },
     isAwake: { type: Boolean, default: true },
     isBuried: { type: Boolean, default: false },
-    naem: { type: String, default: null },
+    name: { type: String, default: null },
     createdAt: { type: Number },
 };
