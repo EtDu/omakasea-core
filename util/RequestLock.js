@@ -40,6 +40,7 @@ class RequestLock {
     static unlock(lockID) {
         try {
             const lockTarget = `${LOCK_PATH}/${lockID}`;
+            console.log(lockTarget);
             if (FileSystem.exists(lockTarget)) {
                 FileSystem.deleteDir(lockTarget);
                 return true;
