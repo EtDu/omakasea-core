@@ -104,7 +104,7 @@ class ETHGobblerDAO {
         const allMeta = [];
         for (const row of results) {
             if (row.generation <= HATCHED_GEN) {
-                const image = ETHGobblerImageDAO.get({ tokenID });
+                const image = await ETHGobblerImageDAO.get({ tokenID });
                 const metadata = baseMetadata(row, image);
                 metadata.tokenID = row.tokenID;
                 allMeta.push(metadata);
