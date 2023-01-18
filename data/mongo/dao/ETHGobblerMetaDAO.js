@@ -105,6 +105,7 @@ class ETHGobblerMetaDAO {
 
         const allMeta = [];
         for (const row of results) {
+            row.data.tokenID = row.tokenID;
             allMeta.push(row.data);
         }
 
