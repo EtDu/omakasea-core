@@ -21,36 +21,56 @@ class RequestLock {
     }
 
     static lock(lockID) {
-        try {
-            const lockTarget = `${LOCK_PATH}/${lockID}`;
-            if (!FileSystem.exists(lockTarget)) {
-                FileSystem.createDir(lockTarget);
-                return true;
-            } else if (this.getMinutes(lockTarget) >= MIN_LOCK_MINUTES) {
-                FileSystem.deleteDir(lockTarget);
-                FileSystem.createDir(lockTarget);
-                return true;
-            } else {
-                return false;
-            }
-        } catch {
+        const lockTarget = `${LOCK_PATH}/${lockID}`;
+        if (!FileSystem.exists(lockTarget)) {
+            FileSystem.createDir(lockTarget);
+            return true;
+        } else {
             return false;
         }
     }
 
     static unlock(lockID) {
-        try {
-            const lockTarget = `${LOCK_PATH}/${lockID}`;
-            if (FileSystem.exists(lockTarget)) {
-                FileSystem.deleteDir(lockTarget);
-                return true;
-            } else {
-                return false;
-            }
-        } catch {
+        const lockTarget = `${LOCK_PATH}/${lockID}`;
+        if (FileSystem.exists(lockTarget)) {
+            FileSystem.deleteDir(lockTarget);
+            return true;
+        } else {
             return false;
         }
     }
+
+    // static lock(lockID) {
+    //     try {
+    //         const lockTarget = `${LOCK_PATH}/${lockID}`;
+    //         if (!FileSystem.exists(lockTarget)) {
+    //             FileSystem.createDir(lockTarget);
+    //             return true;
+    //         } else if (this.getMinutes(lockTarget) >= MIN_LOCK_MINUTES) {
+    //             FileSystem.deleteDir(lockTarget);
+    //             FileSystem.createDir(lockTarget);
+    //             return true;
+    //         } else {
+    //             return false;
+    //         }
+    //     } catch {
+    //         return false;
+    //     }
+    // }
+
+    // static unlock(lockID) {
+    //     try {
+    //         const lockTarget = `${LOCK_PATH}/${lockID}`;
+    //         if (FileSystem.exists(lockTarget)) {
+    //             FileSystem.deleteDir(lockTarget);
+    //             return true;
+    //         } else {
+    //             return false;
+    //         }
+    //     } catch {
+    //         return false;
+    //     }
+    // }
 }
 
 export default RequestLock;
