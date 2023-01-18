@@ -66,14 +66,14 @@ function baseMetadata(gobbler, gobImage = null) {
 
 class ETHGobblerMetaDAO {
     static async update(gobbler) {
-        const { tokenID } = gobbler;
-        const query = { tokenID, isBuried: false };
+        const { tokenID, isBuried } = gobbler;
+        const query = { tokenID };
         let metadata = await this.get(query);
 
         if (metadata === null) {
             metadata = new ETHGobblerMeta({
                 tokenID,
-                isBuried: false,
+                isBuried,
             });
         }
 
@@ -82,6 +82,7 @@ class ETHGobblerMetaDAO {
             image = await ETHGobblerImageDAO.get({ tokenID });
         }
 
+        metadata.isBuried = isBuried;
         metadata.data = baseMetadata(gobbler, image);
         metadata.updatedAt = TimeUtil.now();
 
