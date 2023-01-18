@@ -29,7 +29,7 @@ function getAge(createdAt) {
 
 function baseMetadata(gobbler, gobImage = null) {
     const tokenID = gobbler.tokenID;
-    const name = `Gooey #${tokenID}`;
+    const name = gobbler.name === null ? `Gooey #${tokenID}` : gobbler.name;
     const description = "ETH Gobblers, a Christmas project by Omakasea.";
     const image = getImageURL(tokenID);
     const attributes = [];
