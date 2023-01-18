@@ -9,6 +9,7 @@ const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 const PAGE_LIMIT = 28;
+const HATCHED_GEN = 1;
 
 function getImageURL(tokenID) {
     return `${CURRENT_HOST}/image/${tokenID}`;
@@ -102,7 +103,7 @@ class ETHGobblerDAO {
 
         const allMeta = [];
         for (const row of results) {
-            if (row.tokenID < 2000) {
+            if (row.generation <= HATCHED_GEN) {
                 const image = ETHGobblerImageDAO.get({ tokenID });
                 const metadata = baseMetadata(row, image);
                 metadata.tokenID = row.tokenID;
