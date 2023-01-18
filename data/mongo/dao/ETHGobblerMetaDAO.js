@@ -18,10 +18,15 @@ function getImageURL(tokenID) {
     return `${CURRENT_HOST}/image/${tokenID}`;
 }
 
-function getAge(createdAt) {
+function getAge(gobbler) {
+    const createdAt = gobbler.createdAt;
     const days = Math.floor((Date.now() - createdAt) / ONE_DAY);
     if (days === 1) {
         return `${days} day`;
+    }
+
+    if (gobbler.isBuried) {
+        return "deceased";
     }
 
     return `${days} days`;
@@ -38,7 +43,7 @@ function baseMetadata(gobbler, gobImage = null) {
         generation: gobbler.generation,
         health: gobbler.health,
         disposition: gobbler.disposition,
-        age: getAge(gobbler.createdAt),
+        age: getAge(gobbler),
         isAwake: gobbler.isAwake,
         isBuried: gobbler.isBuried,
         mitosisCredits: gobbler.mitosisCount,
