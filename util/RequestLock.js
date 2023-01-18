@@ -27,6 +27,7 @@ class RequestLock {
                 FileSystem.createDir(lockTarget);
                 return true;
             } else if (this.getMinutes(lockTarget) >= MIN_LOCK_MINUTES) {
+                FileSystem.deleteDir(lockTarget);
                 FileSystem.createDir(lockTarget);
                 return true;
             } else {
@@ -40,7 +41,6 @@ class RequestLock {
     static unlock(lockID) {
         try {
             const lockTarget = `${LOCK_PATH}/${lockID}`;
-            console.log(lockTarget);
             if (FileSystem.exists(lockTarget)) {
                 FileSystem.deleteDir(lockTarget);
                 return true;
