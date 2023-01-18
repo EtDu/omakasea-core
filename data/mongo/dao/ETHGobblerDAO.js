@@ -4,6 +4,7 @@ dotenv.config();
 import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobbler from "../models/ETHGobbler.js";
 import ETHGobblerImageDAO from "./ETHGobblerImageDAO.js";
+import ETHGobblerMetaDAO from "./ETHGobblerMetaDAO.js";
 
 const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
@@ -145,7 +146,8 @@ class ETHGobblerDAO {
         return __BaseDAO__.__search__(ETHGobbler, query, {}, orderBy);
     }
 
-    static save(doc) {
+    static async save(doc) {
+        await ETHGobblerMetaDAO.update(doc);
         return __BaseDAO__.__save__(doc);
     }
 }
