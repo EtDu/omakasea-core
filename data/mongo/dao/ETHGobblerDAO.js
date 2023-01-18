@@ -82,7 +82,7 @@ class ETHGobblerDAO {
     static create(spec) {
         spec.createdAt = Date.now();
         const gobbler = new ETHGobbler(spec);
-        return __BaseDAO__.__save__(gobbler);
+        return this.save(gobbler);
     }
 
     static get(query) {
