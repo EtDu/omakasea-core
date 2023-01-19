@@ -62,6 +62,7 @@ function baseMetadata(gobbler, gobImage = null) {
     }
 
     return {
+        tokenID,
         name,
         description,
         image,
