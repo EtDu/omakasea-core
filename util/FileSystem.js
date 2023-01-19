@@ -108,11 +108,21 @@ class FileSystem {
         }
     }
 
+    static __exclude__(file) {
+        let exclude = false;
+        for (const exclusion of EXCLUDE) {
+            if (file.includes(exclusion)) {
+                exclude = true;
+            }
+        }
+        return exclude;
+    }
+
     static getFiles(dir, files = []) {
         fs.readdirSync(dir).forEach((file) => {
             if (fs.statSync(dir + path.sep + file).isDirectory()) {
                 files = FileSystem.getFiles(dir + path.sep + file, files);
-            } else if (!EXCLUDE.includes(file)) {
+            } else if (!this.__exclude__(file)) {
                 const fPath = path.join(dir, path.sep, file);
                 const fName = FileSystem.getName(fPath);
                 files.push({ fName, fPath });
@@ -126,7 +136,7 @@ class FileSystem {
         const fullPath = `${process.env.GENERATED_DIR}/${uploadId}`;
         const list = fs.readdirSync(fullPath);
         const latest = list
-            .filter((f) => !EXCLUDE.includes(f))
+            .filter((f) => !this.__exclude__(f))
             .sort()
             .pop();
         const baseDir = `${fullPath}/${latest}`;
