@@ -8,7 +8,7 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR;
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR;
 const TRANSCODE_DIR = process.env.TRANSCODE_DIR;
 
-const EXCLUDE = [".DS_Store"];
+const EXCLUDE = [".DS_Store", "__MACOSX"];
 
 class FileSystem {
     static getInfo(file) {
