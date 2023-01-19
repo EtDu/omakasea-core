@@ -132,6 +132,23 @@ class FileSystem {
         return files;
     }
 
+    static getFileTree(basePath) {
+        const tree = {};
+        const files = this.getFiles(basePath);
+
+        for (const file of files) {
+            const dir = file.fPath
+                .replace(file.fName, "")
+                .replace(basePath, "");
+            if (!tree[dir]) {
+                tree[dir] = [];
+            }
+            tree[dir].push(file);
+        }
+
+        return tree;
+    }
+
     static getGenerated(uploadId) {
         const fullPath = `${process.env.GENERATED_DIR}/${uploadId}`;
         const list = fs.readdirSync(fullPath);
@@ -141,6 +158,11 @@ class FileSystem {
             .pop();
         const baseDir = `${fullPath}/${latest}`;
         return FileSystem.getFiles(baseDir);
+    }
+
+    static random(files) {
+        const index = Math.floor(Math.random() * files.length);
+        return files[index];
     }
 }
 

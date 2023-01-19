@@ -24,9 +24,9 @@ class Responses {
         });
     }
 
-    setViews(dir, engine) {
-        this.app.set("views", dir);
+    setViews(engine, dir) {
         this.app.set("view engine", engine);
+        this.app.set("views", dir);
     }
 
     setPublic(dir) {
