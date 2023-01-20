@@ -1,6 +1,7 @@
 export default {
     tokenID: { type: Number },
-    subPath: { type: String, default: null },
+    generation: { type: Number },
     baseImage: { type: String },
+    subDir: { type: String },
     body: { type: String },
 };

@@ -10,13 +10,13 @@ class ETHGobblerImageDAO {
         return __BaseDAO__.__search__(ETHGobblerImage, query, {}, orderBy);
     }
 
-    static create(price) {
-        return __BaseDAO__.__save__(new ETHGobblerImage(price));
+    static create(spec) {
+        return __BaseDAO__.__save__(new ETHGobblerImage(spec));
     }
 
-    static save(price) {
-        price.updatedAt = Date.now();
-        return __BaseDAO__.__save__(price);
+    static save(spec) {
+        spec.updatedAt = Date.now();
+        return __BaseDAO__.__save__(spec);
     }
 }
 

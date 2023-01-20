@@ -2,6 +2,10 @@ import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobblerTrait from "../models/ETHGobblerTrait.js";
 
 class ETHGobblerTraitDAO {
+    static async count(query) {
+        return ETHGobblerTrait.countDocuments(query).exec();
+    }
+
     static get(query) {
         return __BaseDAO__.__get__(ETHGobblerTrait, query);
     }
