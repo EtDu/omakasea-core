@@ -22,6 +22,30 @@ class ETHGobblerTraitDAO {
     static save(doc) {
         return __BaseDAO__.__save__(doc);
     }
+
+    static fetch(tokenID) {
+        return new Promise((resolve, reject) => {
+            const query = {
+                gobblerID: tokenID,
+                traitID: null,
+            };
+            __BaseDAO__
+                .__search__(
+                    ETHGobblerTrait,
+                    query,
+                    {},
+                    { gobblerID: 1, createdAt: 1 },
+                )
+                .then((results) => {
+                    if (results.length > 0) {
+                        resolve(results[0]);
+                    } else {
+                        reject();
+                    }
+                })
+                .catch(reject);
+        });
+    }
 }
 
 export default ETHGobblerTraitDAO;

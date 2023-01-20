@@ -34,7 +34,7 @@ class ETHGobblerMitosisDAO {
                     ETHGobblerMitosis,
                     query,
                     {},
-                    { tokenID: 1, createdAt: 1 },
+                    { parentID: 1, createdAt: 1 },
                 )
                 .then((results) => {
                     if (results.length > 0) {
