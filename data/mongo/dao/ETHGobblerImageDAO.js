@@ -44,7 +44,7 @@ class ETHGobblerImageDAO {
                 tokenID: gooey.parentTokenID,
             });
 
-            this.inherit(parent, gooey, subDir);
+            await this.inherit(parent, gooey, subDir);
         }
     }
 
