@@ -66,6 +66,10 @@ function baseMetadata(gobbler, gobImage = null) {
 }
 
 class ETHGobblerDAO {
+    static async count(query) {
+        return ETHGobbler.countDocuments(query).exec();
+    }
+
     static async addName(spec) {
         const { tokenID, name } = spec;
         const gobbler = await ETHGobblerDAO.get({ tokenID, name: null });
