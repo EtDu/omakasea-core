@@ -1,17 +1,47 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobblerImage from "../models/ETHGobblerImage.js";
 
-function random(max) {
-    return Math.floor(Math.random() * max);
+async function CREATE_GENERATION_2(parent, gooey) {
+    let { baseImage, body } = await this.get({
+        tokenID: parent.tokenID,
+    });
+
+    baseImage = baseImage
+        .replace("_dua", "_pirate_dua")
+        .replace("_satu", "_pirate_satu");
+
+    if (body === "Goat") {
+        body = "Green Hamster";
+        baseImage = baseImage.replace("139", "176");
+    }
+
+    const { tokenID, generation } = gooey;
+
+    const image = {
+        tokenID,
+        generation,
+        body,
+        baseImage,
+    };
+
+    this.create(image);
 }
 
 class ETHGobblerImageDAO {
-    static async assignRandom(gobbler, subDir = null) {
-        const { generation } = gobbler;
-        const images = this.search({ tokenID: null, generation, subDir });
-        const selectedImage = images[random(images.length)];
-        selectedImage.tokenID = gobbler;
-        await this.save(selectedImage);
+    static async inherit(parent, gooey) {
+        if (parent.generation === 1) {
+            await CREATE_GENERATION_2(parent, gooey);
+        }
+    }
+
+    static async hatch(gooey) {
+        const child = this.get({ tokenID: gooey.tokenID });
+        if (child === null) {
+            const parent = await this.get({
+                tokenID: gooey.parentTokenID,
+            });
+            this.inherit(parent, gooey);
+        }
     }
 
     static async count(query) {
