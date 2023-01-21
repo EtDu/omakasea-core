@@ -3,7 +3,7 @@ import ETHGobblerImage from "../models/ETHGobblerImage.js";
 
 const CURRENT_HATCH_GEN = 2;
 
-async function CREATE_GENERATION_2(parent, gooey) {
+async function CREATE_GENERATION_2(parent, gooey, subDir) {
     let { baseImage, body } = await ETHGobblerImageDAO.get({
         tokenID: parent.tokenID,
     });
@@ -16,8 +16,6 @@ async function CREATE_GENERATION_2(parent, gooey) {
         body = "Green Hamster";
         baseImage = baseImage.replace("139", "176");
     }
-
-    const subDir = "MAIN";
 
     const { tokenID, generation } = gooey;
 
@@ -33,19 +31,20 @@ async function CREATE_GENERATION_2(parent, gooey) {
 }
 
 class ETHGobblerImageDAO {
-    static async inherit(parent, gooey) {
+    static async inherit(parent, gooey, subDir) {
         if (gooey.generation === CURRENT_HATCH_GEN) {
-            await CREATE_GENERATION_2(parent, gooey);
+            await CREATE_GENERATION_2(parent, gooey, subDir);
         }
     }
 
-    static async hatch(gooey) {
+    static async hatch(gooey, subDir = "MAIN") {
         const child = await this.get({ tokenID: gooey.tokenID });
         if (child === null) {
             const parent = await this.get({
                 tokenID: gooey.parentTokenID,
             });
-            this.inherit(parent, gooey);
+
+            this.inherit(parent, gooey, subDir);
         }
     }
 
