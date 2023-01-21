@@ -12,7 +12,7 @@ const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 const PAGE_LIMIT = 28;
-const HATCHED_GEN = 1;
+const HATCHED_GEN = 2;
 
 function getImageURL(tokenID) {
     return `${CURRENT_HOST}/image/${tokenID}`;
