@@ -46,6 +46,14 @@ class ETHGobblerMitosisDAO {
                 .catch(reject);
         });
     }
+
+    static async DELETE(credit) {
+        const { parentID, createdAt } = credit;
+        await ETHGobblerMitosis.deleteOne({
+            parentID,
+            createdAt,
+        });
+    }
 }
 
 export default ETHGobblerMitosisDAO;
