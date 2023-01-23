@@ -1,7 +1,11 @@
 import utils from "ethers/lib/utils.js";
-import { BigNumber } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 class EthersUtil {
+    static toInt(hex) {
+        return Number(ethers.utils.formatUnits(hex, 0));
+    }
+
     static toBN(amount) {
         if (typeof amount != "string" && typeof amount != "number")
             throw new Error("amount must be a string or number");
