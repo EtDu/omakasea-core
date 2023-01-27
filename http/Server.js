@@ -1,9 +1,16 @@
 import express from "express";
 import logger from "morgan";
+import cors from "cors"
+import dotenv from "dotenv";
+dotenv.config();
 
 class Responses {
     constructor(name, port) {
         this.app = express();
+        if (process.env.LOCAL_DEV_MODE == "true") {
+          console.log("Local Dev mode, applying CORS")
+          this.app.use(cors())
+        }
         this.app.use(express.json());
         this.app.use(logger("dev"));
         this.name = name;
@@ -19,9 +26,15 @@ class Responses {
     }
 
     start() {
-        this.app.listen(this.port, () => {
-            console.log(`${this.name} :: ${this.port}`);
-        });
+        if (process.env.LOCAL_DEV_MODE == "true") {
+          this.app.listen(this.port, "0.0.0.0", () => {
+            console.log("ETH GOBBLERS running on 0.0.0.0:3030")
+          });
+        } else {
+          this.app.listen(this.port, () => {
+            console.log(`ETH GOBBLERS running on ${this.port}`)
+          });
+        }
     }
 
     setViews(engine, dir) {
