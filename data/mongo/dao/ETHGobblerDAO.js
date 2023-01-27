@@ -84,7 +84,7 @@ class ETHGobblerDAO {
     }
 
     static create(spec) {
-        spec.createdAt = Date.now();
+        spec.createdAt = spec.createdAt ? spec.createdAt : Date.now();
         const gobbler = new ETHGobbler(spec);
         return this.save(gobbler);
     }
