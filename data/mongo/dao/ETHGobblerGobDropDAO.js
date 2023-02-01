@@ -2,13 +2,13 @@ import __BaseDAO__ from "./__BaseDAO__.js";
 import ETHGobblerGobDrop from "../models/ETHGobblerGobDrop.js";
 
 class ETHGobblerGobDropDAO {
-    static async mintActive(dropID) {
+    static async mintActive(traitID) {
         const current = await __BaseDAO__.__get__(ETHGobblerGobDrop, {
             isActive: true,
         });
         if (current !== null) {
             return JSON.parse(
-                current.template.replaceAll("GOB_DROP_ID", dropID),
+                current.template.replaceAll("#{traitID}", traitID),
             );
         }
         return null;
