@@ -8,7 +8,7 @@ class ETHGobblerGobDropDAO {
         });
         if (current !== null) {
             return JSON.parse(
-                current.template.replaceAll("#{traitID}", traitID),
+                current.template.replaceAll("{traitID}", traitID),
             );
         }
         return null;
