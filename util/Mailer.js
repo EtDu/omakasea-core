@@ -24,8 +24,8 @@ class Mailer {
 
         try {
             const response = await MailService.send(msg);
-            console.log(response[0].statusCode);
-            console.log(response[0].headers);
+            const statusCode = response[0].statusCode;
+            console.log(`MAILER STATUS CODE -- ${statusCode}`);
         } catch (error) {
             console.error(error);
         }
