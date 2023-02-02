@@ -27,7 +27,7 @@ class Mailer {
             const statusCode = response[0].statusCode;
             console.log(`MAILER STATUS CODE -- ${statusCode}`);
         } catch (error) {
-            console.error(error);
+            console.log(`EMAIL NOT SENT!`);
         }
     }
 }
