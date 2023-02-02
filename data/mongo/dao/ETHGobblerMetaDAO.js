@@ -97,8 +97,28 @@ class ETHGobblerMetaDAO {
         return metadata.data;
     }
 
-    static async page(tokenID) {
-        const query = { tokenID: { $gt: tokenID }, isBuried: false };
+    static async page(queryParams) {
+        const { tokenID, generation, health } = queryParams
+        console.log(tokenID, generation, health)
+        
+        const generationInt = parseInt(generation)
+        const healthInt = parseInt(health)
+
+        let generationValue = generationInt
+        let healthValue = healthInt
+
+        if (generation == "-1") generationValue = { $ne: generationInt }
+        if (health == "-1") healthValue = { $ne: healthInt }
+
+        const query = {
+          tokenID: { $gt: tokenID },
+          isBuried: false,
+          $and: [
+            { "data.attributes": { $elemMatch: { trait_type: "generation", value: generationValue }} },
+            { "data.attributes": { $elemMatch: { trait_type: "health", value: healthValue }} }
+          ]
+        };
+
         const fields = {};
         const orderBy = { tokenID: 1 };
         const limit = PAGE_LIMIT;
@@ -109,7 +129,7 @@ class ETHGobblerMetaDAO {
             orderBy,
             limit,
         );
-
+        
         const allMeta = [];
         for (const row of results) {
             row.data.tokenID = row.tokenID;
