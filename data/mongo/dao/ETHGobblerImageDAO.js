@@ -4,30 +4,32 @@ import ETHGobblerImage from "../models/ETHGobblerImage.js";
 const CURRENT_HATCH_GEN = 2;
 
 async function CREATE_GENERATION_2(parent, gooey, subDir) {
-    let { baseImage, body } = await ETHGobblerImageDAO.get({
-        tokenID: parent.tokenID,
-    });
+    if (parent !== null) {
+        let { baseImage, body } = await ETHGobblerImageDAO.get({
+            tokenID: parent.tokenID,
+        });
 
-    baseImage = baseImage
-        .replace("_dua", "_pirate_dua")
-        .replace("_satu", "_pirate_satu");
+        baseImage = baseImage
+            .replace("_dua", "_pirate_dua")
+            .replace("_satu", "_pirate_satu");
 
-    if (body === "Goat") {
-        body = "Green Hamster";
-        baseImage = baseImage.replace("139", "176");
+        if (body === "Goat") {
+            body = "Green Hamster";
+            baseImage = baseImage.replace("139", "176");
+        }
+
+        const { tokenID, generation } = gooey;
+
+        const image = {
+            tokenID,
+            generation,
+            body,
+            baseImage,
+            subDir,
+        };
+
+        await ETHGobblerImageDAO.create(image);
     }
-
-    const { tokenID, generation } = gooey;
-
-    const image = {
-        tokenID,
-        generation,
-        body,
-        baseImage,
-        subDir,
-    };
-
-    await ETHGobblerImageDAO.create(image);
 }
 
 class ETHGobblerImageDAO {
