@@ -93,9 +93,6 @@ function baseMetadata(data) {
 
 class ETHGobblerMetaDAO {
     static async update(gobbler) {
-        const amount = await CONTRACT.ETHGobbled(gobbler.tokenID);
-        const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
-
         const { tokenID, isBuried } = gobbler;
         const query = { tokenID };
         let metadata = await this.get(query);
@@ -113,10 +110,17 @@ class ETHGobblerMetaDAO {
         }
 
         metadata.isBuried = isBuried;
-        metadata.data = baseMetadata({ gobbler, image, ethGobbled });
-        metadata.updatedAt = TimeUtil.now();
+        metadata.data = baseMetadata({ gobbler, image });
 
         await this.save(metadata);
+
+        setTimeout(async () => {
+            const amount = await CONTRACT.ETHGobbled(gobbler.tokenID);
+            const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
+            metadata.data = baseMetadata({ gobbler, image, ethGobbled });
+            metadata.updatedAt = TimeUtil.now();
+            await this.save(metadata);
+        }, 3000);
 
         return metadata.data;
     }
