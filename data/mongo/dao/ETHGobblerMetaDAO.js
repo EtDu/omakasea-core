@@ -119,7 +119,7 @@ class ETHGobblerMetaDAO {
             const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
             metadata.data = baseMetadata({ gobbler, image, ethGobbled });
             metadata.updatedAt = TimeUtil.now();
-            await this.save(metadata);
+            await ETHGobblerMetaDAO.save(metadata);
         }, 3000);
 
         return metadata.data;
