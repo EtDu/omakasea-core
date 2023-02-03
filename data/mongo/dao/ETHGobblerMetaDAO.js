@@ -1,18 +1,33 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import ethers from "ethers";
+import ABI from "../../../../blockchain/EthGobblersABI.js";
+
 import __BaseDAO__ from "./__BaseDAO__.js";
 
 import ETHGobblerMeta from "../models/ETHGobblerMeta.js";
 import ETHGobblerImageDAO from "./ETHGobblerImageDAO.js";
+import EthersUtil from "../../../util/EthersUtil.js";
 
 import TimeUtil from "../../../../omakasea-core/util/TimeUtil.js";
+
+const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+const HTTP_RPC_URL = process.env.HTTP_RPC_URL;
 
 const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 const PAGE_LIMIT = 28;
 const HATCHED_GEN = 2;
+
+const PROVIDER = new ethers.providers.JsonRpcProvider(
+    HTTP_RPC_URL,
+    BLOCKCHAIN_NETWORK,
+);
+
+const CONTRACT = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
 
 function getImageURL(tokenID) {
     return `${CURRENT_HOST}/image/${tokenID}`;
@@ -32,7 +47,9 @@ function getAge(gobbler) {
     return `${days} days`;
 }
 
-function baseMetadata(gobbler, gobImage = null) {
+function baseMetadata(data) {
+    const { gobbler, gobImage, ethGobbled } = data;
+
     const tokenID = gobbler.tokenID;
     const name = gobbler.name === null ? `Gooey #${tokenID}` : gobbler.name;
     const description = "ETH Gobblers, a Christmas project by Omakasea.";
@@ -50,8 +67,12 @@ function baseMetadata(gobbler, gobImage = null) {
         parentID: gobbler.parentTokenID,
     };
 
-    if (gobImage !== null) {
+    if (gobImage) {
         attrObj.body = gobImage.body;
+    }
+
+    if (ethGobbled) {
+        attrObj.ETHGobbled = ethGobbled;
     }
 
     for (const key of Object.keys(attrObj)) {
@@ -72,6 +93,9 @@ function baseMetadata(gobbler, gobImage = null) {
 
 class ETHGobblerMetaDAO {
     static async update(gobbler) {
+        const amount = await CONTRACT.ETHGobbled(gobbler.tokenID);
+        const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
+
         const { tokenID, isBuried } = gobbler;
         const query = { tokenID };
         let metadata = await this.get(query);
@@ -89,7 +113,7 @@ class ETHGobblerMetaDAO {
         }
 
         metadata.isBuried = isBuried;
-        metadata.data = baseMetadata(gobbler, image);
+        metadata.data = baseMetadata({ gobbler, image, ethGobbled });
         metadata.updatedAt = TimeUtil.now();
 
         await this.save(metadata);
@@ -98,25 +122,39 @@ class ETHGobblerMetaDAO {
     }
 
     static async page(queryParams) {
-        const { tokenID, generation, health } = queryParams
-        console.log(tokenID, generation, health)
-        
-        const generationInt = parseInt(generation)
-        const healthInt = parseInt(health)
+        const { tokenID, generation, health } = queryParams;
+        console.log(tokenID, generation, health);
 
-        let generationValue = generationInt
-        let healthValue = healthInt
+        const generationInt = parseInt(generation);
+        const healthInt = parseInt(health);
 
-        if (generation == "-1") generationValue = { $ne: generationInt }
-        if (health == "-1") healthValue = { $ne: healthInt }
+        let generationValue = generationInt;
+        let healthValue = healthInt;
+
+        if (generation == "-1") generationValue = { $ne: generationInt };
+        if (health == "-1") healthValue = { $ne: healthInt };
 
         const query = {
-          tokenID: { $gt: tokenID },
-          isBuried: false,
-          $and: [
-            { "data.attributes": { $elemMatch: { trait_type: "generation", value: generationValue }} },
-            { "data.attributes": { $elemMatch: { trait_type: "health", value: healthValue }} }
-          ]
+            tokenID: { $gt: tokenID },
+            isBuried: false,
+            $and: [
+                {
+                    "data.attributes": {
+                        $elemMatch: {
+                            trait_type: "generation",
+                            value: generationValue,
+                        },
+                    },
+                },
+                {
+                    "data.attributes": {
+                        $elemMatch: {
+                            trait_type: "health",
+                            value: healthValue,
+                        },
+                    },
+                },
+            ],
         };
 
         const fields = {};
@@ -129,7 +167,7 @@ class ETHGobblerMetaDAO {
             orderBy,
             limit,
         );
-        
+
         const allMeta = [];
         for (const row of results) {
             row.data.tokenID = row.tokenID;
