@@ -104,20 +104,20 @@ class ETHGobblerMetaDAO {
             });
         }
 
-        let image = null;
+        let gobImage = null;
         if (gobbler.generation <= HATCHED_GEN) {
-            image = await ETHGobblerImageDAO.get({ tokenID });
+            gobImage = await ETHGobblerImageDAO.get({ tokenID });
         }
 
         metadata.isBuried = isBuried;
-        metadata.data = baseMetadata({ gobbler, image });
+        metadata.data = baseMetadata({ gobbler, gobImage });
 
         await this.save(metadata);
 
         setTimeout(async () => {
             const amount = await CONTRACT.ETHGobbled(gobbler.tokenID);
             const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
-            metadata.data = baseMetadata({ gobbler, image, ethGobbled });
+            metadata.data = baseMetadata({ gobbler, gobImage, ethGobbled });
             metadata.updatedAt = TimeUtil.now();
             await ETHGobblerMetaDAO.save(metadata);
         }, 3000);
