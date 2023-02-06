@@ -1,6 +1,6 @@
 import express from "express";
 import logger from "morgan";
-import cors from "cors"
+import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -8,8 +8,8 @@ class Responses {
     constructor(name, port) {
         this.app = express();
         if (process.env.LOCAL_DEV_MODE == "true") {
-          console.log("Local Dev mode, applying CORS")
-          this.app.use(cors())
+            console.log("Local Dev mode, applying CORS");
+            this.app.use(cors());
         }
         this.app.use(express.json());
         this.app.use(logger("dev"));
@@ -27,13 +27,13 @@ class Responses {
 
     start() {
         if (process.env.LOCAL_DEV_MODE == "true") {
-          this.app.listen(this.port, "0.0.0.0", () => {
-            console.log("ETH GOBBLERS running on 0.0.0.0:3030")
-          });
+            this.app.listen(this.port, "0.0.0.0", () => {
+                console.log(`${this.name} running on 0.0.0.0:${this.port}`);
+            });
         } else {
-          this.app.listen(this.port, () => {
-            console.log(`ETH GOBBLERS running on ${this.port}`)
-          });
+            this.app.listen(this.port, () => {
+                console.log(`${this.name} running on ${this.port}`);
+            });
         }
     }
 
