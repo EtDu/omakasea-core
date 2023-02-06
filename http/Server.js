@@ -2,6 +2,7 @@ import express from "express";
 import logger from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
+
 dotenv.config();
 
 class Responses {
@@ -11,6 +12,7 @@ class Responses {
             console.log("Local Dev mode, applying CORS");
             this.app.use(cors());
         }
+        this.app.use(express.urlencoded({ extended: true }));
         this.app.use(express.json());
         this.app.use(logger("dev"));
         this.name = name;

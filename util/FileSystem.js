@@ -85,7 +85,7 @@ class FileSystem {
 
     static createParentDir(fullPath) {
         const targetDir = path.join(
-            "./",
+            "/",
             fullPath.substring(0, fullPath.lastIndexOf("/") + 1),
         );
 
