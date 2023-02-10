@@ -3,11 +3,14 @@ export default {
     filename: { type: String },
     mimeType: { type: String },
 
+    isProfileImage: { type: Boolean },
+
     address: { type: String },
     mintCount: { type: Number },
 
     title: { type: String },
     description: { type: String },
+    price: { type: String },
 
     activatedAt: { type: Number },
     deactivatedAt: { type: Number },

@@ -1,9 +1,11 @@
 export default {
     address: { type: String },
     contract: { type: String },
-    isComplete: { type: Boolean },
+    isOnboarded: { type: Boolean },
+    name: { type: String },
     picID: { type: String },
     bio: { type: String },
-    social: { type: Object, default: {} },
+    tag: { type: String },
+    twitter: { type: String },
     createdAt: { type: Number },
 };
