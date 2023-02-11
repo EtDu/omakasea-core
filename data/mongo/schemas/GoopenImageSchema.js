@@ -15,8 +15,8 @@ export default {
     activatedAt: { type: Number },
     deactivatedAt: { type: Number },
 
-    likes: { type: Number },
-    dislikes: { type: Number },
+    likes: { type: Array },
+    dislikes: { type: Array },
 
     isFeatured: { type: Boolean },
     isActive: { type: Boolean },

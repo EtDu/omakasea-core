@@ -7,5 +7,6 @@ export default {
     bio: { type: String },
     tag: { type: String },
     twitter: { type: String },
+    favorites: { type: Array },
     createdAt: { type: Number },
 };
