@@ -19,7 +19,7 @@ export default {
   likes: { type: Array, default: [] },
   dislikes: { type: Array, default: [] },
 
-  isFeatured: { type: Boolean },
+  isFeatured: { type: Boolean, default: false },
   isActive: { type: Boolean },
 
   createdAt: { type: Number },
