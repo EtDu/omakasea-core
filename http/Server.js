@@ -6,13 +6,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 class Responses {
-    constructor(name, port, corsConfig) {
+    constructor(name, port) {
         this.app = express();
         if (process.env.LOCAL_DEV_MODE == "true") {
             console.log("Local Dev mode, applying CORS");
             this.app.use(cors());
         }
-        if (corsConfig) this.app.use(cors(corsConfig));
         this.app.use(express.urlencoded({ extended: true }));
         this.app.use(express.json());
         this.app.use(logger("dev"));
