@@ -1,26 +1,27 @@
 export default {
-  imageID: { type: String },
-  filename: { type: String },
-  mimeType: { type: String },
+    imageID: { type: String },
+    filename: { type: String },
+    mimeType: { type: String },
+    hash: { type: String },
 
-  isProfileImage: { type: Boolean },
+    isProfileImage: { type: Boolean },
 
-  address: { type: String },
-  artistName: { type: String },
-  mintCount: { type: Number },
+    address: { type: String },
+    artistName: { type: String },
+    mintCount: { type: Number },
 
-  title: { type: String },
-  description: { type: String },
-  price: { type: String },
+    title: { type: String },
+    description: { type: String },
+    price: { type: String },
 
-  activatedAt: { type: Number },
-  deactivatedAt: { type: Number },
+    activatedAt: { type: Number },
+    deactivatedAt: { type: Number },
 
-  likes: { type: Array, default: [] },
-  dislikes: { type: Array, default: [] },
+    likes: { type: Array, default: [] },
+    dislikes: { type: Array, default: [] },
 
-  isFeatured: { type: Boolean, default: false },
-  isActive: { type: Boolean },
+    isFeatured: { type: Boolean, default: false },
+    isActive: { type: Boolean },
 
-  createdAt: { type: Number },
+    createdAt: { type: Number },
 };
