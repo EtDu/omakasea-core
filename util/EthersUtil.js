@@ -6,6 +6,11 @@ class EthersUtil {
         return Number(ethers.utils.formatUnits(hex, 0));
     }
 
+    static toIntStripZero(hex) {
+        const stripped = utils.hexStripZeros(hex);
+        return utils.formatUnits(stripped, 0);
+    }
+
     static toBN(amount) {
         if (typeof amount != "string" && typeof amount != "number")
             throw new Error("amount must be a string or number");

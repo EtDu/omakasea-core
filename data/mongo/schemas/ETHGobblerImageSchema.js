@@ -4,4 +4,5 @@ export default {
     baseImage: { type: String },
     subDir: { type: String },
     body: { type: String },
+    pokeganID: { type: Number },
 };

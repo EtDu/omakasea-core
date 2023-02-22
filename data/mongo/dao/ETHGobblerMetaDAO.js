@@ -20,7 +20,7 @@ const CURRENT_HOST = process.env.CURRENT_HOST;
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 const PAGE_LIMIT = 28;
-const HATCHED_GEN = 2;
+const HATCHED_GEN = 3;
 
 const PROVIDER = new ethers.providers.JsonRpcProvider(
     HTTP_RPC_URL,
