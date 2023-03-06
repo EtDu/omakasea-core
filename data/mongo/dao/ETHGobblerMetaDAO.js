@@ -67,18 +67,20 @@ function baseMetadata(data) {
         parentID: gobbler.parentTokenID,
     };
 
+    const finalAttrs = Object.assign(attrObj, gobbler.equippedTraits);
+
     if (gobImage) {
-        attrObj.body = gobImage.body;
+        finalAttrs.body = gobImage.body;
     }
 
     if (ethGobbled) {
-        attrObj.ETHGobbled = ethGobbled;
+        finalAttrs.ETHGobbled = ethGobbled;
     }
 
-    for (const key of Object.keys(attrObj)) {
+    for (const key of Object.keys(finalAttrs)) {
         attributes.push({
             trait_type: key,
-            value: attrObj[key],
+            value: finalAttrs[key],
         });
     }
 

@@ -12,5 +12,6 @@ export default {
     isAwake: { type: Boolean, default: true },
     isBuried: { type: Boolean, default: false },
     name: { type: String, default: null },
+    equippedTraits: { type: Object, default: {} },
     createdAt: { type: Number },
 };
