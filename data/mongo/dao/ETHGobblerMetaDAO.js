@@ -11,6 +11,7 @@ import ETHGobblerImageDAO from "./ETHGobblerImageDAO.js";
 import EthersUtil from "../../../util/EthersUtil.js";
 
 import TimeUtil from "../../../../omakasea-core/util/TimeUtil.js";
+import ETHGobblersEffectDAO from "./ETHGobblerEffectDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -56,6 +57,19 @@ function baseMetadata(data) {
     const image = getImageURL(tokenID);
     const attributes = [];
 
+    const effects = ETHGobblersEffectDAO.search({
+        tokenID,
+        duration: { $or: [{ $gt: 0 }, null] },
+        isActive: true,
+    });
+
+    let effectsObj = {};
+    if (effects.length > 0) {
+        effects.forEach((effect, index) => {
+            effectsObj[`effect${index + 1}`] = effect.description;
+        });
+    }
+
     const attrObj = {
         generation: gobbler.generation,
         health: gobbler.health,
@@ -67,7 +81,10 @@ function baseMetadata(data) {
         parentID: gobbler.parentTokenID,
     };
 
-    const finalAttrs = Object.assign(attrObj, gobbler.equippedTraits);
+    const finalAttrs = Object.assign(attrObj, [
+        gobbler.equippedTraits,
+        effectsObj,
+    ]);
 
     if (gobImage) {
         finalAttrs.body = gobImage.body;
