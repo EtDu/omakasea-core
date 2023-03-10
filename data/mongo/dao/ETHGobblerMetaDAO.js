@@ -12,6 +12,7 @@ import EthersUtil from "../../../util/EthersUtil.js";
 
 import TimeUtil from "../../../../omakasea-core/util/TimeUtil.js";
 import ETHGobblersEffectDAO from "./ETHGobblerEffectDAO.js";
+import ETHGobblerEquipDAO from "./ETHGobblerEquipDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -63,12 +64,20 @@ function baseMetadata(data) {
         isActive: true,
     });
 
-    let effectsObj = {};
+    let effectsAttributes = {};
     if (effects.length > 0) {
         effects.forEach((effect, index) => {
-            effectsObj[`effect${index + 1}`] = effect.description;
+            effectsAttributes[`effect${index + 1}`] = effect.description;
         });
     }
+
+    const equip = ETHGobblerEquipDAO.get({ tokenID });
+    const equipEntries = Object.entries(equip);
+    const equipAttributes = {};
+    equipEntries.forEach((entry) => {
+        if (entry[1] && entry[0] !== "tokenID" && entry[0] !== "createdAt")
+            equipAttributes[entry[0]] = entry[1];
+    });
 
     const attrObj = {
         generation: gobbler.generation,
@@ -82,8 +91,8 @@ function baseMetadata(data) {
     };
 
     const finalAttrs = Object.assign(attrObj, [
-        gobbler.equippedTraits,
-        effectsObj,
+        equipAttributes,
+        effectsAttributes,
     ]);
 
     if (gobImage) {
