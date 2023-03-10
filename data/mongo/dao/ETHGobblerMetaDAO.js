@@ -49,7 +49,7 @@ function getAge(gobbler) {
     return `${days} days`;
 }
 
-function baseMetadata(data) {
+async function baseMetadata(data) {
     const { gobbler, gobImage, ethGobbled } = data;
 
     const tokenID = gobbler.tokenID;
@@ -71,7 +71,7 @@ function baseMetadata(data) {
         });
     }
 
-    const equip = ETHGobblerEquipDAO.get({ tokenID });
+    const equip = await ETHGobblerEquipDAO.get({ tokenID });
     const equipEntries = Object.entries(equip);
     const equipAttributes = {};
     equipEntries.forEach((entry) => {
@@ -138,14 +138,14 @@ class ETHGobblerMetaDAO {
         }
 
         metadata.isBuried = isBuried;
-        metadata.data = baseMetadata({ gobbler, gobImage });
+        metadata.data = await baseMetadata({ gobbler, gobImage });
 
         await this.save(metadata);
 
         setTimeout(async () => {
             const amount = await CONTRACT.ETHGobbled(gobbler.tokenID);
             const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
-            metadata.data = baseMetadata({ gobbler, gobImage, ethGobbled });
+            metadata.data = await baseMetadata({ gobbler, gobImage, ethGobbled });
             metadata.updatedAt = TimeUtil.now();
             await ETHGobblerMetaDAO.save(metadata);
         }, 3000);
