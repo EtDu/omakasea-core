@@ -6,6 +6,7 @@ export default {
     subID: { type: Number, default: 0 },
     maxSupply: { type: Number, default: null },
     type: { type: String },
+    equipSlot: { type: String },
     effect: { type: Object },
     template: { type: String },
     createdAt: { type: Number },

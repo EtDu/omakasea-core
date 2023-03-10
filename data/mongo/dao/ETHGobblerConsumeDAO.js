@@ -1,22 +1,22 @@
 import __BaseDAO__ from "./__BaseDAO__.js";
-import ETHGobblersConsume from "../models/ETHGobblersConsume.js";
+import ETHGobblerConsume from "../models/ETHGobblerConsume.js";
 
-class ETHGobblersConsumeDAO {
+class ETHGobblerConsumeDAO {
     static get(query) {
-        return __BaseDAO__.__get__(ETHGobblersConsume, query);
+        return __BaseDAO__.__get__(ETHGobblerConsume, query);
     }
 
     static search(query, orderBy = {}) {
-        return __BaseDAO__.__search__(ETHGobblersConsume, query, {}, orderBy);
+        return __BaseDAO__.__search__(ETHGobblerConsume, query, {}, orderBy);
     }
 
     static create(consume) {
         consume.createdAt = Date.now();
-        return __BaseDAO__.__save__(new ETHGobblersConsume(consume));
+        return __BaseDAO__.__save__(new ETHGobblerConsume(consume));
     }
 
     static insert(action) {
-        return __BaseDAO__.__save__(new ETHGobblersConsume(action));
+        return __BaseDAO__.__save__(new ETHGobblerConsume(action));
     }
 
     static save(doc) {
@@ -24,4 +24,4 @@ class ETHGobblersConsumeDAO {
     }
 }
 
-export default ETHGobblersConsumeDAO;
+export default ETHGobblerConsumeDAO;

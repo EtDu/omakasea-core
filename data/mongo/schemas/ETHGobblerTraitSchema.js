@@ -4,7 +4,7 @@ export default {
     gobblerID: { type: Number, default: null },
     traitID: { type: Number, default: null },
     type: { type: String },
-    equippedWithGooeyID: { type: Number },
+    equipSlot: { type: Number, default: null },
     metadata: { type: Object, default: {} },
     createdAt: { type: Number },
 };
