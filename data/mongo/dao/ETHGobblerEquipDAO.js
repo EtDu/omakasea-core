@@ -20,9 +20,10 @@ class ETHGobblerEquipDAO {
         return newEquip;
     }
 
-    static get(query) {
-        const result = __BaseDAO__.__get__(ETHGobblerEquip, query);
-        if (!result) return this.create(equip);
+    static async get(query) {
+        const result = await __BaseDAO__.__get__(ETHGobblerEquip, query);
+        console.log("result", result);
+        if (!result) return this.create({});
     }
 
     static search(query, orderBy = {}) {
