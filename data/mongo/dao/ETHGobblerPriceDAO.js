@@ -16,8 +16,13 @@ class ETHGobblerPriceDAO {
                             updatedAt,
                         );
                         if (hoursSince > 1) {
-                            price.data = await ContractPrices.getPrices();
-                            this.save(price);
+                            try {
+                                price.data = await ContractPrices.getPrices();
+                                this.save(price);
+                            } catch(e) {
+                                price.data = price.data;
+                                this.save(price);
+                            }
                         }
 
                         resolve(price);
