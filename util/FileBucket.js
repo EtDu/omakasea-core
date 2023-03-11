@@ -71,7 +71,7 @@ class FileBucket {
             if (stat.isFile()) {
                 await this.uploadSingle(filePath, rootPath, bucketName);
             } else if (stat.isDirectory()) {
-                await this.walk(filePath);
+                await this.walk(filePath, bucketName);
             }
         }
     }
