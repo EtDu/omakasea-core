@@ -7,7 +7,7 @@ class ETHGobblerEquipDAO {
     }
 
     static async wipe(tokenID) {
-        const equip = this.get({ tokenID });
+        const equip = await this.get({ tokenID });
         equip.Background = null;
         equip.Weather = null;
         equip.Sidekick = null;
@@ -22,8 +22,12 @@ class ETHGobblerEquipDAO {
 
     static async get(query) {
         const result = await __BaseDAO__.__get__(ETHGobblerEquip, query);
-        console.log("result", result);
-        if (!result) return this.create({});
+        if (!result && query.tokenID) {
+            return this.create({ tokenID: query.tokenID });
+        } else if (!result) {
+            return this.create();
+        }
+        return result;
     }
 
     static search(query, orderBy = {}) {

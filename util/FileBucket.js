@@ -5,6 +5,7 @@ import {
     PutObjectCommand,
     CreateBucketCommand,
     DeleteBucketCommand,
+    GetObjectCommand,
     ListBucketsCommand,
     ListObjectsCommand,
     DeleteObjectCommand,
@@ -111,6 +112,33 @@ class FileBucket {
         for (let item of contents) {
             await this.deleteItem(name, item.Key);
         }
+    }
+
+    // streamToString(stream) {
+    //     const chunks = [];
+    //     return new Promise((resolve, reject) => {
+    //         stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    //         stream.on("error", (err) => reject(err));
+    //         stream.on("end", () =>
+    //             resolve(Buffer.concat(chunks).toString("utf8")),
+    //         );
+    //     });
+    // }
+
+    async downloadItem(fileName, bucketName) {
+        const bucketParams = {
+            Bucket: bucketName,
+            Key: fileName,
+        };
+        try {
+            const response = await this.s3Client.send(
+                new GetObjectCommand(bucketParams),
+            );
+            return response.Body;
+        } catch (e) {
+            return null;
+        }
+        // const data = await streamToString(response.Body);
     }
 }
 
