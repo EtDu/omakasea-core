@@ -13,6 +13,7 @@ import EthersUtil from "../../../util/EthersUtil.js";
 import TimeUtil from "../../../../omakasea-core/util/TimeUtil.js";
 import ETHGobblersEffectDAO from "./ETHGobblerEffectDAO.js";
 import ETHGobblerEquipDAO from "./ETHGobblerEquipDAO.js";
+import ETHGobblerTraitDAO from "./ETHGobblerTraitDAO.js";
 
 const BLOCKCHAIN_NETWORK = process.env.BLOCKCHAIN_NETWORK;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
@@ -33,6 +34,10 @@ const CONTRACT = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
 
 function getImageURL(tokenID) {
     return `${CURRENT_HOST}/image/${tokenID}`;
+}
+
+function getAnimationURL(tokenID) {
+    return `${CURRENT_HOST}/animation/${tokenID}`;
 }
 
 function getAge(gobbler) {
@@ -56,6 +61,7 @@ async function baseMetadata(data) {
     const name = gobbler.name === null ? `Gooey #${tokenID}` : gobbler.name;
     const description = "ETH Gobblers, a Christmas project by Omakasea.";
     const image = getImageURL(tokenID);
+    const animation_url = getAnimationURL(tokenID);
     const attributes = [];
 
     const effects = ETHGobblersEffectDAO.search({
@@ -71,18 +77,17 @@ async function baseMetadata(data) {
         });
     }
 
-    const equip = await ETHGobblerEquipDAO.get({ tokenID });
-    const equipDoc = equip._doc;
-    delete equipDoc.tokenID;
-    delete equipDoc.createdAt;
-    delete equipDoc.__v;
-    delete equipDoc._id;
+    const equipDoc = await ETHGobblerEquipDAO.slotsOnly({ tokenID });
 
     const equipEntries = Object.entries(equipDoc);
     const equipAttributes = {};
-    equipEntries.forEach((entry) => {
-        if (entry[1]) equipAttributes[entry[0]] = entry[1];
-    });
+    for (let entry of equipEntries) {
+        if (!entry[1]) continue;
+        const trait = await ETHGobblerTraitDAO.get({
+            traitID: entry[1],
+        });
+        equipAttributes[entry[0]] = trait.metadata.name;
+    }
 
     const attrObj = {
         generation: gobbler.generation,
@@ -121,6 +126,7 @@ async function baseMetadata(data) {
         name,
         description,
         image,
+        animation_url,
         attributes,
     };
 }

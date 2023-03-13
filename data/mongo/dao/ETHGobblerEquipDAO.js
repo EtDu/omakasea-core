@@ -29,6 +29,16 @@ class ETHGobblerEquipDAO {
         }
         return result;
     }
+    static async slotsOnly(query) {
+        const result = await __BaseDAO__.__get__(ETHGobblerEquip, query);
+        if (!result) return null;
+        const equipDoc = result._doc;
+        delete equipDoc.tokenID;
+        delete equipDoc.createdAt;
+        delete equipDoc.__v;
+        delete equipDoc._id;
+        return equipDoc;
+    }
 
     static search(query, orderBy = {}) {
         return __BaseDAO__.__search__(ETHGobblerEquip, query, {}, orderBy);
