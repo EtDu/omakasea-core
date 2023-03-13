@@ -25,7 +25,7 @@ class ETHGobblerEquipDAO {
         if (!result && query.tokenID) {
             return this.create({ tokenID: query.tokenID });
         } else if (!result) {
-            return this.create();
+            return this.create({});
         }
         return result;
     }
