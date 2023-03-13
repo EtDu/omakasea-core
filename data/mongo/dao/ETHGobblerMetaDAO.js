@@ -72,11 +72,16 @@ async function baseMetadata(data) {
     }
 
     const equip = await ETHGobblerEquipDAO.get({ tokenID });
-    const equipEntries = Object.entries(equip);
+    const equipDoc = equip._doc;
+    delete equipDoc.tokenID;
+    delete equipDoc.createdAt;
+    delete equipDoc.__v;
+    delete equipDoc._id;
+
+    const equipEntries = Object.entries(equipDoc);
     const equipAttributes = {};
     equipEntries.forEach((entry) => {
-        if (entry[1] && entry[0] !== "tokenID" && entry[0] !== "createdAt")
-            equipAttributes[entry[0]] = entry[1];
+        if (entry[1]) equipAttributes[entry[0]] = entry[1];
     });
 
     const attrObj = {
@@ -90,10 +95,11 @@ async function baseMetadata(data) {
         parentID: gobbler.parentTokenID,
     };
 
-    const finalAttrs = Object.assign(attrObj, [
+    const finalAttrs = Object.assign(
+        attrObj,
         equipAttributes,
         effectsAttributes,
-    ]);
+    );
 
     if (gobImage) {
         finalAttrs.body = gobImage.body;
@@ -145,7 +151,11 @@ class ETHGobblerMetaDAO {
         setTimeout(async () => {
             const amount = await CONTRACT.ETHGobbled(gobbler.tokenID);
             const ethGobbled = EthersUtil.fromWeiBN({ amount, to: "ether" });
-            metadata.data = await baseMetadata({ gobbler, gobImage, ethGobbled });
+            metadata.data = await baseMetadata({
+                gobbler,
+                gobImage,
+                ethGobbled,
+            });
             metadata.updatedAt = TimeUtil.now();
             await ETHGobblerMetaDAO.save(metadata);
         }, 3000);
