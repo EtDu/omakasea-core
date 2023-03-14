@@ -79,7 +79,6 @@ class FileBucket {
 
     async uploadSingle(filePath, rootPath, bucketName) {
         const bucketPath = filePath.substring(rootPath.length + 1);
-        console.log(bucketPath);
         const file = await fs.readFile(filePath);
         const uploadParams = {
             Bucket: bucketName,
