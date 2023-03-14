@@ -30,7 +30,7 @@ class ETHGobblerEquipDAO {
         return result;
     }
     static async slotsOnly(query) {
-        const result = await __BaseDAO__.__get__(ETHGobblerEquip, query);
+        const result = await this.get(query);
         if (!result) return null;
         const equipDoc = result._doc;
         delete equipDoc.tokenID;
