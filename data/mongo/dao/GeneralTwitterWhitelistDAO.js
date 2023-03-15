@@ -6,7 +6,7 @@ import ethers from "ethers";
 const getAddress = ethers.utils.getAddress;
 
 import __BaseDAO__ from "./__BaseDAO__.js";
-import TwitterWhitelist from "../models/TwitterWhitelist.js";
+import GeneralTwitterWhitelist from "../models/GeneralTwitterWhitelist.js";
 
 class GeneralTwitterWhitelistDAO {
   static readSignature(req) {
@@ -19,7 +19,7 @@ class GeneralTwitterWhitelistDAO {
           signature: sig,
         })
       );
-
+        console.log(address)
       resolve({ address, message });
     });
   }
@@ -27,12 +27,12 @@ class GeneralTwitterWhitelistDAO {
   static get(query) {
     return new Promise((resolve, reject) => {
       __BaseDAO__
-        .__get__(TwitterWhitelist, query)
+        .__get__(GeneralTwitterWhitelist, query)
         .then((document) => {
           if (document !== null) {
             resolve(document);
           } else {
-            reject();
+            reject(null);
           }
         })
         .catch(reject);
@@ -40,7 +40,7 @@ class GeneralTwitterWhitelistDAO {
   }
 
   static search(query, fields = {}) {
-    return __BaseDAO__.__search__(TwitterWhitelist, query, fields);
+    return __BaseDAO__.__search__(GeneralTwitterWhitelist, query, fields);
   }
 
   static save(document) {
@@ -65,34 +65,37 @@ class GeneralTwitterWhitelistDAO {
         },
       };
 
-      __BaseDAO__.__save__(new TwitterWhitelist(links.naughty)).then(() => {
-        __BaseDAO__.__save__(new TwitterWhitelist(links.nice)).then(() => {
+      __BaseDAO__.__save__(new GeneralTwitterWhitelist(links.naughty)).then(() => {
+        __BaseDAO__.__save__(new GeneralTwitterWhitelist(links.nice)).then(() => {
           resolve([links.naughty, links.nice]);
         });
       });
     });
   }
 
-  static seed(address, host) {
-    return new Promise((resolve, reject) => {
-      const createdAt = Date.now();
-      const links = [];
-      let i = 0;
-      while (i < 50) {
-        const entry = {
-          inviteID: ShortHash(crypto.randomUUID()),
-          originator: address,
-          createdAt,
-        };
-
-        __BaseDAO__.__save__(new TwitterWhitelist(entry)).then((doc) => {
-          links.push(`${host}/invite/${doc.inviteID}`);
-        });
-        i++;
+  static async seed(address, host) {
+    const createdAt = Date.now();
+    const links = [];
+  
+    for (let i = 0; i < 50; i++) {
+      const entry = {
+        inviteID: ShortHash(crypto.randomUUID()),
+        originator: address,
+        createdAt,
+      };
+  
+      try {
+        const doc = await __BaseDAO__.__save__(new GeneralTwitterWhitelist(entry));
+        links.push(`${host}/invite/${doc.inviteID}`);
+      } catch (error) {
+        console.error(error);
       }
-      resolve(links);
-    });
+    }
+    console.log(links)
+    return links;
   }
+
+
 }
 
 export default GeneralTwitterWhitelistDAO;
