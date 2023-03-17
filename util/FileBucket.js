@@ -11,6 +11,8 @@ import {
     DeleteObjectCommand,
     S3Client,
 } from "@aws-sdk/client-s3";
+
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { fstat, promises as fs } from "fs";
 import path from "path";
 
@@ -135,6 +137,21 @@ class FileBucket {
             );
             return response.Body;
         } catch (e) {
+            return null;
+        }
+        // const data = await streamToString(response.Body);
+    }
+
+    async generateSignedDownloadLink(fileName, bucketName) {
+        const bucketParams = {
+            Bucket: bucketName,
+            Key: fileName,
+        };
+        try {
+            const url = await getSignedUrl(this.s3Client, new GetObjectCommand(bucketParams), { expiresIn: 15 * 60 }); // Adjustable expiration.
+            return url
+        } catch (e) {
+            console.log(e)
             return null;
         }
         // const data = await streamToString(response.Body);
