@@ -135,6 +135,7 @@ class FileBucket {
             );
             return response.Body;
         } catch (e) {
+            console.log(e)
             return null;
         }
         // const data = await streamToString(response.Body);
