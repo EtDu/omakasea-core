@@ -9,7 +9,8 @@ import {
     ListBucketsCommand,
     ListObjectsCommand,
     DeleteObjectCommand,
-    S3Client,
+    HeadObjectCommand,
+    S3Client
 } from "@aws-sdk/client-s3";
 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
@@ -62,8 +63,7 @@ class FileBucket {
             new ListObjectsCommand(bucketParams),
         );
         const fileNames = data.Contents.map((content) => content.Key);
-        console.log(`Bucket Contents For ${name}:`, fileNames);
-        return data.Contents;
+        return fileNames;
     }
 
     async walk(rootPath, bucketName) {
@@ -142,7 +142,23 @@ class FileBucket {
         // const data = await streamToString(response.Body);
     }
 
+    async checkIfObjectExists(fileName, bucketName) {
+        try {
+          const headObjectCommand = new HeadObjectCommand({
+            Bucket: bucketName,
+            Key: fileName,
+          });
+      
+          await this.s3Client.send(headObjectCommand);
+          return true;
+        } catch (error) {
+           return false
+        }
+      }
+
     async generateSignedDownloadLink(fileName, bucketName) {
+        const exists = await this.checkIfObjectExists(fileName, bucketName)
+        if (!exists) return null
         const bucketParams = {
             Bucket: bucketName,
             Key: fileName,
