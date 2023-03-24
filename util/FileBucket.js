@@ -9,8 +9,11 @@ import {
     ListBucketsCommand,
     ListObjectsCommand,
     DeleteObjectCommand,
-    S3Client,
+    HeadObjectCommand,
+    S3Client
 } from "@aws-sdk/client-s3";
+
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { fstat, promises as fs } from "fs";
 import path from "path";
 
@@ -60,8 +63,7 @@ class FileBucket {
             new ListObjectsCommand(bucketParams),
         );
         const fileNames = data.Contents.map((content) => content.Key);
-        console.log(`Bucket Contents For ${name}:`, fileNames);
-        return data.Contents;
+        return fileNames;
     }
 
     async walk(rootPath, bucketName) {
@@ -134,6 +136,37 @@ class FileBucket {
                 new GetObjectCommand(bucketParams),
             );
             return response.Body;
+        } catch (e) {
+            console.log(e)
+            return null;
+        }
+        // const data = await streamToString(response.Body);
+    }
+
+    async checkIfObjectExists(fileName, bucketName) {
+        try {
+          const headObjectCommand = new HeadObjectCommand({
+            Bucket: bucketName,
+            Key: fileName,
+          });
+      
+          await this.s3Client.send(headObjectCommand);
+          return true;
+        } catch (error) {
+           return false
+        }
+      }
+
+    async generateSignedDownloadLink(fileName, bucketName) {
+        const exists = await this.checkIfObjectExists(fileName, bucketName)
+        if (!exists) return null
+        const bucketParams = {
+            Bucket: bucketName,
+            Key: fileName,
+        };
+        try {
+            const url = await getSignedUrl(this.s3Client, new GetObjectCommand(bucketParams), { expiresIn: 15 * 60 }); // Adjustable expiration.
+            return url
         } catch (e) {
             console.log(e)
             return null;
