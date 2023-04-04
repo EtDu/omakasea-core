@@ -158,10 +158,7 @@ class FileBucket {
 
     async generateSignedDownloadLink(fileName, bucketName) {
         const exists = await this.checkIfObjectExists(fileName, bucketName);
-        if (!exists)
-            throw new Error(
-                `Object ${fileName} does not exist in ${bucketName}`,
-            );
+        if (!exists) return null;
         const bucketParams = {
             Bucket: bucketName,
             Key: fileName,
@@ -174,7 +171,7 @@ class FileBucket {
             ); // Adjustable expiration.
             return url;
         } catch (e) {
-            throw e;
+            return null;
         }
         // const data = await streamToString(response.Body);
     }
