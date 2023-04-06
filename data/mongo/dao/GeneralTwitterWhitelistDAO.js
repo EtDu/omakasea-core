@@ -86,7 +86,7 @@ class GeneralTwitterWhitelistDAO {
   
       try {
         const doc = await __BaseDAO__.__save__(new GeneralTwitterWhitelist(entry));
-        links.push(`${host}/invite/${doc.inviteID}`);
+        links.push(`${host}/whitelist/invite/${doc.inviteID}`);
       } catch (error) {
         console.error(error);
       }
