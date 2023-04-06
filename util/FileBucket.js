@@ -10,10 +10,10 @@ import {
     ListObjectsCommand,
     DeleteObjectCommand,
     HeadObjectCommand,
-    S3Client
+    S3Client,
 } from "@aws-sdk/client-s3";
 
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { fstat, promises as fs } from "fs";
 import path from "path";
 
@@ -145,30 +145,33 @@ class FileBucket {
 
     async checkIfObjectExists(fileName, bucketName) {
         try {
-          const headObjectCommand = new HeadObjectCommand({
-            Bucket: bucketName,
-            Key: fileName,
-          });
-      
-          await this.s3Client.send(headObjectCommand);
-          return true;
+            const headObjectCommand = new HeadObjectCommand({
+                Bucket: bucketName,
+                Key: fileName,
+            });
+
+            await this.s3Client.send(headObjectCommand);
+            return true;
         } catch (error) {
-           return false
+            return false;
         }
-      }
+    }
 
     async generateSignedDownloadLink(fileName, bucketName) {
-        const exists = await this.checkIfObjectExists(fileName, bucketName)
-        if (!exists) return null
+        const exists = await this.checkIfObjectExists(fileName, bucketName);
+        if (!exists) return null;
         const bucketParams = {
             Bucket: bucketName,
             Key: fileName,
         };
         try {
-            const url = await getSignedUrl(this.s3Client, new GetObjectCommand(bucketParams), { expiresIn: 15 * 60 }); // Adjustable expiration.
-            return url
+            const url = await getSignedUrl(
+                this.s3Client,
+                new GetObjectCommand(bucketParams),
+                { expiresIn: 15 * 60 },
+            ); // Adjustable expiration.
+            return url;
         } catch (e) {
-            console.log(e)
             return null;
         }
         // const data = await streamToString(response.Body);
