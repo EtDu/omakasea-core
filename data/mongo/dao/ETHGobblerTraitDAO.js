@@ -47,12 +47,8 @@ class ETHGobblerTraitDAO {
         });
     }
 
-    static async DELETE(credit) {
-        const { traitID, createdAt } = credit;
-        await ETHGobblerTrait.deleteOne({
-            traitID,
-            createdAt,
-        });
+    static async DELETE(trait) {
+        await ETHGobblerTrait.deleteOne(trait);
     }
 }
 

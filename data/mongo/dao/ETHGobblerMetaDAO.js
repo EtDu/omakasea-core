@@ -86,7 +86,7 @@ async function baseMetadata(data) {
         const trait = await ETHGobblerTraitDAO.get({
             traitID: entry[1],
         });
-        equipAttributes[entry[0]] = trait.metadata.name;
+        if (trait) equipAttributes[entry[0]] = trait.metadata.name;
     }
 
     const attrObj = {
