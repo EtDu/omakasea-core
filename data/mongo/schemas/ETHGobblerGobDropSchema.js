@@ -8,6 +8,7 @@ export default {
     type: { type: String },
     equipSlot: { type: String },
     effect: { type: Object },
+    criteria: { type: Object },
     varietyAssignment: { type: Object },
     varieties: { type: Object },
     template: { type: String },
