@@ -4,7 +4,7 @@ import ETHGobblerImage from "../models/ETHGobblerImage.js";
 import ETHGobblerDAO from "./ETHGobblerDAO.js";
 import { ONE_OF_ONE_BODY_NAMES } from "../../../../utils/constants.js";
 
-const CURRENT_HATCH_GEN = 3;
+const CURRENT_HATCH_GEN = 4;
 
 async function assignOneOfOne() {
     const raw = await fs.readFile(ONE_OF_ONE_BODY_NAMES);
@@ -88,9 +88,42 @@ async function CREATE_GENERATION_3(parent, gooey, resultHatch) {
     }
 }
 
+async function CREATE_GENERATION_4(parent, gooey, subDir) {
+    if (parent !== null) {
+        let { baseImage, body } = await ETHGobblerImageDAO.get({
+            tokenID: parent.tokenID,
+        });
+
+        baseImage = baseImage
+            .replace("_dua", "_pixel_dua")
+            .replace("_satu", "_pixel_satu");
+
+        if (body === "Goat") {
+            body = "Green Hamster";
+            baseImage = baseImage.replace("139", "176");
+        }
+
+        const { tokenID, generation } = gooey;
+
+        const image = {
+            tokenID,
+            generation,
+            body,
+            baseImage,
+            subDir,
+        };
+
+        await ETHGobblerImageDAO.create(image);
+    }
+}
+
 class ETHGobblerImageDAO {
     static async inherit(parent, gooey, resultHatch) {
         if (gooey.generation === CURRENT_HATCH_GEN) {
+            await CREATE_GENERATION_4(parent, gooey, resultHatch.subDir);
+        } else if (gooey.generation === 2) {
+            await CREATE_GENERATION_2(parent, gooey, resultHatch.subDir);
+        } else if (gooey.generation === 3) {
             const { bodyName, index, done } = await assignOneOfOne();
 
             if (done) {
@@ -101,8 +134,6 @@ class ETHGobblerImageDAO {
             }
 
             await CREATE_GENERATION_3(parent, gooey, resultHatch);
-        } else if (gooey.generation === 2) {
-            await CREATE_GENERATION_2(parent, gooey, resultHatch.subDir);
         }
     }
 
