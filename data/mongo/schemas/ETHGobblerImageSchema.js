@@ -5,4 +5,5 @@ export default {
     subDir: { type: String },
     body: { type: String },
     pokeganID: { type: Number },
+    PLAID: { type: Number },
 };
