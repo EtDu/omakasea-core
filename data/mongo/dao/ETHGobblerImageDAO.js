@@ -186,7 +186,7 @@ async function CREATE_JELLY(parent, gooey, resultHatch) {
     const { bodyName, index, done } = await assignOneOfOne("JELLYS.json");
 
     if (done) {
-        return { noneLeft: true }
+        return { noneLeft: true };
     } else {
         resultHatch.bodyName = bodyName;
         resultHatch.index = index;
@@ -201,7 +201,7 @@ async function CREATE_JELLY(parent, gooey, resultHatch) {
 
         const { bodyName, index } = resultHatch;
         body = bodyName;
-        baseImage = `${index}_jelly`;
+        baseImage = `${index}_hexgoo`;
 
         const image = {
             tokenID,
@@ -210,13 +210,13 @@ async function CREATE_JELLY(parent, gooey, resultHatch) {
             baseImage,
             subDir: "ONE_OF_ONE",
         };
-``
+
         if (resultHatch.licenseID) {
             image.licenseID = resultHatch.licenseID;
         }
 
         if (resultHatch.jellyIDs) {
-            image.jellyIDs = resultHatch.jellyIDs
+            image.jellyIDs = resultHatch.jellyIDs;
         }
 
         await ETHGobblerImageDAO.create(image);
@@ -227,8 +227,8 @@ class ETHGobblerImageDAO {
     static async inherit(parent, gooey, resultHatch) {
         // different case for jelly goos
         if (resultHatch.licenseID || resultHatch.jellyIDs) {
-            const result = await CREATE_JELLY(parent, gooey, resultHatch)
-            if (!result.noneLeft) return
+            const result = await CREATE_JELLY(parent, gooey, resultHatch);
+            if (!result.noneLeft) return;
         }
 
         switch (gooey.generation) {
