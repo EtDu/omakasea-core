@@ -45,7 +45,7 @@ class GeneralTwitterWhitelistDAO {
         .getByAddress(GeneralTwitterWhitelist, address)
         .then((document) => {
           if (document !== null) {
-            resolve(document);
+            resolve(document[0]);
           } else {
             reject(null);
           }

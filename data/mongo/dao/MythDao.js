@@ -56,7 +56,7 @@ class __BaseDAO__ {
                 if(document.length > 0){
                     resolve(document);
                 }else{
-                    reject(new Error('No document found'));
+                    reject(new Error('No address found'));
                 }
                
             })
