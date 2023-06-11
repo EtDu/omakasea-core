@@ -49,23 +49,6 @@ class __BaseDAO__ {
         });
     }
 
-    static getByAddress(Model, query) {
-        return new Promise((resolve, reject) => {
-            Model.find({owner: { $regex: new RegExp(query, "i") }})
-            .then(document => {
-                if(document.length > 0){
-                    resolve(document);
-                }else{
-                    reject(new Error('No address found'));
-                }
-               
-            })
-            .catch(error => {
-                reject(error);
-            });
-        });
-    }
-
     static __fetch__(Model, query) {
         return new Promise((resolve, reject) => {
             __BaseDAO__.__get__(Model, query).then((document) => {
