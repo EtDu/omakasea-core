@@ -5,7 +5,7 @@ import { recoverPersonalSignature } from "@metamask/eth-sig-util";
 import ethers from "ethers";
 const getAddress = ethers.utils.getAddress;
 
-import __BaseDAO__ from "./__BaseDAO__.js";
+import __BaseDAO__ from "./MythDao.js";
 import GeneralTwitterWhitelist from "../models/GeneralTwitterWhitelist.js";
 
 class GeneralTwitterWhitelistDAO {
@@ -28,6 +28,21 @@ class GeneralTwitterWhitelistDAO {
     return new Promise((resolve, reject) => {
       __BaseDAO__
         .__get__(GeneralTwitterWhitelist, query)
+        .then((document) => {
+          if (document !== null) {
+            resolve(document);
+          } else {
+            reject(null);
+          }
+        })
+        .catch(reject);
+    });
+  }
+
+  static getAddress(address) {
+    return new Promise((resolve, reject) => {
+      __BaseDAO__
+        .getByAddress(GeneralTwitterWhitelist, address)
         .then((document) => {
           if (document !== null) {
             resolve(document);
