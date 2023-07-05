@@ -55,8 +55,6 @@ class GeneralTwitterWhitelistDAO {
         });
     });
 }
-
-
   static getAddressOnWhitelist(address) {
     return new Promise((resolve, reject) => {
       this.getByAddress(GeneralTwitterWhitelist, address)
