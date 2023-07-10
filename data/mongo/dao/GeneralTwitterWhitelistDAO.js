@@ -13,12 +13,9 @@ class GeneralTwitterWhitelistDAO {
     return new Promise((resolve, reject) => {
       const sig = req.body.sig;
       const message = req.body.message;
-      const address = getAddress(
-        recoverPersonalSignature({
-          data: message,
-          signature: sig,
-        })
-      );
+      const address = ethers.utils.getAddress(
+        recoverPersonalSignature({ data: message, signature: sig }),
+    );
         console.log(address)
       resolve({ address, message });
     });

@@ -1,4 +1,5 @@
 export default {
+    mythAgentID: { type: Number, default: null },
     waifuWarriorID: { type: Number, default: null },
     armor: {
         id: { type: String, default: null },
