@@ -37,6 +37,16 @@ class Endpoints {
             QUICKNODE_HTTPS_8,
             QUICKNODE_HTTPS_9,
             QUICKNODE_HTTPS_10,
+            QUICKNODE_WSS_1,
+            QUICKNODE_WSS_2,
+            QUICKNODE_WSS_3,
+            QUICKNODE_WSS_4,
+            QUICKNODE_WSS_5,
+            QUICKNODE_WSS_6,
+            QUICKNODE_WSS_7,
+            QUICKNODE_WSS_8,
+            QUICKNODE_WSS_9,
+            QUICKNODE_WSS_10,
         ];
 
         if (!QUICKNODE_HTTPS_1)

@@ -5,4 +5,7 @@ export default {
     subDir: { type: String },
     body: { type: String },
     pokeganID: { type: Number },
+    PLAID: { type: Number },
+    jellyIDs: { type: Array },
+    licenseID: { type: Number },
 };
