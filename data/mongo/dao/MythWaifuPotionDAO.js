@@ -22,6 +22,10 @@ class MythPotionDAO {
   static save(doc) {
     return __BaseDAO__.__save__(doc);
   }
+
+  static delete(query) {
+    return __BaseDAO__.__delete__(MythPotion, query);
+  }
 }
 
 export default MythPotionDAO;
